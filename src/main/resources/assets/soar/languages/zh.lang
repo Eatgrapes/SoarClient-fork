@@ -122,6 +122,19 @@ setting.text=文本
 setting.text.description=自定义水印文本
 mode.icon=图标
 
+mod.arraylist.name=模组列表
+mod.arraylist.description=显示已启用的模组列表
+setting.hud=HUD
+setting.hud.description=显示HUD类别模组
+setting.render=渲染
+setting.render.description=显示渲染类别模组
+setting.player=玩家
+setting.player.description=显示玩家类别模组
+setting.other=其他
+setting.other.description=显示其他类别模组
+setting.mode=模式
+setting.mode.description=设置对齐模式
+
 mod.autotext.name=自动文本
 mod.autotext.description=通过快捷键自动发送预设文本消息
 setting.text1key=文本1快捷键

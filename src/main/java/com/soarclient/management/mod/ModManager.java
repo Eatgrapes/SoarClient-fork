@@ -71,6 +71,7 @@ public class ModManager {
 		mods.add(new YawDisplayMod());
         mods.add(new CPSDisplayMod());
         mods.add(new WatermarkMod());
+        mods.add(new ArrayListMod());
 
 		// Player
 		mods.add(new AutoGGMod());

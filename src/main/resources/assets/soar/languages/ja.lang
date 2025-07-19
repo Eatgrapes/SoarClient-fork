@@ -138,6 +138,19 @@ setting.text=テキスト
 setting.text.description=カスタムウォーターマークテキスト
 mode.icon=アイコン
 
+mod.arraylist.name=モジュールリスト
+mod.arraylist.description=有効なモジュールのリストを表示
+setting.hud=HUD
+setting.hud.description=HUDカテゴリのモジュールを表示
+setting.render=レンダー
+setting.render.description=レンダーカテゴリのモジュールを表示
+setting.player=プレイヤー
+setting.player.description=プレイヤーカテゴリのモジュールを表示
+setting.other=その他
+setting.other.description=その他カテゴリのモジュールを表示
+setting.mode=モード
+setting.mode.description=配置モードを設定
+
 mod.autotext.name=自動テキスト
 mod.autotext.description=キーバインドで事前定義されたテキストメッセージを自動送信
 setting.text1key=テキスト1キーバインド

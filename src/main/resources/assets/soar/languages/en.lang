@@ -172,6 +172,19 @@ setting.text=Text
 setting.text.description=Custom watermark text
 mode.icon=Icon
 
+mod.arraylist.name=Array List
+mod.arraylist.description=Display enabled mods in a list
+setting.hud=HUD
+setting.hud.description=Show HUD category mods
+setting.render=Render
+setting.render.description=Show Render category mods
+setting.player=Player
+setting.player.description=Show Player category mods
+setting.other=Other
+setting.other.description=Show Other category mods
+setting.mode=Mode
+setting.mode.description=Set alignment mode
+
 mod.autotext.name=Auto Text
 mod.autotext.description=Automatically send predefined text messages with keybinds
 setting.text1key=Text 1 Keybind
