@@ -264,6 +264,11 @@ mod.webbrowser.description=Display the Web Browser
 mod.forcemainhand.name=Force Main Hand
 mod.forcemainhand.description=Force the main hand to be set
 
+mod.watermark.show_icon=Display logo
+mod.watermark.show_icon.description=Display the client logo
+mod.watermark.show_text=Display text
+mod.watermark.show_text.description=Display the set text
+
 setting.darkmode=Dark Mode
 setting.darkmode.description=Enable dark mode
 setting.keybind=Keybind

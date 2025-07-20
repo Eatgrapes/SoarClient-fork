@@ -274,6 +274,11 @@ font.microsoft_yahei=微软雅黑
 font.noto_sans=思源黑体
 custom.font=%s
 
+mod.watermark.show_icon=显示Logo
+mod.watermark.show_icon.description=显示客户端Logo
+mod.watermark.show_text=显示文字
+mod.watermark.show_text.description=显示设定的文字
+
 setting.icon=图标
 setting.background=背景
 setting.background.description=开/关普通模式下的信息背景

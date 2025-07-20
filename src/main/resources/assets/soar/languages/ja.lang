@@ -266,6 +266,11 @@ mod.webbrowser.description=ウェブブラウザを表示
 mod.forcemainhand.name=メインハンド強制
 mod.forcemainhand.description=メインハンドを強制設定
 
+mod.watermark.show_icon=ロゴを表示
+mod.watermark.show_icon.description=クライアントのロゴを表示する
+mod.watermark.show_text=文字を表示する
+mod.watermark.show_text.description=設定された文字を表示
+
 setting.darkmode=ダークモード
 setting.background=背景
 setting.background.description=普通モードでの情報背景をオン/オフ

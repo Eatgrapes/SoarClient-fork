@@ -8,40 +8,77 @@ import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.mod.api.hud.HUDMod;
 import com.soarclient.management.mod.settings.impl.StringSetting;
+import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
-
+import io.github.humbleui.skija.Image;
+import io.github.humbleui.skija.Paint;
 import io.github.humbleui.skija.FontMetrics;
+import io.github.humbleui.skija.Data;
 import io.github.humbleui.types.Rect;
 
 public class WatermarkMod extends HUDMod {
 
     private static WatermarkMod instance;
+    private Image logoImage;
 
-    private StringSetting textSetting = new StringSetting("setting.text",
+    private final StringSetting textSetting = new StringSetting("setting.text",
         "setting.text.description", Icon.TEXT_FIELDS, this, "Soar Client");
+
+    private final BooleanSetting showIconSetting = new BooleanSetting("mod.watermark.show_icon",
+        "mod.watermark.show_icon.description", Icon.IMAGE, this, false);
+
+    private final BooleanSetting showTextSetting = new BooleanSetting("mod.watermark.show_text",
+        "mod.watermark.show_text.description", Icon.TEXT_FIELDS, this, true);
 
     public WatermarkMod() {
         super("mod.watermark.name", "mod.watermark.description", Icon.BRANDING_WATERMARK);
         instance = this;
+        loadLogoImage();
+    }
+
+    private void loadLogoImage() {
+        try {
+            String path = "/assets/soar/logo.png";
+            try (var stream = this.getClass().getResourceAsStream(path)) {
+                if (stream != null) {
+                    byte[] imageData = stream.readAllBytes();
+                    logoImage = Image.makeFromEncoded(imageData);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading logo image: " + e.getMessage());
+        }
     }
 
     public static WatermarkMod getInstance() {
         return instance;
     }
 
-    public final EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
-        this.draw();
-    };
+    public final EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> draw();
 
     private void draw() {
         try {
             this.begin();
-            drawTextMode();
+            float offsetX = 0;
+            float maxHeight = 24;
+
+            if (showIconSetting.isEnabled() && logoImage != null) {
+                drawIconMode(offsetX);
+                offsetX += 28;
+            }
+
+            if (showTextSetting.isEnabled()) {
+                drawTextMode(offsetX);
+            } else if (showIconSetting.isEnabled() && logoImage != null) {
+                position.setSize(24, maxHeight);
+            } else {
+                position.setSize(10, maxHeight);
+            }
+
         } catch (Exception e) {
             System.err.println("Error in WatermarkMod.draw(): " + e.getMessage());
-            e.printStackTrace();
             position.setSize(100, 20);
         } finally {
             try {
@@ -52,26 +89,49 @@ public class WatermarkMod extends HUDMod {
         }
     }
 
-    private void drawTextMode() {
+    private void drawTextMode(float offsetX) {
         String text = textSetting.getValue();
         float fontSize = 24;
 
         Rect textBounds = Skia.getTextBounds(text, Fonts.getMedium(fontSize));
         FontMetrics metrics = Fonts.getMedium(fontSize).getMetrics();
 
-        float width = textBounds.getWidth();
-        float height = fontSize;
         float textCenterY = (metrics.getAscent() - metrics.getDescent()) / 2 - metrics.getAscent();
 
         Color gradientColor = getAnimatedColor();
 
-        Skia.drawText(text, getX() + 1, getY() + (height / 2) - textCenterY + 1,
+        Skia.drawText(text, getX() + offsetX + 1, getY() + (fontSize / 2) - textCenterY + 1,
             new Color(0, 0, 0, 100), Fonts.getMedium(fontSize));
 
-        Skia.drawText(text, getX(), getY() + (height / 2) - textCenterY,
+        Skia.drawText(text, getX() + offsetX, getY() + (fontSize / 2) - textCenterY,
             gradientColor, Fonts.getMedium(fontSize));
 
-        position.setSize(width, height);
+        float totalWidth = offsetX + textBounds.getWidth();
+        position.setSize(totalWidth, fontSize);
+    }
+
+    private void drawIconMode(float offsetX) {
+        if (logoImage == null) return;
+
+        float iconSize = 24;
+        Rect srcRect = Rect.makeXYWH(0, 0, logoImage.getWidth(), logoImage.getHeight());
+
+        try (var paint = new Paint()) {
+            paint.setColor(new Color(0, 0, 0, 100).getRGB());
+            Skia.getCanvas().drawImageRect(logoImage,
+                srcRect,
+                Rect.makeXYWH(getX() + offsetX + 1, getY() + 1, iconSize, iconSize),
+                paint);
+        }
+
+        Color gradientColor = getAnimatedColor();
+        try (var paint = new Paint()) {
+            paint.setColor(gradientColor.getRGB());
+            Skia.getCanvas().drawImageRect(logoImage,
+                srcRect,
+                Rect.makeXYWH(getX() + offsetX, getY(), iconSize, iconSize),
+                paint);
+        }
     }
 
     private Color getAnimatedColor() {
