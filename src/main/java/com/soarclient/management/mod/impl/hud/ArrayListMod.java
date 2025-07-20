@@ -26,7 +26,7 @@ public class ArrayListMod extends HUDMod {
 
     private static ArrayListMod instance;
     private BooleanSetting backgroundSetting = new BooleanSetting("setting.background",
-        "setting.background.description", Icon.IMAGE, this, true);
+        "setting.background1.description", Icon.IMAGE, this, true);
 
     private BooleanSetting hudSetting = new BooleanSetting("setting.hud",
         "setting.hud.description", Icon.DASHBOARD, this, false);

@@ -277,6 +277,7 @@ custom.font=%s
 setting.icon=图标
 setting.background=背景
 setting.background.description=开/关普通模式下的信息背景
+setting.background1.description=开/关信息背景
 setting.icon.description=设置显示的图标
 setting.color=颜色
 setting.color.description=选择颜色

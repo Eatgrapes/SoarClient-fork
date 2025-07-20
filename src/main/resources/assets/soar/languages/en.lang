@@ -272,6 +272,7 @@ setting.keybind.description=Set the keybind
 setting.font=Font
 setting.background=background
 setting.background.description=Turn on/off information background in normal mode
+setting.background1.description=Turn on/off information background
 setting.font.description=Change client font
 font.default=Default (Inter)
 font.microsoft_yahei=Microsoft YaHei

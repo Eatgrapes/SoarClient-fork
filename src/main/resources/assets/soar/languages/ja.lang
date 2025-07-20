@@ -269,6 +269,7 @@ mod.forcemainhand.description=メインハンドを強制設定
 setting.darkmode=ダークモード
 setting.background=背景
 setting.background.description=普通モードでの情報背景をオン/オフ
+etting.background1.description=情報背景をオン/オフ
 setting.darkmode.description=ダークモードを有効化
 setting.keybind=キーバインド
 setting.keybind.description=キーバインドを設定
