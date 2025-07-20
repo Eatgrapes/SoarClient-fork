@@ -185,6 +185,19 @@ setting.other.description=Show Other category mods
 setting.mode=Mode
 setting.mode.description=Set alignment mode
 
+mod.imagedisplay.name=Image Display
+mod.imagedisplay.description=Display custom images on screen
+setting.image=Image
+setting.image.description=Select image file to display
+setting.radius=Radius
+setting.radius.description=Set corner radius for rounded image
+setting.alpha=Alpha
+setting.alpha.description=Set image transparency
+setting.shadow=Shadow
+setting.shadow.description=Enable shadow effect
+setting.size=Size
+setting.size.description=Set image size multiplier
+
 mod.autotext.name=Auto Text
 mod.autotext.description=Automatically send predefined text messages with keybinds
 setting.text1key=Text 1 Keybind

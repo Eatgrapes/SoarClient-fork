@@ -25,6 +25,7 @@ import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.impl.settings.SystemSettings;
 import com.soarclient.management.mod.settings.Setting;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
+import io.github.humbleui.skija.Image;
 
 public class ModManager {
 
@@ -72,6 +73,7 @@ public class ModManager {
         mods.add(new CPSDisplayMod());
         mods.add(new WatermarkMod());
         mods.add(new ArrayListMod());
+        mods.add(new ImageDisplayMod());
 
 		// Player
 		mods.add(new AutoGGMod());

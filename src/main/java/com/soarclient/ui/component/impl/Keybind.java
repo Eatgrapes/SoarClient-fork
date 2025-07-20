@@ -85,13 +85,17 @@ public class Keybind extends Component {
 		pressAnimation.onReleased(mouseX, mouseY, x, y);
 	}
 
-	@Override
-	public void keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (binding) {
-			setKeyCode(InputUtil.fromKeyCode(keyCode, scanCode));
-			this.binding = false;
-		}
-	}
+    @Override
+    public void keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (binding) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                setKeyCode(InputUtil.UNKNOWN_KEY);
+            } else {
+                setKeyCode(InputUtil.fromKeyCode(keyCode, scanCode));
+            }
+            this.binding = false;
+        }
+    }
 
 	public InputUtil.Key getKeyCode() {
 		return key;

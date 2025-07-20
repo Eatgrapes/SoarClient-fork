@@ -151,6 +151,19 @@ setting.other.description=その他カテゴリのモジュールを表示
 setting.mode=モード
 setting.mode.description=配置モードを設定
 
+mod.imagedisplay.name=画像表示
+mod.imagedisplay.description=画面にカスタム画像を表示
+setting.image=画像
+setting.image.description=表示する画像ファイルを選択
+setting.radius=角丸
+setting.radius.description=画像の角丸半径を設定
+setting.alpha=透明度
+setting.alpha.description=画像の透明度を設定
+setting.shadow=影
+setting.shadow.description=影効果を有効化
+setting.size=サイズ
+setting.size.description=画像サイズの倍率を設定
+
 mod.autotext.name=自動テキスト
 mod.autotext.description=キーバインドで事前定義されたテキストメッセージを自動送信
 setting.text1key=テキスト1キーバインド

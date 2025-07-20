@@ -135,6 +135,19 @@ setting.other.description=显示其他类别模组
 setting.mode=模式
 setting.mode.description=设置对齐模式
 
+mod.imagedisplay.name=图片显示
+mod.imagedisplay.description=在屏幕上显示自定义图片
+setting.image=图片
+setting.image.description=选择要显示的图片文件
+setting.radius=圆角
+setting.radius.description=设置图片圆角半径
+setting.alpha=透明度
+setting.alpha.description=设置图片透明度
+setting.shadow=阴影
+setting.shadow.description=启用阴影效果
+setting.size=大小
+setting.size.description=设置图片大小倍数
+
 mod.autotext.name=自动文本
 mod.autotext.description=通过快捷键自动发送预设文本消息
 setting.text1key=文本1快捷键
