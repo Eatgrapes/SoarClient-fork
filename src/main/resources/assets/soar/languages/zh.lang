@@ -3,7 +3,7 @@
 #
 text.all=全部
 text.hud=HUD
-text.render=渲染
+text.render=视觉
 text.player=玩家
 text.misc=杂项
 text.home=主页
@@ -19,13 +19,13 @@ text.serveraddress=服务器地址
 text.createprofile=创建配置
 text.icon=图标
 
-language.english=English  
-language.chinese=中文    
+language.english=English
+language.chinese=中文
 language.japanese=日本語
 
 design.simple=简约
 design.classic=经典
-design.clear=清晰
+design.clear=透明
 design.materialyou=MaterialYou
 
 mod.hudsettings.name=界面
@@ -104,7 +104,7 @@ mod.cpsdisplay.name=CPS显示
 mod.cpsdisplay.description=显示每秒点击次数
 
 mod.clientspoof.name=客户端伪装
-mod.clientspoof.description=向服务器伪装你的客户端品牌
+mod.clientspoof.description=向服务器伪装你的客户端名称
 
 setting.clientspoof.mode=模式
 setting.clientspoof.mode.description=选择客户端伪装模式
@@ -194,7 +194,7 @@ mod.overlayeditor.name=覆盖编辑器
 mod.overlayeditor.description=编辑覆盖层
 
 mod.discordrpc.name=Discord RPC
-mod.discordrpc.description=启用Discord丰富状态
+mod.discordrpc.description=启用Discord在线状态
 
 mod.weatherchanger.name=天气更改
 mod.weatherchanger.description=更改天气
@@ -203,7 +203,7 @@ mod.timechanger.name=时间更改
 mod.timechanger.description=更改世界时间
 
 mod.freelook.name=自由视角
-mod.freelook.description=可在不改变移动方向的情况下转动头部
+mod.freelook.description=可在不改变移动方向的情况下转动视角
 
 mod.clock.name=时钟
 mod.clock.description=显示当前时间
@@ -232,8 +232,8 @@ mod.projectiletrail.description=显示投掷物后的效果
 mod.musicwaveform.name=音乐波形
 mod.musicwaveform.description=显示当前播放音乐的波形
 
-mod.speedometer.name=速度计
-mod.speedometer.description=显示玩家速度
+mod.speedometer.name=速度显示
+mod.speedometer.description=显示玩家速度(BPS)
 
 mod.autogg.name=自动GG
 mod.autogg.description=游戏结束时自动发送“gg”
@@ -269,7 +269,7 @@ setting.keybind.description=设置快捷键
 
 setting.font=字体
 setting.font.description=更改客户端字体
-font.default=默认 (Inter)
+font.default=默认
 font.microsoft_yahei=微软雅黑
 font.noto_sans=思源黑体
 custom.font=%s
