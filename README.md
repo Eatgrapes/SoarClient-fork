@@ -3,6 +3,7 @@
 - If you want to see the original Soar repository,please go to the [SoarClient repo](https://www.github.com/Soar-Client/SoarClient) 
 - it is a SoarClient's fork 
 - We will add more Modules and support
+- **Automatically agree to the MIT protocol when you use this client**
   
 # IT IS UNDER DEVELOPMENT
 
