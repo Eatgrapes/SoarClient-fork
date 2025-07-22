@@ -132,10 +132,15 @@ public class CapesPage extends Page {
 
         float startX = x + 32;
         float startY = y + 120;
-        float itemWidth = 120;
-        float itemHeight = 120;
-        float spacing = 20;
-        int itemsPerRow = 4;
+        float itemWidth = 140;
+        float itemHeight = 180;
+        float spacing = 30;
+        int itemsPerRow = 5;
+
+        float capeWidth = itemWidth - 10;
+        float capeHeight = itemHeight - 10;
+        float capeX = 5;
+        float capeY = 5;
 
         mouseY = mouseY - scrollHelper.getValue();
 
@@ -163,16 +168,17 @@ public class CapesPage extends Page {
             item.focusAnimation.onTick(isHovered ? 1 : 0, 10);
 
             Color bgColor = isSelected ? palette.getPrimaryContainer() : palette.getSurface();
-            Skia.drawRoundedRect(itemX, itemY, itemWidth, itemHeight, 12, bgColor);
+            Skia.drawRoundedRect(itemX + capeX, itemY + capeY, capeWidth, capeHeight, 12, bgColor);
 
             if (isSelected) {
-                Skia.drawOutline(itemX - 2, itemY - 2, itemWidth + 4, itemHeight + 4, 14, 3, palette.getPrimary());
+                Skia.drawOutline(itemX + capeX - 2, itemY + capeY - 2,
+                    capeWidth + 4, capeHeight + 4, 14, 3, palette.getPrimary());
             }
 
             if (item.capeFile.exists()) {
                 CapeRenderer.renderRoundedCapePreview(
                     Soar.getInstance().getCapeManager().getLoadedCape(item.capeId),
-                    itemX + 5, itemY + 5, itemWidth - 10, itemHeight - 10, 8
+                    itemX + capeX, itemY + capeY, capeWidth, capeHeight, 8
                 );
             }
         }
@@ -199,10 +205,10 @@ public class CapesPage extends Page {
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             float startX = x + 32;
             float startY = y + 120 + scrollHelper.getValue();
-            float itemWidth = 120;
-            float itemHeight = 120;
-            float spacing = 20;
-            int itemsPerRow = 4;
+            float itemWidth = 140;
+            float itemHeight = 180;
+            float spacing = 30;
+            int itemsPerRow = 5;
 
             for (int i = 0; i < capeItems.size(); i++) {
                 CapeItem item = capeItems.get(i);
