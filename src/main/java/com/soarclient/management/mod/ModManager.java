@@ -18,6 +18,7 @@ import com.soarclient.management.mod.impl.render.CustomHandMod;
 import com.soarclient.management.mod.impl.render.FullbrightMod;
 import com.soarclient.management.mod.impl.render.MusicWaveformMod;
 import com.soarclient.management.mod.impl.render.OverlayEditorMod;
+import com.soarclient.management.mod.impl.render.ActionCameraMod;
 import com.soarclient.management.mod.impl.render.ParticlesMod;
 import com.soarclient.management.mod.impl.render.ProjectileTrailMod;
 import com.soarclient.management.mod.impl.settings.HUDModSettings;
@@ -95,6 +96,7 @@ public class ModManager {
 		mods.add(new OverlayEditorMod());
 		mods.add(new ParticlesMod());
 		mods.add(new ProjectileTrailMod());
+        mods.add(new ActionCameraMod());
 
 		// Misc
 		mods.add(new DiscordRPCMod());
@@ -157,6 +159,14 @@ public class ModManager {
 		return designs.stream().filter(design -> design.getName().equals(name)).findFirst()
 				.orElseGet(() -> getDesignByName("design.simple"));
 	}
+
+	public <T extends Mod> T getMod(Class<T> clazz) {
+        return mods.stream()
+                .filter(mod -> clazz.isInstance(mod))
+                .map(clazz::cast)
+                .findFirst()
+                .orElse(null);
+    }
 
 	private void sortMods() {
 		mods.sort((mod1, mod2) -> mod1.getName().compareTo(mod2.getName()));

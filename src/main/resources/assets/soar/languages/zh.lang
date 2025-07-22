@@ -181,8 +181,18 @@ mod.pingdisplay.description=显示你的网络延迟
 mod.weatherdisplay.name=天气显示
 mod.weatherdisplay.description=显示世界天气
 
+mod.ActionCameraMod.name=运动相机
+mod.ActionCameraMod.description=运动相机
+
 mod.playtimedisplay.name=游戏时长显示
 mod.playtimedisplay.description=显示游戏时长
+
+mod.actioncamera.disable_first_person=禁用第一人称
+mod.actioncamera.disable_first_person.desc=禁用第一人称
+mod.actioncamera.smoothness=平滑度
+mod.actioncamera.smoothness.desc=平滑度调整
+mod.actioncamera.max_distance=最大距离
+mod.actioncamera.max_distance.desc=最大距离调整
 
 mod.protocolversion.name=协议版本
 mod.protocolversion.description=显示协议版本

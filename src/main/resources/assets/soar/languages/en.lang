@@ -258,6 +258,16 @@ mod.systemsettings.description=Setting the system details
 mod.fullbright.name=Fullbright
 mod.fullbright.description=Brighten your viewpoint
 
+mod.ActionCameraMod.name=ActionCamera
+mod.ActionCameraMod.description=ActionCamera
+
+mod.actioncamera.disable_first_person=Disable First Person
+mod.actioncamera.disable_first_person.desc=Disable First Person
+mod.actioncamera.smoothness=Smoothness
+mod.actioncamera.smoothness.desc=Set Smoothness
+mod.actioncamera.max_distance=Max Distance
+mod.actioncamera.max_distance.desc=Set Max Distance
+
 mod.webbrowser.name=Web Browser
 mod.webbrowser.description=Display the Web Browser
 
