@@ -4,6 +4,7 @@ import com.soarclient.animation.Delta;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.server.PacketHandler;
 import com.soarclient.libraries.browser.JCefBrowser;
+import com.soarclient.management.cape.CapeManager;
 import com.soarclient.management.color.ColorManager;
 import com.soarclient.management.config.ConfigManager;
 import com.soarclient.management.hypixel.HypixelManager;
@@ -19,90 +20,96 @@ import com.soarclient.utils.language.Language;
 
 public class Soar {
 
-	private final static Soar instance = new Soar();
+    private final static Soar instance = new Soar();
 
-	private final String name = "Soar-fork";
-	private final String version = "8.0";
+    private final String name = "Soar-fork";
+    private final String version = "8.0";
 
-	private long launchTime;
+    private long launchTime;
 
-	private ModManager modManager;
-	private ColorManager colorManager;
-	private MusicManager musicManager;
-	private ConfigManager configManager;
-	private ProfileManager profileManager;
-	private WebSocketManager webSocketManager;
-	private UserManager userManager;
-	private HypixelManager hypixelManager;
+    private ModManager modManager;
+    private ColorManager colorManager;
+    private MusicManager musicManager;
+    private ConfigManager configManager;
+    private ProfileManager profileManager;
+    private WebSocketManager webSocketManager;
+    private UserManager userManager;
+    private HypixelManager hypixelManager;
+    private CapeManager capeManager;
 
-	public void start() {  
-    JCefBrowser.download();  
-    Fonts.loadAll();  
-    FileLocation.init();  
-    // I18n.setLanguage(Language.ENGLISH); // it is dead  
-  
-    launchTime = System.currentTimeMillis();  
-  
-    modManager = new ModManager();  
-    modManager.init();  
-    colorManager = new ColorManager();  
-    musicManager = new MusicManager();  
-    configManager = new ConfigManager();   
-    profileManager = new ProfileManager();  
-    webSocketManager = new WebSocketManager();  
-    userManager = new UserManager();  
-    hypixelManager = new HypixelManager();  
-  
-    EventBus.getInstance().register(new SoarHandler());  
-    EventBus.getInstance().register(new PacketHandler());  
-    EventBus.getInstance().register(new Delta());  
-}
+    public void start() {
+        JCefBrowser.download();
+        Fonts.loadAll();
+        FileLocation.init();
+        // I18n.setLanguage(Language.ENGLISH); // it is dead
 
-	public static Soar getInstance() {
-		return instance;
-	}
+        launchTime = System.currentTimeMillis();
 
-	public String getName() {
-		return name;
-	}
+        modManager = new ModManager();
+        modManager.init();
+        colorManager = new ColorManager();
+        musicManager = new MusicManager();
+        configManager = new ConfigManager();
+        profileManager = new ProfileManager();
+        webSocketManager = new WebSocketManager();
+        userManager = new UserManager();
+        hypixelManager = new HypixelManager();
+        capeManager = new CapeManager();
 
-	public String getVersion() {
-		return version;
-	}
+        EventBus.getInstance().register(new SoarHandler());
+        EventBus.getInstance().register(new PacketHandler());
+        EventBus.getInstance().register(new Delta());
+    }
 
-	public long getLaunchTime() {
-		return launchTime;
-	}
+    public static Soar getInstance() {
+        return instance;
+    }
 
-	public ModManager getModManager() {
-		return modManager;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public ColorManager getColorManager() {
-		return colorManager;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	public MusicManager getMusicManager() {
-		return musicManager;
-	}
+    public long getLaunchTime() {
+        return launchTime;
+    }
 
-	public ConfigManager getConfigManager() {
-		return configManager;
-	}
+    public ModManager getModManager() {
+        return modManager;
+    }
 
-	public ProfileManager getProfileManager() {
-		return profileManager;
-	}
+    public ColorManager getColorManager() {
+        return colorManager;
+    }
 
-	public WebSocketManager getWebSocketManager() {
-		return webSocketManager;
-	}
+    public MusicManager getMusicManager() {
+        return musicManager;
+    }
 
-	public UserManager getUserManager() {
-		return userManager;
-	}
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
 
-	public HypixelManager getHypixelManager() {
-		return hypixelManager;
-	}
+    public ProfileManager getProfileManager() {
+        return profileManager;
+    }
+
+    public WebSocketManager getWebSocketManager() {
+        return webSocketManager;
+    }
+
+    public UserManager getUserManager() {
+        return userManager;
+    }
+
+    public HypixelManager getHypixelManager() {
+        return hypixelManager;
+    }
+
+    public CapeManager getCapeManager() {
+        return capeManager;
+    }
 }

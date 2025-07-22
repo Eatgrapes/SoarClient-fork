@@ -17,6 +17,7 @@
 		"minecraft.client.render.MixinInGameOverlayRenderer",
 		"minecraft.client.render.MixinLightmapTextureManager",
 		"minecraft.client.sound.MixinSoundSystem",
+		"minecraft.client.network.MixinAbstractClientPlayerEntity",
 		"minecraft.client.util.MixinWindow",
 		"minecraft.client.MixinKeyboard",
 		"minecraft.client.MixinMinecraftClient",

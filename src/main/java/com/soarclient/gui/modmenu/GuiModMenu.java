@@ -6,11 +6,7 @@ import java.util.List;
 import com.soarclient.gui.api.SoarGui;
 import com.soarclient.gui.api.page.SimplePage;
 import com.soarclient.gui.modmenu.component.NavigationRail;
-import com.soarclient.gui.modmenu.pages.HomePage;
-import com.soarclient.gui.modmenu.pages.ModsPage;
-import com.soarclient.gui.modmenu.pages.MusicPage;
-import com.soarclient.gui.modmenu.pages.ProfilePage;
-import com.soarclient.gui.modmenu.pages.SettingsPage;
+import com.soarclient.gui.modmenu.pages.*;
 
 public class GuiModMenu extends SoarGui {
 
@@ -28,13 +24,13 @@ public class GuiModMenu extends SoarGui {
 		super.init();
 	}
 
-	@Override
-	public void setPageSize(SimplePage p) {
-		p.setX(getX() + navigationRail.getWidth());
-		p.setY(getY());
-		p.setWidth(getWidth() - navigationRail.getWidth());
-		p.setHeight(getHeight());
-	}
+    @Override
+    public void setPageSize(SimplePage p) {
+        p.setX(getX() + navigationRail.getWidth());
+        p.setY(getY());
+        p.setWidth(getWidth() - navigationRail.getWidth());
+        p.setHeight(getHeight());
+    }
 
 	@Override
 	public List<SimplePage> createPages() {
@@ -45,7 +41,8 @@ public class GuiModMenu extends SoarGui {
 		pages.add(new ModsPage(this));
 		pages.add(new MusicPage(this));
 		pages.add(new ProfilePage(this));
-		pages.add(new SettingsPage(this));
+        pages.add(new CapesPage(this));
+        pages.add(new SettingsPage(this));
 
 		return pages;
 	}
