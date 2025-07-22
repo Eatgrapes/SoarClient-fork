@@ -258,6 +258,16 @@ mod.systemsettings.description=Setting the system details
 mod.fullbright.name=Fullbright
 mod.fullbright.description=Brighten your viewpoint
 
+mod.ActionCameraMod.name=ActionCamera
+mod.ActionCameraMod.description=ActionCamera
+
+mod.actioncamera.disable_first_person=Disable First Person
+mod.actioncamera.disable_first_person.desc=Disable First Person
+mod.actioncamera.smoothness=Smoothness
+mod.actioncamera.smoothness.desc=Set Smoothness
+mod.actioncamera.max_distance=Max Distance
+mod.actioncamera.max_distance.desc=Set Max Distance
+
 mod.webbrowser.name=Web Browser
 mod.webbrowser.description=Display the Web Browser
 
@@ -279,7 +289,7 @@ setting.background=background
 setting.background.description=Turn on/off information background in normal mode
 setting.background1.description=Turn on/off information background
 setting.font.description=Change client font
-font.default=Default (Inter)
+font.default=Default
 font.microsoft_yahei=Microsoft YaHei
 font.noto_sans=Noto Sans CJK
 custom.font=%s
