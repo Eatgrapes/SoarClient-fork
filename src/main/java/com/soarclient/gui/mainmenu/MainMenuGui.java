@@ -337,7 +337,7 @@ public class MainMenuGui extends SimpleSoarGui {
 
         public void mouseReleased(int mouseX, int mouseY, int mouseButton) {
             if (MouseUtils.isInside(mouseX, mouseY, x, y, width, height) && mouseButton == 0) {
-                action.run(); // execute action
+                action.run(); // execute action.
             }
             pressAnimation.onReleased(mouseX, mouseY, x, y); // always release
         }
