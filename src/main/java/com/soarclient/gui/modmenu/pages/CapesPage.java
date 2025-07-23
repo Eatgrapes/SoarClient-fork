@@ -21,12 +21,14 @@ import com.soarclient.gui.api.page.impl.RightLeftTransition;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.cape.CapeRenderer;
 import com.soarclient.skia.Skia;
+import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.ui.component.handler.impl.ButtonHandler;
 import com.soarclient.ui.component.impl.IconButton;
 import com.soarclient.utils.Multithreading;
 import com.soarclient.utils.file.FileLocation;
 import com.soarclient.utils.file.dialog.SoarFileDialog;
+import com.soarclient.utils.language.I18n;
 import com.soarclient.utils.mouse.MouseUtils;
 
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
@@ -128,13 +130,15 @@ public class CapesPage extends Page {
 
         ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
+        Skia.drawText(I18n.get("text.capes"), x + 32, y + 60, palette.getOnSurface(), Fonts.getMedium(46));
+
         addButton.draw(mouseX, mouseY);
 
         float startX = x + 32;
         float startY = y + 120;
         float itemWidth = 140;
-        float itemHeight = 180;
-        float spacing = 30;
+        float itemHeight = 220;
+        float spacing = 20;
         int itemsPerRow = 5;
 
         float capeWidth = itemWidth - 10;
@@ -206,8 +210,8 @@ public class CapesPage extends Page {
             float startX = x + 32;
             float startY = y + 120 + scrollHelper.getValue();
             float itemWidth = 140;
-            float itemHeight = 180;
-            float spacing = 30;
+            float itemHeight = 220;
+            float spacing = 20;
             int itemsPerRow = 5;
 
             for (int i = 0; i < capeItems.size(); i++) {
