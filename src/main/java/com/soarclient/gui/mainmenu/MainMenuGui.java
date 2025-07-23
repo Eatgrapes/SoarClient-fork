@@ -337,9 +337,9 @@ public class MainMenuGui extends SimpleSoarGui {
 
         public void mouseReleased(int mouseX, int mouseY, int mouseButton) {
             if (MouseUtils.isInside(mouseX, mouseY, x, y, width, height) && mouseButton == 0) {
-                action.run(); // 执行按钮动作
+                action.run(); // execute action
             }
-            pressAnimation.onReleased(mouseX, mouseY, x, y); // 总是调用动画释放
+            pressAnimation.onReleased(mouseX, mouseY, x, y); // always release
         }
     }
 }
