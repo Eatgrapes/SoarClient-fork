@@ -111,8 +111,7 @@ public class MainMenuGui extends SimpleSoarGui {
                 ModMenuSettings.getInstance().getDarkModeSetting().setEnabled(false);
             }
         });
-
-        // 退出按钮位置调整
+        // sorry lc
         exitCustomizationButton = new Button(I18n.get("gui.done"), centerX - 50, centerY + 50, Button.Style.TONAL);
         exitCustomizationButton.setHandler(new ButtonHandler() {
             @Override
