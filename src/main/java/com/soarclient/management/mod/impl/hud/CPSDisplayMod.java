@@ -9,7 +9,11 @@ import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.management.mod.api.hud.SimpleHUDMod;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
+import com.soarclient.skia.Skia;
+import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
+
+import io.github.humbleui.types.Rect;
 
 public class CPSDisplayMod extends SimpleHUDMod {
 
@@ -41,6 +45,41 @@ public class CPSDisplayMod extends SimpleHUDMod {
                 rightPresses.add(System.currentTimeMillis());
             }
         }
+    }
+
+    @Override
+    protected void draw() {
+        float fontSize = 9;
+        float iconSize = 10.5F;
+        float padding = 5;
+        boolean hasIcon = getIcon() != null && iconSetting.isEnabled();
+        String text = getText();
+
+        Rect textBounds = Skia.getTextBounds(text, Fonts.getRegular(fontSize));
+        Rect iconBounds = hasIcon ? Skia.getTextBounds(getIcon(), Fonts.getIcon(iconSize)) : new Rect(0, 0, 0, 0);
+
+        float width = textBounds.getWidth() + (padding * 2) + (hasIcon ? iconBounds.getWidth() + 4 : 0);
+        float height = fontSize + (padding * 2) - 1.5F;
+
+        this.begin();
+        this.drawBackground(getX(), getY(), width, height);
+
+        if (hasIcon) {
+            Skia.drawFullCenteredText(getIcon(),
+                getX() + padding + (iconBounds.getWidth() / 2),
+                getY() + (height / 2),
+                this.getDesign().getTextColor(),
+                Fonts.getIcon(iconSize));
+        }
+
+        Skia.drawFullCenteredText(text,
+            getX() + padding + (hasIcon ? iconBounds.getWidth() + 4 : 0) + (textBounds.getWidth() / 2),
+            getY() + (height / 2),
+            this.getDesign().getTextColor(),
+            Fonts.getRegular(fontSize));
+
+        this.finish();
+        position.setSize(width, height);
     }
 
     @Override
