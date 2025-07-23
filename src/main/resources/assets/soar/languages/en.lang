@@ -25,6 +25,14 @@ text.serveraddress=Server Address
 text.createprofile=Create Profile
 text.icon=Icon
 
+menu.singleplayer=Singleplayer
+menu.multiplayer=Multiplayer
+menu.realms=Minecraft Realms
+menu.options=Options
+menu.quit=Quit Game
+gui.done=Done
+gui.mainmenu.customization=Main Menu Customization
+
 language.english=English  
 language.chinese=中文    
 language.japanese=日本語

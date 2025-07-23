@@ -24,6 +24,14 @@ text.serveraddress=服务器地址
 text.createprofile=创建配置
 text.icon=图标
 
+menu.singleplayer=单人游戏
+menu.multiplayer=多人游戏
+menu.realms=Minecraft Realms
+menu.options=选项
+menu.quit=退出游戏
+gui.done=完成
+gui.mainmenu.customization=主界面自定义
+
 language.english=English
 language.chinese=中文
 language.japanese=日本語
