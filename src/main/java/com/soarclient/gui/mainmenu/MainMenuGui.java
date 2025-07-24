@@ -54,7 +54,7 @@ public class MainMenuGui extends SimpleSoarGui {
     private List<BackgroundItem> backgroundItems = new ArrayList<>();
     private String selectedBackgroundId = "Background.png";
     private ScrollHelper backgroundScrollHelper = new ScrollHelper();
-    private float backgroundScale = 1.7f;
+    private float backgroundScale = 1.2f;
     private float parallaxX = 0;
     private float parallaxY = 0;
     private float parallaxStrength = 40;
