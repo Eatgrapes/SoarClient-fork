@@ -10,6 +10,7 @@ buildscript {
 
 plugins {
 	id 'fabric-loom' version '1.9-SNAPSHOT'
+	id 'maven-publish'
 }
 
 project.ext.lwjglVersion = "3.3.3"

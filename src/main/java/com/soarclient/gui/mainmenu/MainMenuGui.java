@@ -7,10 +7,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
+import com.google.gson.JsonObject;
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.gui.api.SimpleSoarGui;
 import com.soarclient.management.color.api.ColorPalette;
+import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
@@ -52,6 +54,10 @@ public class MainMenuGui extends SimpleSoarGui {
     private List<BackgroundItem> backgroundItems = new ArrayList<>();
     private String selectedBackgroundId = "Background.png";
     private ScrollHelper backgroundScrollHelper = new ScrollHelper();
+    private float backgroundScale = 1.7f;
+    private float parallaxX = 0;
+    private float parallaxY = 0;
+    private float parallaxStrength = 40;
 
     public MainMenuGui() {
         super(false);
@@ -60,7 +66,21 @@ public class MainMenuGui extends SimpleSoarGui {
     @Override
     public void init() {
         updateLayout();
+        loadBackgroundSettings();
         initCustomizationComponents();
+    }
+
+    private void loadBackgroundSettings() {
+        JsonObject config = Soar.getInstance().getConfigManager().getConfig(ConfigType.MOD).getJsonObject();
+        if (config.has("mainmenu.background")) {
+            selectedBackgroundId = config.get("mainmenu.background").getAsString();
+        }
+    }
+
+    private void saveBackgroundSettings() {
+        JsonObject config = Soar.getInstance().getConfigManager().getConfig(ConfigType.MOD).getJsonObject();
+        config.addProperty("mainmenu.background", selectedBackgroundId);
+        Soar.getInstance().getConfigManager().save(ConfigType.MOD);
     }
 
     private void updateLayout() {
@@ -209,6 +229,10 @@ public class MainMenuGui extends SimpleSoarGui {
 
             Files.copy(selectedFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             loadExistingBackgrounds();
+
+            // 自动选择新添加的背景
+            selectedBackgroundId = processedName;
+            saveBackgroundSettings();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -374,18 +398,31 @@ public class MainMenuGui extends SimpleSoarGui {
     }
 
     private void drawCustomBackground(ColorPalette palette) {
+        // 计算视差效果
+        float targetParallaxX = (float) (client.mouse.getX() - client.getWindow().getWidth() / 2) / client.getWindow().getWidth() * parallaxStrength;
+        float targetParallaxY = (float) (client.mouse.getY() - client.getWindow().getHeight() / 2) / client.getWindow().getHeight() * parallaxStrength;
+
+        parallaxX += (targetParallaxX - parallaxX) * 0.1f;
+        parallaxY += (targetParallaxY - parallaxY) * 0.1f;
+
+        float scaledWidth = client.getWindow().getWidth() * backgroundScale;
+        float scaledHeight = client.getWindow().getHeight() * backgroundScale;
+
+        float offsetX = (scaledWidth - client.getWindow().getWidth()) / 2 - parallaxX;
+        float offsetY = (scaledHeight - client.getWindow().getHeight()) / 2 - parallaxY;
+
         if (selectedBackgroundId.equals("Background.png")) {
-            Skia.drawImage("Background.png", 0, 0, client.getWindow().getWidth(), client.getWindow().getHeight());
+            Skia.drawImage("Background.png", -offsetX, -offsetY, scaledWidth, scaledHeight);
         } else {
             for (BackgroundItem item : backgroundItems) {
                 if (item.backgroundId.equals(selectedBackgroundId) && !item.isDefault) {
                     if (item.backgroundFile != null && item.backgroundFile.exists()) {
-                        Skia.drawImage(item.backgroundFile, 0, 0, client.getWindow().getWidth(), client.getWindow().getHeight());
+                        Skia.drawImage(item.backgroundFile, -offsetX, -offsetY, scaledWidth, scaledHeight);
                         return;
                     }
                 }
             }
-            Skia.drawImage("Background.png", 0, 0, client.getWindow().getWidth(), client.getWindow().getHeight());
+            Skia.drawImage("Background.png", -offsetX, -offsetY, scaledWidth, scaledHeight);
         }
     }
 
@@ -430,6 +467,7 @@ public class MainMenuGui extends SimpleSoarGui {
 
                 if (MouseUtils.isInside(mouseX, adjustedMouseY, itemX, itemY, itemWidth, itemHeight)) {
                     selectedBackgroundId = item.backgroundId;
+                    saveBackgroundSettings();  // 保存新选择的背景
                     break;
                 }
             }

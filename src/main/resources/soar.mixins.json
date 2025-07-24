@@ -8,6 +8,7 @@
 		"minecraft.client.gui.MixinMultiplayerScreen",
 		"minecraft.client.gui.MixinPackScreen",
 		"minecraft.client.gui.MixinTitleScreen",
+		"minecraft.client.gui.MixinSplashScreen",
 		"minecraft.client.option.MixinKeyBinding",
 		"minecraft.client.render.BufferRendererAccessor",
 		"minecraft.client.render.MixinCamera",
