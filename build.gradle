@@ -54,14 +54,14 @@ dependencies {
 
 	modImplementation "com.viaversion:viafabricplus-api:4.0.2"
 
-	modRuntimeOnly "maven.modrinth:sodium:mc1.21.4-0.6.6-fabric"
-	modRuntimeOnly "maven.modrinth:iris:1.8.5+1.21.4-fabric"
-	modRuntimeOnly "maven.modrinth:sodium-extra:mc1.21.4-0.6.1+fabric"
-	modRuntimeOnly "maven.modrinth:lithium:mc1.21.4-0.14.7-fabric"
+	modJij "maven.modrinth:sodium:mc1.21.4-0.6.6-fabric"
+	modJij "maven.modrinth:iris:1.8.5+1.21.4-fabric"
+	modJij "maven.modrinth:sodium-extra:mc1.21.4-0.6.1+fabric"
+	modJij "maven.modrinth:lithium:mc1.21.4-0.14.7-fabric"
 	modRuntimeOnly "maven.modrinth:in-game-account-switcher:WBbjirJP"
 	modJij "com.viaversion:viafabricplus:4.0.2"
 	modRuntimeOnly "maven.modrinth:immediatelyfast:1.3.3+1.21.4-fabric"
-	modRuntimeOnly "maven.modrinth:entityculling:NkBXk0Ye"
+	modJij "maven.modrinth:entityculling:NkBXk0Ye"
 
 	jij 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	jij 'io.github.humbleui:types:0.2.0'
