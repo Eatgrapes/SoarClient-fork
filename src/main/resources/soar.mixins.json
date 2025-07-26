@@ -32,6 +32,7 @@
 		"minecraft.world.MixinBiome",
 		"minecraft.world.MixinClientWorldProperties",
 		"minecraft.world.MixinWorld",
+		"minecraft.text.MixinTextVisitFactory",
 		"viafabricplus.MixinMinecraftClient"
 	],
 	"injectors": {

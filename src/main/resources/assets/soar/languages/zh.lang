@@ -53,6 +53,14 @@ mod.fpsdisplay.description=显示Minecraft帧率
 mod.coords.name=坐标
 mod.coords.description=显示你的坐标
 
+mod.nameprotect.name=名字保护
+mod.nameprotect.description=在本地伪装你的玩家名字
+
+setting.nameprotect.name=显示名字
+setting.nameprotect.name.description=用于替换真实名字的自定义名字
+setting.nameprotect.color=名字颜色
+setting.nameprotect.color.description=伪装名字的自定义颜色
+
 mod.combocounter.name=连击计数
 mod.combocounter.description=显示连击数
 

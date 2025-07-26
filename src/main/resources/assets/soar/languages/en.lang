@@ -60,6 +60,14 @@ mod.combocounter.description=Display Combo
 mod.reachdisplay.name=Reach Display
 mod.reachdisplay.description=Display reach
 
+mod.nameprotect.name=Name Protect
+mod.nameprotect.description=Disguise your player name locally
+
+setting.nameprotect.name=Display Name
+setting.nameprotect.name.description=Custom name to display instead of your real name
+setting.nameprotect.color=Name Color
+setting.nameprotect.color.description=Custom color for the disguised name
+
 mod.daycounter.name=Day Counter
 mod.daycounter.description=Count Minecraft day
 

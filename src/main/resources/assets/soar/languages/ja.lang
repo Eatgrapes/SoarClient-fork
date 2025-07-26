@@ -62,6 +62,14 @@ mod.reachdisplay.description=攻撃リーチを表示
 mod.daycounter.name=日数カウンター
 mod.daycounter.description=Minecraftの経過日数を表示
 
+mod.nameprotect.name=名前保護
+mod.nameprotect.description=ローカルでプレイヤー名を偽装
+
+setting.nameprotect.name=表示名
+setting.nameprotect.name.description=実際の名前の代わりに表示するカスタム名
+setting.nameprotect.color=名前の色
+setting.nameprotect.color.description=偽装名前のカスタム色
+
 mod.stopwatch.name=ストップウォッチ
 mod.stopwatch.description=時間を計測
 

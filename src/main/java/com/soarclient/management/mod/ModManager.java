@@ -105,6 +105,7 @@ public class ModManager {
 		mods.add(new WeatherChangerMod());
         mods.add(new FakeFPSMod());
         mods.add(new ClientSpoofMod());
+        mods.add(new NameProtectMod());
 
 		// Settings
 		mods.add(new HUDModSettings());
