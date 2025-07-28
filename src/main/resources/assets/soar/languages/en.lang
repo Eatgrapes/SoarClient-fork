@@ -259,6 +259,9 @@ mod.memoryusage.description=Display Minecraft memory usage
 mod.speedometer.name=Speedometer
 mod.speedometer.description=Display player speed
 
+mod.PackDisplayMod.name=PackDisplay
+mod.PackDisplayMod.description=Display Pack
+
 mod.autogg.name=Auto GG
 mod.autogg.description=Automatically send with gg when the game is finished
 setting.delay=delay

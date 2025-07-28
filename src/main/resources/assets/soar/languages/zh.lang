@@ -47,6 +47,9 @@ mod.hudsettings.description=自定义界面
 mod.modmenu.name=模组菜单
 mod.modmenu.description=自定义模组菜单相关设置
 
+mod.PackDisplayMod.name=材质包显示
+mod.PackDisplayMod.description=显示当前材质包
+
 mod.fpsdisplay.name=帧率显示
 mod.fpsdisplay.description=显示Minecraft帧率
 

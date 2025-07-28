@@ -53,6 +53,7 @@ public class ModManager {
 		mods.add(new FPSDisplayMod());
 		mods.add(new GameModeDisplayMod());
 		mods.add(new HealthDisplayMod());
+        mods.add(new PackDisplayMod());
 		mods.add(new JumpResetIndicatorMod());
 		mods.add(new KeystrokesMod());
 		mods.add(new MemoryUsageMod());

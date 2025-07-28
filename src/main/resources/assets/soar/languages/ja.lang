@@ -267,7 +267,10 @@ setting.delay.description=メッセージ送信の遅延
 setting.message=メッセージ  
 setting.message.description=カスタム送信メッセージ  
 setting.hypixel=Hypixel  
-setting.hypixel.description=Hypixelモード  
+setting.hypixel.description=Hypixelモード
+
+mod.PackDisplayMod.name=パック表示
+mod.PackDisplayMod.description=マテリアルパックを表示する
 
 mod.customhand.name=カスタムハンド
 mod.customhand.description=手の位置、スケールなどを変更
