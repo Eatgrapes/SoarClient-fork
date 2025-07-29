@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class PackDisplayMod extends SimpleHUDMod {
     private static final Logger LOGGER = LoggerFactory.getLogger(PackDisplayMod.class);
     private final ComboSetting typeSetting = new ComboSetting("setting.type", "setting.type.description", Icon.FORMAT_LIST_BULLETED, this, List.of("setting.simple", "setting.normal", "setting.cover"), "setting.simple");
-    private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background", "setting.background1.description", Icon.IMAGE, this, true) {
+    private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background", "setting.background.description", Icon.IMAGE, this, true) {
         @Override
         public boolean isVisible() {
             return typeSetting.getOption().equals("setting.normal");
@@ -48,7 +48,7 @@ public class PackDisplayMod extends SimpleHUDMod {
     private float mx, my, dx, dy;
 
     public PackDisplayMod() {
-        super("mod.PackDisplayMod.name", "mod.PackDisplayMod.description", Icon.TEXTURE);
+        super("mod.PackDisplayMod.name", "mod.PackDisplayMod.description", Icon.TEXTURE);//呵呵
         setEnabled(true);
         this.dx = 0.5f;
         this.dy = 0.5f;

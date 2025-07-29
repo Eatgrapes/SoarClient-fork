@@ -244,6 +244,11 @@ tips.oldanimations.content=Currently, Old Animations requires ViaFabricPlus prot
 mod.particles.name=Particles
 mod.particles.description=Customize the particles
 
+mod.potionstatus.name=Potion Status
+mod.potionstatus.description=Display active potion effects
+setting.compact=Compact Mode
+setting.compact.description=Display potion effects in compact layout
+
 mod.bloodparticles.name=Blood Particles
 mod.bloodparticles.description=Add a blood effects
 

@@ -76,6 +76,7 @@ public class ModManager {
         mods.add(new WatermarkMod());
         mods.add(new ArrayListMod());
         mods.add(new ImageDisplayMod());
+        mods.add(new PotionStatusMod());
 
 		// Player
 		mods.add(new AutoGGMod());

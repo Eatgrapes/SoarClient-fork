@@ -24,6 +24,7 @@ import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.Window;
+import net.minecraft.util.Identifier;
 
 public class Skia {
 
@@ -287,6 +288,13 @@ public class Skia {
 			restore();
 		}
 	}
+    public static void drawMinecraftImage(String path, float x, float y, float width, float height) {
+        Identifier identifier = Identifier.of("minecraft", path);
+
+        if (imageHelper.load(identifier)) {
+            getCanvas().drawImageRect(imageHelper.get(identifier.getPath()), Rect.makeXYWH(x, y, width, height));
+        }
+    }
 
 	public static void drawArc(float x, float y, float radius, float startAngle, float endAngle, float strokeWidth,
 			Color color) {

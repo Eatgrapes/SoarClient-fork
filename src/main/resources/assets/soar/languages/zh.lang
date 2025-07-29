@@ -269,6 +269,11 @@ mod.musicwaveform.description=显示当前播放音乐的波形
 mod.speedometer.name=速度显示
 mod.speedometer.description=显示玩家速度(BPS)
 
+mod.potionstatus.name=药水状态
+mod.potionstatus.description=显示当前的药水效果
+setting.compact=紧凑模式
+setting.compact.description=以紧凑布局显示药水效果
+
 mod.autogg.name=自动GG
 mod.autogg.description=游戏结束时自动发送“gg”
 setting.delay=延迟  

@@ -293,6 +293,11 @@ mod.forcemainhand.description=メインハンドを強制設定
 mod.ActionCameraMod.name=アクションカメラ
 mod.ActionCameraMod.description=アクションカメラ
 
+mod.potionstatus.name=ポーション状態
+mod.potionstatus.description=アクティブなポーション効果を表示
+setting.compact=コンパクトモード
+setting.compact.description=ポーション効果をコンパクトレイアウトで表示
+
 mod.actioncamera.disable_first_person=一人称の使用を禁止する
 mod.actioncamera.disable_first_person.desc=一人称の使用を禁止する
 mod.actioncamera.smoothness=滑らかさ
