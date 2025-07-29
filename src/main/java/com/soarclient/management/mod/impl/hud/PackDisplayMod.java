@@ -47,13 +47,11 @@ public class PackDisplayMod extends SimpleHUDMod {
     private final TimerUtils animationTimer = new TimerUtils();
     private float mx, my, dx, dy;
 
-    // --- 新增的缓存字段 ---
     private File cachedPackIcon = null;
     private String cachedPackId = "";
-    // --- 结束 ---
 
     public PackDisplayMod() {
-        super("mod.PackDisplayMod.name", "mod.PackDisplayMod.description", Icon.TEXTURE);//呵呵
+        super("mod.PackDisplayMod.name", "mod.PackDisplayMod.description", Icon.TEXTURE);
         setEnabled(true);
         this.dx = 0.5f;
         this.dy = 0.5f;
@@ -86,28 +84,34 @@ public class PackDisplayMod extends SimpleHUDMod {
             profileToRender = enabledPacks.getLast();
         }
 
-        // --- 核心修改：检查并更新缓存 ---
         if (!profileToRender.getId().equals(cachedPackId)) {
-            // 资源包已更改，更新缓存
             LOGGER.info("Resource pack changed, updating icon cache for: " + profileToRender.getId());
             try (ResourcePack resourcePack = profileToRender.createResourcePack()) {
-                this.cachedPackIcon = extractPackIcon(resourcePack); // 仅在需要时调用
+                this.cachedPackIcon = extractPackIcon(resourcePack);
                 this.cachedPackId = profileToRender.getId();
             } catch (Exception e) {
                 LOGGER.error("Error while creating resource pack for caching: " + profileToRender.getId(), e);
-                this.cachedPackIcon = null; // 出错则清空
-                this.cachedPackId = profileToRender.getId(); // 仍然更新ID以防重复出错
+                this.cachedPackIcon = null;
+                this.cachedPackId = profileToRender.getId();
             }
         }
-        // --- 结束修改 ---
 
-        final float width = 180, height = 45, padding = 4.5f, iconSize = height - (padding * 2), coverSize = 256;
+        // --- Start of modifications for dynamic width ---
+        final float height = 45, padding = 4.5f, iconSize = height - (padding * 2), coverSize = 256;
+        final Font font = Fonts.getRegular(11);
+
+        String displayName = profileToRender.getDisplayName().getString();
+        String cleanName = displayName.endsWith(".zip") ? displayName.substring(0, displayName.length() - 4) : displayName;
+
+        Rect textBounds = Skia.getTextBounds(cleanName, font);
+        final float width = iconSize + textBounds.getWidth() + padding * 3; // Calculation for dynamic width
+        // --- End of modifications for dynamic width ---
+
         final boolean isCoverMode = typeSetting.getOption().equals("setting.cover");
         final Color textColor = isCoverMode ? Color.WHITE : getDesign().getTextColor();
 
         begin();
         try {
-            // 直接使用缓存的 'cachedPackIcon'
             File iconFile = this.cachedPackIcon;
 
             if (isCoverMode) {
@@ -132,16 +136,14 @@ public class PackDisplayMod extends SimpleHUDMod {
                 Skia.drawRoundedRect(getX() + padding, getY() + padding, iconSize, iconSize, 6, ColorUtils.applyAlpha(textColor, 0.2F));
             }
 
-            // --- 这是新的、使用 drawFullCenteredText 的居中代码 ---
-            final Font font = Fonts.getRegular(11); // normal模式字体大小为11
-            String displayName = profileToRender.getDisplayName().getString();
-            String cleanName = displayName.endsWith(".zip") ? displayName.substring(0, displayName.length() - 4) : displayName;
+            String textToRender = cleanName; // No longer limiting text width
             final float textAreaX = getX() + iconSize + padding * 2;
-            final float textAreaWidth = width - (iconSize + padding * 3);
-            String textToRender = Skia.getLimitText(cleanName, font, textAreaWidth);
-            final float centerX = textAreaX + (textAreaWidth / 2f);
             final float centerY = getY() + (height / 2f);
-            Skia.drawFullCenteredText(textToRender, centerX, centerY, textColor, font);
+
+            Rect textRenderBounds = Skia.getTextBounds(textToRender, font);
+            float newTextX = textAreaX + textRenderBounds.getWidth() / 2f;
+
+            Skia.drawFullCenteredText(textToRender, newTextX, centerY, textColor, font);
 
         } catch (Exception e) {
             LOGGER.error("Error while rendering pack display info for pack: " + profileToRender.getId(), e);
@@ -276,7 +278,6 @@ public class PackDisplayMod extends SimpleHUDMod {
     @Override public void onDisable() {
         super.onDisable();
         EventBus.getInstance().unregister(onRenderSkia);
-        // 重置缓存，以便下次启用时刷新
         this.cachedPackIcon = null;
         this.cachedPackId = "";
     }
