@@ -14,8 +14,11 @@ import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 
 import io.github.humbleui.types.Rect;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.item.PotionItem;
 import net.minecraft.util.Identifier;
 import net.minecraft.registry.Registries;
 
@@ -23,22 +26,25 @@ public class ArmourStatsMod extends HUDMod {
 
     private final List<ItemStack> armourItems = new ArrayList<>();
     private ItemStack mainHandItem;
-    private int maxString, prevItemCount;
+    private int maxString;
 
-    // 动画变量
     private float animatedWidth, animatedHeight;
+    private float targetWidth, targetHeight;
 
     public ArmourStatsMod() {
         super("mod.armourstats.name", "mod.armourstats.description", Icon.SHIELD);
         this.animatedWidth = 0;
         this.animatedHeight = 0;
+        this.targetWidth = 0;
+        this.targetHeight = 0;
     }
 
     public final EventBus.EventListener<ClientTickEvent> onClientTick = event -> {
-        // 数据获取逻辑不变
         mainHandItem = null;
         armourItems.clear();
-        boolean shouldShowDummy = HUDCore.isEditing && (client.player == null || (client.player.getMainHandStack().isEmpty() && client.player.getInventory().armor.stream().allMatch(ItemStack::isEmpty)));
+
+        boolean shouldShowDummy = HUDCore.isEditing && (client.player == null || !hasValidItems());
+
         if (shouldShowDummy) {
             mainHandItem = new ItemStack(Items.DIAMOND_SWORD);
             mainHandItem.setDamage(123);
@@ -46,11 +52,26 @@ public class ArmourStatsMod extends HUDMod {
             armourItems.add(new ItemStack(Items.DIAMOND_CHESTPLATE));
         } else if (client.player != null) {
             ItemStack handStack = client.player.getMainHandStack();
-            if (!handStack.isEmpty()) { mainHandItem = handStack; }
+            if (!handStack.isEmpty()) {
+                Item item = handStack.getItem();
+                if (!(item instanceof BlockItem) && !(item instanceof PotionItem)) {
+                    mainHandItem = handStack;
+                }
+            }
+
             for (ItemStack itemStack : client.player.getInventory().armor) {
-                if (!itemStack.isEmpty()) { armourItems.add(itemStack); }
+                if (!itemStack.isEmpty()) {
+                    armourItems.add(itemStack);
+                }
             }
         }
+
+        calculateDimensions();
+
+        int totalItemCount = armourItems.size() + (mainHandItem != null ? 1 : 0);
+
+        this.targetWidth = (totalItemCount > 0) ? maxString + 29 : 0;
+        this.targetHeight = (totalItemCount > 0) ? (20 * totalItemCount) + 6 : 0;
     };
 
     public final EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
@@ -58,32 +79,34 @@ public class ArmourStatsMod extends HUDMod {
     };
 
     private void draw() {
-        int totalItemCount = armourItems.size() + (mainHandItem != null ? 1 : 0);
+        float animationSpeed = 0.15f;
+        float diffW = targetWidth - animatedWidth;
+        float diffH = targetHeight - animatedHeight;
 
-        calculateDimensions();
-
-        float targetWidth = (totalItemCount > 0) ? maxString + 29 : 0;
-        float targetHeight = (totalItemCount > 0) ? (20 * totalItemCount) + 6 : 0;
-
-        // 如果目标是隐藏，并且动画已经变得很小，则直接返回
-        if (targetWidth == 0 && animatedWidth < 1) {
-            animatedWidth = 0;
-            animatedHeight = 0;
-            return;
+        if (Math.abs(diffW) > 0.5f) {
+            animatedWidth += diffW * animationSpeed;
+        } else {
+            animatedWidth = targetWidth;
         }
 
-        float animationSpeed = 0.15f;
-        animatedWidth += (targetWidth - animatedWidth) * animationSpeed;
-        animatedHeight += (targetHeight - animatedHeight) * animationSpeed;
+        if (Math.abs(diffH) > 0.5f) {
+            animatedHeight += diffH * animationSpeed;
+        } else {
+            animatedHeight = targetHeight;
+        }
+
+        if (animatedWidth < 1) {
+            if (position.getWidth() != 0 || position.getHeight() != 0) {
+                position.setSize(0, 0);
+            }
+            return;
+        }
 
         this.begin();
         this.drawBackground(getX(), getY(), animatedWidth, animatedHeight);
 
-        // 最终修正：完全移除剪裁 (Skia.clip)，因为找不到可用的方法。
-        // 我们只在动画基本完成时才绘制内容，以防止溢出。
         float animationProgress = targetWidth > 0 ? animatedWidth / targetWidth : 0;
-
-        if (animationProgress > 0.95f) {
+        if (animationProgress > 0.85f) {
             int ySize = 20;
             int offsetY = 16;
 
@@ -102,7 +125,26 @@ public class ArmourStatsMod extends HUDMod {
         position.setSize(animatedWidth, animatedHeight);
     }
 
-    // drawItem 方法保持最简单的形式
+    private boolean hasValidItems() {
+        if (client.player == null) return false;
+
+        ItemStack handStack = client.player.getMainHandStack();
+        if (!handStack.isEmpty()) {
+            Item item = handStack.getItem();
+            if (!(item instanceof BlockItem) && !(item instanceof PotionItem)) {
+                return true;
+            }
+        }
+
+        for (ItemStack itemStack : client.player.getInventory().armor) {
+            if (!itemStack.isEmpty()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void drawItem(ItemStack itemStack, int offsetY) {
         drawArmourIcon(itemStack, offsetY);
 
@@ -123,7 +165,6 @@ public class ArmourStatsMod extends HUDMod {
         }
     }
 
-    // drawArmourIcon 方法保持最简单的形式
     private void drawArmourIcon(ItemStack itemStack, int offsetY) {
         Identifier itemId = Registries.ITEM.getId(itemStack.getItem());
         String texturePath = String.format("textures/item/%s.png", itemId.getPath());
@@ -139,13 +180,15 @@ public class ArmourStatsMod extends HUDMod {
         }
     }
 
-    // calculateDimensions 方法保持不变
     private void calculateDimensions() {
         maxString = 0;
-        int totalItemCount = armourItems.size() + (mainHandItem != null ? 1 : 0);
         List<ItemStack> allItems = new ArrayList<>();
         if (mainHandItem != null) allItems.add(mainHandItem);
         allItems.addAll(armourItems);
+
+        if (allItems.isEmpty()) {
+            return;
+        }
 
         for (ItemStack itemStack : allItems) {
             String name = itemStack.getName().getString();
@@ -161,11 +204,10 @@ public class ArmourStatsMod extends HUDMod {
                 currentItemWidth = Math.max(nameBounds.getWidth(), detailBounds.getWidth());
             }
 
-            if (maxString < currentItemWidth || prevItemCount != totalItemCount) {
+            if (maxString < currentItemWidth) {
                 maxString = (int) currentItemWidth;
             }
         }
-        prevItemCount = totalItemCount;
     }
 
     private void drawIconPlaceholder(float x, float y, float size) {
