@@ -47,6 +47,11 @@ public class PackDisplayMod extends SimpleHUDMod {
     private final TimerUtils animationTimer = new TimerUtils();
     private float mx, my, dx, dy;
 
+    // --- 新增的缓存字段 ---
+    private File cachedPackIcon = null;
+    private String cachedPackId = "";
+    // --- 结束 ---
+
     public PackDisplayMod() {
         super("mod.PackDisplayMod.name", "mod.PackDisplayMod.description", Icon.TEXTURE);//呵呵
         setEnabled(true);
@@ -81,13 +86,29 @@ public class PackDisplayMod extends SimpleHUDMod {
             profileToRender = enabledPacks.getLast();
         }
 
+        // --- 核心修改：检查并更新缓存 ---
+        if (!profileToRender.getId().equals(cachedPackId)) {
+            // 资源包已更改，更新缓存
+            LOGGER.info("Resource pack changed, updating icon cache for: " + profileToRender.getId());
+            try (ResourcePack resourcePack = profileToRender.createResourcePack()) {
+                this.cachedPackIcon = extractPackIcon(resourcePack); // 仅在需要时调用
+                this.cachedPackId = profileToRender.getId();
+            } catch (Exception e) {
+                LOGGER.error("Error while creating resource pack for caching: " + profileToRender.getId(), e);
+                this.cachedPackIcon = null; // 出错则清空
+                this.cachedPackId = profileToRender.getId(); // 仍然更新ID以防重复出错
+            }
+        }
+        // --- 结束修改 ---
+
         final float width = 180, height = 45, padding = 4.5f, iconSize = height - (padding * 2), coverSize = 256;
         final boolean isCoverMode = typeSetting.getOption().equals("setting.cover");
         final Color textColor = isCoverMode ? Color.WHITE : getDesign().getTextColor();
 
         begin();
-        try (ResourcePack resourcePack = profileToRender.createResourcePack()) {
-            File iconFile = extractPackIcon(resourcePack);
+        try {
+            // 直接使用缓存的 'cachedPackIcon'
+            File iconFile = this.cachedPackIcon;
 
             if (isCoverMode) {
                 if (iconFile != null) {
@@ -112,26 +133,14 @@ public class PackDisplayMod extends SimpleHUDMod {
             }
 
             // --- 这是新的、使用 drawFullCenteredText 的居中代码 ---
-
-            // 1. 定义字体
             final Font font = Fonts.getRegular(11); // normal模式字体大小为11
-
-            // 2. 准备要显示的文本（清理.zip后缀）
             String displayName = profileToRender.getDisplayName().getString();
             String cleanName = displayName.endsWith(".zip") ? displayName.substring(0, displayName.length() - 4) : displayName;
-
-            // 3. 定义文本可用的区域和起始位置
             final float textAreaX = getX() + iconSize + padding * 2;
             final float textAreaWidth = width - (iconSize + padding * 3);
-
-            // 4. 截断过长的文本
             String textToRender = Skia.getLimitText(cleanName, font, textAreaWidth);
-
-            // 5. 计算文本区域的中心点坐标
             final float centerX = textAreaX + (textAreaWidth / 2f);
             final float centerY = getY() + (height / 2f);
-
-            // 6. 使用 drawFullCenteredText 函数来绘制文本，实现完美居中
             Skia.drawFullCenteredText(textToRender, centerX, centerY, textColor, font);
 
         } catch (Exception e) {
@@ -264,5 +273,11 @@ public class PackDisplayMod extends SimpleHUDMod {
     }
 
     @Override public void onEnable() { super.onEnable(); EventBus.getInstance().register(onRenderSkia); }
-    @Override public void onDisable() { super.onDisable(); EventBus.getInstance().unregister(onRenderSkia); }
+    @Override public void onDisable() {
+        super.onDisable();
+        EventBus.getInstance().unregister(onRenderSkia);
+        // 重置缓存，以便下次启用时刷新
+        this.cachedPackIcon = null;
+        this.cachedPackId = "";
+    }
 }
