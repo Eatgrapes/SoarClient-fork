@@ -3,7 +3,10 @@
 - If you want to see the original Soar repository,please go to the [SoarClient repo](https://www.github.com/Soar-Client/SoarClient) 
 - it is a SoarClient's fork 
 - We will add more Modules and support
+
+# License
 - **When you use this client, it will automatically be considered as your agreement to the MIT License**
+- **If you want to use this client to record videos or make modifications, please include a link to the source repository**
   
 # IT IS UNDER DEVELOPMENT
 
