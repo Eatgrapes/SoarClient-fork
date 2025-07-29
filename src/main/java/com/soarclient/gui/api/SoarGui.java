@@ -3,6 +3,8 @@ package com.soarclient.gui.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.soarclient.shader.ShaderHelper;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.Soar;
@@ -21,6 +23,7 @@ import com.soarclient.utils.Multithreading;
 
 import io.github.humbleui.skija.SurfaceOrigin;
 import net.minecraft.client.gui.screen.Screen;
+import org.lwjgl.opengl.GL11;
 
 public abstract class SoarGui extends SimpleSoarGui {
 
@@ -184,15 +187,24 @@ public abstract class SoarGui extends SimpleSoarGui {
 		}
 	}
 
-	public void close(Screen nextScreen) {
-		if (inOutAnimation.getEnd() == 1) {
-			this.nextScreen = nextScreen;
-			inOutAnimation = new EaseEmphasizedDecelerate(Duration.EXTRA_LONG_1, 1, 0);
-			Multithreading.runAsync(() -> {
-				Soar.getInstance().getConfigManager().save(ConfigType.MOD);
-			});
-		}
-	}
+    public void close(Screen nextScreen) {
+        if (inOutAnimation.getEnd() == 1) {
+            this.nextScreen = nextScreen;
+            inOutAnimation = new EaseEmphasizedDecelerate(Duration.EXTRA_LONG_1, 1, 0);
+
+            ShaderHelper.disableBlend();
+            ShaderHelper.disableCull();
+            RenderSystem.disableScissor();
+            RenderSystem.disableDepthTest();
+            GL11.glDisable(GL11.GL_BLEND);
+            GL11.glDisable(GL11.GL_DEPTH_TEST);
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+            Multithreading.runAsync(() -> {
+                Soar.getInstance().getConfigManager().save(ConfigType.MOD);
+            });
+        }
+    }
 
 	public void close() {
 		close(null);
