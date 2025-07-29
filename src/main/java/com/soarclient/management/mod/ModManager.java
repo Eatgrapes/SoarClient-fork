@@ -45,6 +45,7 @@ public class ModManager {
 
 		// HUD
 		mods.add(new BedwarsStatsOverlayMod());
+        mods.add(new ArmourStatsMod());
 		mods.add(new BossBarMod());
 		mods.add(new ClockMod());
 		mods.add(new ComboCounterMod());
