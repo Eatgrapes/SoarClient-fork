@@ -36,15 +36,6 @@ public abstract class MixinAbstractClientPlayerEntity extends PlayerEntity {
         super(world, pos, yaw, gameProfile);
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-        if (!isPartVisible(PlayerModelPart.CAPE) && enableCape) {
-            MinecraftClient.getInstance().options.setPlayerModelPart(PlayerModelPart.CAPE, true);
-            MinecraftClient.getInstance().options.sendClientSettings();
-            enableCape = false;
-        }
-    }
 
     @Inject(method = "getSkinTextures", at = @At("RETURN"), cancellable = true)
     public void getSkinTextures(CallbackInfoReturnable<SkinTextures> cir) {

@@ -27,10 +27,16 @@ public class ActionCameraMod extends Mod {
 
     @Override
     public void onEnable() {
+        super.onEnable();
+        initializeCameraPos();
+    }
+
+    private void initializeCameraPos() {
         if (client != null && client.player != null) {
             cameraPos = client.player.getPos();
         }
     }
+
 
     @Override
     public void onDisable() {
@@ -43,6 +49,10 @@ public class ActionCameraMod extends Mod {
     }
 
     public Vec3d getCameraPos() {
+        if (cameraPos == null && client != null && client.player != null) {
+            cameraPos = client.player.getPos();
+        }
+
         if (firstPerson() && client.player != null) {
             return new Vec3d(
                 client.player.getX(),
@@ -54,7 +64,12 @@ public class ActionCameraMod extends Mod {
     }
 
     public void update(Vec3d playerPos) {
-        if (client == null || client.player == null || cameraPos == null) return;
+        if (client == null || client.player == null) return;
+
+        if (cameraPos == null) {
+            cameraPos = playerPos;
+            return;
+        }
 
         double distance = cameraPos.distanceTo(playerPos);
         float maxDist = maxDistance.getValue();
