@@ -59,6 +59,33 @@ mod.combocounter.description=コンボ数を表示
 mod.reachdisplay.name=リーチ表示
 mod.reachdisplay.description=攻撃リーチを表示
 
+mod.hiteffect.name=ヒットエフェクト
+mod.hiteffect.description=パーティクルと音効でヒットエフェクトをカスタマイズ
+setting.particle.enabled=パーティクル有効
+setting.particle.enabled.description=パーティクルエフェクトを有効化
+setting.particle.type=パーティクルタイプ
+setting.particle.type.description=パーティクルエフェクトタイプを選択
+setting.particle.amount=パーティクル量
+setting.particle.amount.description=パーティクル数を設定
+setting.sound.enabled=音効有効
+setting.sound.enabled.description=ヒット音効を有効化
+setting.sound.type=音効タイプ
+setting.sound.type.description=音効タイプを選択
+setting.always.active=常に有効
+setting.always.active.description=条件に関係なく常にエフェクトを発動
+setting.critical.only=クリティカルのみ
+setting.critical.only.description=クリティカルヒット時のみ発動
+setting.enchantment.only=エンチャントのみ
+setting.enchantment.only.description=武器にエンチャントがある時のみ発動
+setting.blood=血液
+setting.totem=トーテム
+setting.none=なし
+setting.sound.hit=ヒット音
+setting.sound.totem=トーテム音
+setting.sound.bell=ベル音
+setting.sound.anvil=金床音
+setting.sound.none=音なし
+
 mod.daycounter.name=日数カウンター
 mod.daycounter.description=Minecraftの経過日数を表示
 

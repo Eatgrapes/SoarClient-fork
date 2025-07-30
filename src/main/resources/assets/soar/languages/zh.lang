@@ -56,6 +56,33 @@ mod.fpsdisplay.description=显示Minecraft帧率
 mod.coords.name=坐标
 mod.coords.description=显示你的坐标
 
+mod.hiteffect.name=打击效果
+mod.hiteffect.description=自定义打击效果的粒子和音效
+setting.particle.enabled=启用粒子
+setting.particle.enabled.description=启用打击粒子效果
+setting.particle.type=粒子类型
+setting.particle.type.description=选择粒子效果类型
+setting.particle.amount=粒子数量
+setting.particle.amount.description=设置粒子数量
+setting.sound.enabled=启用音效
+setting.sound.enabled.description=启用打击音效
+setting.sound.type=音效类型
+setting.sound.type.description=选择音效类型
+setting.always.active=始终激活
+setting.always.active.description=无论条件如何都触发效果
+setting.critical.only=仅暴击
+setting.critical.only.description=仅在暴击时触发
+setting.enchantment.only=仅附魔
+setting.enchantment.only.description=仅在武器有附魔时触发
+setting.blood=血液
+setting.totem=图腾
+setting.none=无
+setting.sound.hit=打击音效
+setting.sound.totem=图腾音效
+setting.sound.bell=铃铛音效
+setting.sound.anvil=铁砧音效
+setting.sound.none=无音效
+
 mod.nameprotect.name=名字保护
 mod.nameprotect.description=在本地伪装你的玩家名字
 

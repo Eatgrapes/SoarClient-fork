@@ -57,6 +57,33 @@ mod.coords.description=Display your coordnates
 mod.combocounter.name=Combo Counter
 mod.combocounter.description=Display Combo
 
+mod.hiteffect.name=Hit Effect
+mod.hiteffect.description=Customize hit effects with particles and sounds
+setting.particle.enabled=Particle Enabled
+setting.particle.enabled.description=Enable particle effects
+setting.particle.type=Particle Type
+setting.particle.type.description=Select particle effect type
+setting.particle.amount=Particle Amount
+setting.particle.amount.description=Set number of particles
+setting.sound.enabled=Sound Enabled
+setting.sound.enabled.description=Enable hit sound effects
+setting.sound.type=Sound Type
+setting.sound.type.description=Select sound effect type
+setting.always.active=Always Active
+setting.always.active.description=Always trigger effects regardless of conditions
+setting.critical.only=Critical Only
+setting.critical.only.description=Only trigger on critical hits
+setting.enchantment.only=Enchantment Only
+setting.enchantment.only.description=Only trigger when weapon has enchantments
+setting.blood=Blood
+setting.totem=Totem
+setting.none=None
+setting.sound.hit=Hit Sound
+setting.sound.totem=Totem Sound
+setting.sound.bell=Bell Sound
+setting.sound.anvil=Anvil Sound
+setting.sound.none=No Sound
+
 mod.reachdisplay.name=Reach Display
 mod.reachdisplay.description=Display reach
 

@@ -13,20 +13,12 @@ import com.soarclient.management.mod.api.hud.design.impl.SimpleDesign;
 import com.soarclient.management.mod.impl.hud.*;
 import com.soarclient.management.mod.impl.misc.*;
 import com.soarclient.management.mod.impl.player.*;
-import com.soarclient.management.mod.impl.render.BloodParticleMod;
-import com.soarclient.management.mod.impl.render.CustomHandMod;
-import com.soarclient.management.mod.impl.render.FullbrightMod;
-import com.soarclient.management.mod.impl.render.MusicWaveformMod;
-import com.soarclient.management.mod.impl.render.OverlayEditorMod;
-import com.soarclient.management.mod.impl.render.ActionCameraMod;
-import com.soarclient.management.mod.impl.render.ParticlesMod;
-import com.soarclient.management.mod.impl.render.ProjectileTrailMod;
+import com.soarclient.management.mod.impl.render.*;
 import com.soarclient.management.mod.impl.settings.HUDModSettings;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.impl.settings.SystemSettings;
 import com.soarclient.management.mod.settings.Setting;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
-import io.github.humbleui.skija.Image;
 
 public class ModManager {
 
@@ -91,14 +83,13 @@ public class ModManager {
         mods.add(new AutoTextMod());
 
         // Render
-		mods.add(new BloodParticleMod());
 		mods.add(new CustomHandMod());
 		mods.add(new FullbrightMod());
 		mods.add(new MusicWaveformMod());
 		mods.add(new OverlayEditorMod());
-		mods.add(new ParticlesMod());
 		mods.add(new ProjectileTrailMod());
         mods.add(new ActionCameraMod());
+        mods.add(new HitEffectMod());
 
 		// Misc
 		mods.add(new DiscordRPCMod());
