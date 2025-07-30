@@ -345,6 +345,9 @@ mod.watermark.show_icon.description=显示客户端Logo
 mod.watermark.show_text=显示文字
 mod.watermark.show_text.description=显示设定的文字
 
+mod.armourstats.name=装备显示
+mod.armourstats.description=显示装备
+
 setting.icon=图标
 setting.background=背景
 setting.background.description=开/关普通模式下的信息背景

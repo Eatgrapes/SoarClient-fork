@@ -279,6 +279,9 @@ setting.compact.description=Display potion effects in compact layout
 mod.bloodparticles.name=Blood Particles
 mod.bloodparticles.description=Add a blood effects
 
+mod.armourstats.name=Armour Stats
+mod.armourstats.description=Display Armour
+
 mod.projectiletrail.name=Projectile Trail
 mod.projectiletrail.description=Display effects after thrown objects
 

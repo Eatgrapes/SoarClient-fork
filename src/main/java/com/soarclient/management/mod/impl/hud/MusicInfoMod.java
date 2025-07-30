@@ -6,7 +6,9 @@ import java.util.Arrays;
 
 import com.soarclient.Soar;
 import com.soarclient.event.EventBus;
+import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
+import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.mod.api.hud.SimpleHUDMod;
 import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
@@ -30,6 +32,9 @@ public class MusicInfoMod extends SimpleHUDMod {
     private final TimerUtils timer = new TimerUtils();
     private float mx, my, dx, dy;
 
+    private float animatedWidth, animatedHeight;
+    private float targetWidth, targetHeight;
+
     private final ComboSetting typeSetting = new ComboSetting("setting.type", "setting.type.description",
         Icon.FORMAT_LIST_BULLETED, this, Arrays.asList("setting.simple", "setting.normal", "setting.cover"),
         "setting.simple");
@@ -45,7 +50,6 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     private final BooleanSetting lyricsDisplaySetting = new BooleanSetting("setting.lyrics.display",
         "setting.lyrics.display.description", Icon.TEXT_FIELDS, this, false) {
-
         @Override
         public boolean isVisible() {
             String type = typeSetting.getOption();
@@ -53,41 +57,121 @@ public class MusicInfoMod extends SimpleHUDMod {
         }
     };
 
+
     private final LyricsManager lyricsManager = new LyricsManager();
 
     public MusicInfoMod() {
         super("mod.musicinfo.name", "mod.musicinfo.description", Icon.MUSIC_NOTE);
         dx = 1;
         dy = 1;
+        this.animatedWidth = 0;
+        this.animatedHeight = 0;
+        this.targetWidth = 0;
+        this.targetHeight = 0;
     }
 
-    public EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
-
+    public final EventBus.EventListener<ClientTickEvent> onClientTick = event -> {
         String type = typeSetting.getOption();
-
-        float width = 180;
-        float height = 45;
-
-
         if (type.equals("setting.simple")) {
-            this.draw();
+            targetWidth = position.getWidth();
+            targetHeight = position.getHeight();
+            return;
+        }
+
+        Music m = Soar.getInstance().getMusicManager().getCurrentMusic();
+
+        if (m != null || HUDCore.isEditing) {
+            this.targetHeight = 45;
+            this.targetWidth = calculateAdaptiveWidth();
         } else {
-            this.begin();
-            drawInfo(width, height);
-            this.finish();
-            position.setSize(width, height);
+            this.targetWidth = 0;
+            this.targetHeight = 0;
         }
     };
 
-    private void drawInfo(float width, float height) {
-
+    public EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
         String type = typeSetting.getOption();
 
+        if (type.equals("setting.simple")) {
+            this.draw();
+            animatedWidth = position.getWidth();
+            animatedHeight = position.getHeight();
+            return;
+        }
+
+        float animationSpeed = 0.15f;
+        float diffW = targetWidth - animatedWidth;
+        float diffH = targetHeight - animatedHeight;
+
+        if (Math.abs(diffW) > 0.5f) {
+            animatedWidth += diffW * animationSpeed;
+        } else {
+            animatedWidth = targetWidth;
+        }
+        if (Math.abs(diffH) > 0.5f) {
+            animatedHeight += diffH * animationSpeed;
+        } else {
+            animatedHeight = targetHeight;
+        }
+
+        if (animatedWidth < 1) {
+            if (position.getWidth() != 0 || position.getHeight() != 0) {
+                position.setSize(0, 0);
+            }
+            return;
+        }
+
+        this.begin();
+        drawInfo(animatedWidth, animatedHeight);
+        this.finish();
+        position.setSize(animatedWidth, animatedHeight);
+    };
+
+    private float calculateAdaptiveWidth() {
         MusicManager musicManager = Soar.getInstance().getMusicManager();
         Music m = musicManager.getCurrentMusic();
+
+        boolean isDummyMode = HUDCore.isEditing && m == null;
+
+        if (isDummyMode) {
+            return 180;
+        }
+
+        if (m == null) {
+            return 0;
+        }
+
+        float maxTextWidth = 0;
+
+        Rect titleBounds = Skia.getTextBounds(m.getTitle(), Fonts.getRegular(9));
+        maxTextWidth = Math.max(maxTextWidth, titleBounds.getWidth());
+
+        Rect artistBounds = Skia.getTextBounds(m.getArtist(), Fonts.getRegular(6.5F));
+        maxTextWidth = Math.max(maxTextWidth, artistBounds.getWidth());
+
+        if (lyricsDisplaySetting.isEnabled()) {
+            String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
+            if (currentLyric != null && !currentLyric.isEmpty()) {
+                Rect lyricBounds = Skia.getTextBounds(currentLyric, Fonts.getRegular(7));
+                maxTextWidth = Math.max(maxTextWidth, lyricBounds.getWidth());
+            }
+        }
+
+        float padding = 4.5F;
+        float albumSize = 45 - (padding * 2);
+        float sidePaddings = 12;
+        float totalWidth = padding + albumSize + padding + maxTextWidth + sidePaddings;
+
+        return Math.max(180, totalWidth);
+    }
+
+    private void drawInfo(float width, float height) {
+        String type = typeSetting.getOption();
+        MusicManager musicManager = Soar.getInstance().getMusicManager();
+        Music m = musicManager.getCurrentMusic();
+
         float padding = 4.5F;
         float albumSize = height - (padding * 2);
-
 
         boolean cover = type.equals("setting.cover");
         Color textColor = cover ? Color.WHITE : this.getDesign().getTextColor();
@@ -97,41 +181,43 @@ public class MusicInfoMod extends SimpleHUDMod {
             this.drawBackground(getX(), getY(), width, height);
         }
 
-        if (m != null && m.getAlbum() != null && cover) {
-            Skia.save();
-            Skia.clip(getX(), getY(), width, height, getRadius());
-            drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize, 20);
-            Skia.restore();
-        }
+        float animationProgress = targetWidth > 0 ? width / targetWidth : 0;
+        if (animationProgress > 0.85f) {
 
-        if (m != null && m.getAlbum() != null) {
-            Skia.drawRoundedImage(m.getAlbum(), getX() + padding, getY() + padding, albumSize, albumSize, 6);
-        } else {
-            Skia.drawRoundedRect(getX() + padding, getY() + padding, albumSize, albumSize, 6,
-                ColorUtils.applyAlpha(textColor, 0.2F));
-        }
+            boolean isDummyMode = HUDCore.isEditing && m == null;
 
-        if (m != null) {
+            if (isDummyMode) {
+                Skia.drawRoundedRect(getX() + padding, getY() + padding, albumSize, albumSize, 6,
+                    ColorUtils.applyAlpha(textColor, 0.2F));
 
-            float offsetX = (padding * 2) + albumSize;
-            float maxTextWidth = width - offsetX - 12;
+            } else if (m != null) {
+                if (cover && m.getAlbum() != null) {
+                    Skia.save();
+                    Skia.clip(getX(), getY(), width, height, getRadius());
+                    drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize, 20);
+                    Skia.restore();
+                }
 
-            String limitedTitle = Skia.getLimitText(m.getTitle(), Fonts.getRegular(9), maxTextWidth);
-            String limitedArtist = Skia.getLimitText(m.getArtist(), Fonts.getRegular(6.5F), maxTextWidth);
+                if (m.getAlbum() != null) {
+                    Skia.drawRoundedImage(m.getAlbum(), getX() + padding, getY() + padding, albumSize, albumSize, 6);
+                } else {
+                    Skia.drawRoundedRect(getX() + padding, getY() + padding, albumSize, albumSize, 6,
+                        ColorUtils.applyAlpha(textColor, 0.2F));
+                }
 
-            Skia.drawText(limitedTitle, getX() + offsetX, getY() + padding + 3F, textColor, Fonts.getRegular(9));
-            Skia.drawText(limitedArtist, getX() + offsetX, getY() + padding + 12F,
-                ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
+                float offsetX = (padding * 2) + albumSize;
 
-            if (lyricsDisplaySetting.isEnabled()) {
-                float currentTime = musicManager.getCurrentTime();
-                String currentLyric = lyricsManager.getCurrentLyric(m, currentTime);
+                Skia.drawText(m.getTitle(), getX() + offsetX, getY() + padding + 3F, textColor, Fonts.getRegular(9));
+                Skia.drawText(m.getArtist(), getX() + offsetX, getY() + padding + 12F,
+                    ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
 
-                if (currentLyric != null && !currentLyric.isEmpty()) {
-                    float lyricY = getY() + padding + 24F;
-                    String limitedLyric = Skia.getLimitText(currentLyric, Fonts.getRegular(7), maxTextWidth);
-                    Skia.drawText(limitedLyric, getX() + offsetX, lyricY,
-                        ColorUtils.applyAlpha(textColor, 0.9F), Fonts.getRegular(7));
+                if (lyricsDisplaySetting.isEnabled()) {
+                    String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
+                    if (currentLyric != null && !currentLyric.isEmpty()) {
+                        float lyricY = getY() + padding + 24F;
+                        Skia.drawText(currentLyric, getX() + offsetX, lyricY,
+                            ColorUtils.applyAlpha(textColor, 0.9F), Fonts.getRegular(7));
+                    }
                 }
             }
         }
@@ -143,12 +229,8 @@ public class MusicInfoMod extends SimpleHUDMod {
     }
 
     private void drawBlurredImage(File file, float x, float y, float width, float height, float blurRadius) {
-
         Paint blurPaint = new Paint();
         blurPaint.setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.REPEAT));
-
-        Skia.drawImage(file, x, y, width, height);
-
         if (Skia.getImageHelper().load(file)) {
             Image image = Skia.getImageHelper().get(file.getName());
             if (image != null) {
@@ -159,35 +241,23 @@ public class MusicInfoMod extends SimpleHUDMod {
     }
 
     private void updatePosition(float width, float height, float coverSize) {
-
         mx += dx;
         my += dy;
-
         if (mx <= 0 || mx + width >= coverSize) {
             dx = -dx;
-            if (mx <= 0) {
-                mx = 0;
-            }
-            if (mx + width >= coverSize) {
-                mx = coverSize - width;
-            }
+            if (mx <= 0) mx = 0;
+            if (mx + width >= coverSize) mx = coverSize - width;
         }
         if (my <= 0 || my + height >= coverSize) {
             dy = -dy;
-            if (my <= 0) {
-                my = 0;
-            }
-            if (my + height >= coverSize) {
-                my = coverSize - height;
-            }
+            if (my <= 0) my = 0;
+            if (my + height >= coverSize) my = coverSize - height;
         }
     }
 
     @Override
     public String getText() {
-
         MusicManager musicManager = Soar.getInstance().getMusicManager();
-
         if (musicManager.getCurrentMusic() != null && musicManager.isPlaying()) {
             return "Playing: " + musicManager.getCurrentMusic().getTitle();
         } else {

@@ -299,6 +299,9 @@ setting.hypixel.description=Hypixelモード
 mod.PackDisplayMod.name=パック表示
 mod.PackDisplayMod.description=マテリアルパックを表示する
 
+mod.armourstats.name=裝備顯示
+mod.armourstats.description=顯示裝備
+
 mod.customhand.name=カスタムハンド
 mod.customhand.description=手の位置、スケールなどを変更
 
