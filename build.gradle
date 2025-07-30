@@ -51,6 +51,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	implementation 'org.apache.commons:commons-math3:3.6.1'
 
 	modImplementation "com.viaversion:viafabricplus-api:4.0.2"
 

@@ -2,7 +2,11 @@ package com.soarclient.management.mod.impl.hud;
 
 import java.awt.Color;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 import com.soarclient.Soar;
 import com.soarclient.event.EventBus;
@@ -14,6 +18,7 @@ import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.management.music.Music;
 import com.soarclient.management.music.MusicManager;
+import com.soarclient.management.music.MusicPlayer;
 import com.soarclient.management.music.lyrics.LyricsManager;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
@@ -21,6 +26,7 @@ import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.ColorUtils;
 import com.soarclient.utils.TimerUtils;
 
+import io.github.humbleui.skija.Bitmap;
 import io.github.humbleui.skija.FilterTileMode;
 import io.github.humbleui.skija.Image;
 import io.github.humbleui.skija.ImageFilter;
@@ -34,6 +40,17 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     private float animatedWidth, animatedHeight;
     private float targetWidth, targetHeight;
+
+    private float animatedBeatScale = 1.0f;
+    private long lastFrameTime = 0;
+
+    private final List<Particle> particles = new ArrayList<>();
+    private final Random random = new Random();
+
+    // region 新增：用于颜色采样的位图
+    private Bitmap albumBitmap = null;
+    private String currentAlbumPath = "";
+    // endregion
 
     private final ComboSetting typeSetting = new ComboSetting("setting.type", "setting.type.description",
         Icon.FORMAT_LIST_BULLETED, this, Arrays.asList("setting.simple", "setting.normal", "setting.cover"),
@@ -50,6 +67,14 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     private final BooleanSetting lyricsDisplaySetting = new BooleanSetting("setting.lyrics.display",
         "setting.lyrics.display.description", Icon.TEXT_FIELDS, this, false) {
+        @Override
+        public boolean isVisible() {
+            String type = typeSetting.getOption();
+            return type.equals("setting.normal") || type.equals("setting.cover");
+        }
+    };
+
+    private final BooleanSetting coverAnimationSetting = new BooleanSetting("setting.cover.animation", "setting.cover.animation.description", Icon.MOVIE, this, true) {
         @Override
         public boolean isVisible() {
             String type = typeSetting.getOption();
@@ -207,6 +232,35 @@ public class MusicInfoMod extends SimpleHUDMod {
             this.drawBackground(getX(), getY(), width, height);
         }
 
+        // 修改：现在无需传递颜色
+        updateAndDrawParticles();
+
+        // region 新增：检查并更新封面位图
+        if (m != null && m.getAlbum() != null) {
+            String albumPath = m.getAlbum().getAbsolutePath();
+            // 如果歌曲变了，或者还没有位图，则创建一个新的
+            if (!albumPath.equals(currentAlbumPath)) {
+                currentAlbumPath = albumPath;
+                if (Skia.getImageHelper().load(m.getAlbum())) {
+                    Image image = Skia.getImageHelper().get(m.getAlbum().getName());
+                    if (image != null) {
+                        albumBitmap = new Bitmap();
+                        albumBitmap.allocPixels(image.getImageInfo());
+                        image.readPixels(albumBitmap, 0, 0);
+                    } else {
+                        albumBitmap = null;
+                    }
+                } else {
+                    albumBitmap = null;
+                }
+            }
+        } else {
+            // 没有音乐，则清空位图
+            albumBitmap = null;
+            currentAlbumPath = "";
+        }
+        // endregion
+
         float animationProgress = targetWidth > 0 ? width / targetWidth : 0;
         if (animationProgress > 0.85f) {
 
@@ -220,13 +274,58 @@ public class MusicInfoMod extends SimpleHUDMod {
                 if (cover && m.getAlbum() != null) {
                     Skia.save();
                     Skia.clip(getX(), getY(), width, height, getRadius());
-                    // The blurred image is now drawn with the corrected dynamic size.
                     drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize, 20);
                     Skia.restore();
                 }
 
                 if (m.getAlbum() != null) {
-                    Skia.drawRoundedImage(m.getAlbum(), getX() + padding, getY() + padding, albumSize, albumSize, 6);
+
+                    float targetBeatScale = 1.0f;
+                    float dynamicPulseMagnitude = 0f;
+
+                    if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
+                        float[] spectrum = MusicPlayer.VISUALIZER;
+                        if (spectrum != null && spectrum.length > 0) {
+
+                            float energy = 0;
+                            int bandsToSample = Math.max(1, spectrum.length / 4);
+                            for (int i = 0; i < bandsToSample; i++) {
+                                energy += spectrum[i];
+                            }
+
+                            float averageBassMagnitude = energy / bandsToSample;
+
+                            float sensitivity = 0.006f;
+                            float maxMagnitude = 0.5f;
+
+                            dynamicPulseMagnitude = averageBassMagnitude * sensitivity;
+                            dynamicPulseMagnitude = Math.min(dynamicPulseMagnitude, maxMagnitude);
+
+                            targetBeatScale = 1.0f + dynamicPulseMagnitude;
+                        }
+                    }
+
+                    long currentTime = System.currentTimeMillis();
+                    if (lastFrameTime == 0) {
+                        lastFrameTime = currentTime;
+                    }
+                    float deltaTime = (currentTime - lastFrameTime) / 1000.0f;
+                    lastFrameTime = currentTime;
+
+                    float smoothingFactor = 0.1f;
+
+                    animatedBeatScale = animatedBeatScale + (targetBeatScale - animatedBeatScale) * (1.0f - (float)Math.pow(smoothingFactor, deltaTime));
+
+                    // 修改：传递 albumBitmap 到 spawnParticles
+                    if (dynamicPulseMagnitude > 0.04f) {
+                        spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, 15, albumBitmap);
+                    }
+
+                    float animatedAlbumSize = albumSize * animatedBeatScale;
+                    float sizeOffset = (animatedAlbumSize - albumSize) / 2.0f;
+
+                    Skia.drawRoundedImage(m.getAlbum(), getX() + padding - sizeOffset, getY() + padding - sizeOffset, animatedAlbumSize, animatedAlbumSize, 6 * animatedBeatScale);
+
                 } else {
                     Skia.drawRoundedRect(getX() + padding, getY() + padding, albumSize, albumSize, 6,
                         ColorUtils.applyAlpha(textColor, 0.2F));
@@ -301,6 +400,90 @@ public class MusicInfoMod extends SimpleHUDMod {
             if (my + height >= coverSize) my = coverSize - height;
         }
     }
+
+    // region 粒子效果相关方法和内部类 (已修改)
+
+    /**
+     * 修改：接收一个 Bitmap 用于颜色采样
+     */
+    private void spawnParticles(float x, float y, int amount, Bitmap albumBitmap) {
+        for (int i = 0; i < amount; i++) {
+            particles.add(new Particle(x, y, random, albumBitmap));
+        }
+    }
+
+    /**
+     * 修改：现在无需传递颜色
+     */
+    private void updateAndDrawParticles() {
+        Iterator<Particle> iterator = particles.iterator();
+        while (iterator.hasNext()) {
+            Particle p = iterator.next();
+            p.update();
+            if (p.isDead()) {
+                iterator.remove();
+            } else {
+                p.draw();
+            }
+        }
+    }
+
+    private static class Particle {
+        private float x, y;
+        private float vx, vy;
+        private float alpha;
+        private final float size;
+        private final float gravity = 0.04f;
+        private final float friction = 0.99f;
+        private final Color color; // 修改：每个粒子拥有自己的颜色
+
+        /**
+         * 修改：构造函数接收一个 Bitmap
+         */
+        Particle(float x, float y, Random random, Bitmap albumBitmap) {
+            this.x = x;
+            this.y = y;
+            double angle = random.nextDouble() * 2 * Math.PI;
+            float speed = 1.0f + random.nextFloat() * 1.5f;
+            this.vx = (float) (Math.cos(angle) * speed);
+            this.vy = (float) (Math.sin(angle) * speed);
+            this.alpha = 1.0f;
+            this.size = 1.0f + random.nextFloat() * 1.5f;
+
+            // 从传入的位图中随机采样颜色
+            if (albumBitmap != null && !albumBitmap.isEmpty()) {
+                int randomX = random.nextInt(albumBitmap.getWidth());
+                int randomY = random.nextInt(albumBitmap.getHeight());
+                // 从位图获取 ARGB 整数颜色值并创建 Color 对象
+                this.color = new Color(albumBitmap.getColor(randomX, randomY), true);
+            } else {
+                // 如果没有位图，则使用默认颜色（白色）
+                this.color = Color.WHITE;
+            }
+        }
+
+        void update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += gravity;
+            this.vx *= friction;
+            this.vy *= friction;
+            this.alpha -= 0.02f;
+        }
+
+        /**
+         * 修改：draw 方法使用粒子自身的颜色
+         */
+        void draw() {
+            Color particleColor = ColorUtils.applyAlpha(this.color, this.alpha);
+            Skia.drawCircle(this.x, this.y, this.size, particleColor);
+        }
+
+        boolean isDead() {
+            return this.alpha <= 0;
+        }
+    }
+    // endregion
 
     @Override
     public String getText() {
