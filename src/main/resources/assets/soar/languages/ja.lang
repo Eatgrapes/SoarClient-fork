@@ -279,6 +279,9 @@ mod.watermark.show_icon1.description=アイコンを表示
 mod.watermark.show_icon1=アイコンを表示
 mod.watermark.show_text1.description=テキストを表示
 
+setting.cover.animation=表紙アニメーション
+setting.cover.animation.description=粒子エフェクトとカバーパルスアニメーション
+
 mod.bloodparticles.name=血パーティクル
 mod.bloodparticles.description=血のエフェクトを追加
 

@@ -47,10 +47,10 @@ public class MusicInfoMod extends SimpleHUDMod {
     private final List<Particle> particles = new ArrayList<>();
     private final Random random = new Random();
 
-    // region 新增：用于颜色采样的位图
     private Bitmap albumBitmap = null;
     private String currentAlbumPath = "";
-    // endregion
+
+    private boolean beatActive = false;
 
     private final ComboSetting typeSetting = new ComboSetting("setting.type", "setting.type.description",
         Icon.FORMAT_LIST_BULLETED, this, Arrays.asList("setting.simple", "setting.normal", "setting.cover"),
@@ -232,13 +232,10 @@ public class MusicInfoMod extends SimpleHUDMod {
             this.drawBackground(getX(), getY(), width, height);
         }
 
-        // 修改：现在无需传递颜色
         updateAndDrawParticles();
 
-        // region 新增：检查并更新封面位图
         if (m != null && m.getAlbum() != null) {
             String albumPath = m.getAlbum().getAbsolutePath();
-            // 如果歌曲变了，或者还没有位图，则创建一个新的
             if (!albumPath.equals(currentAlbumPath)) {
                 currentAlbumPath = albumPath;
                 if (Skia.getImageHelper().load(m.getAlbum())) {
@@ -255,11 +252,9 @@ public class MusicInfoMod extends SimpleHUDMod {
                 }
             }
         } else {
-            // 没有音乐，则清空位图
             albumBitmap = null;
             currentAlbumPath = "";
         }
-        // endregion
 
         float animationProgress = targetWidth > 0 ? width / targetWidth : 0;
         if (animationProgress > 0.85f) {
@@ -281,7 +276,6 @@ public class MusicInfoMod extends SimpleHUDMod {
                 if (m.getAlbum() != null) {
 
                     float targetBeatScale = 1.0f;
-                    float dynamicPulseMagnitude = 0f;
 
                     if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
                         float[] spectrum = MusicPlayer.VISUALIZER;
@@ -294,11 +288,10 @@ public class MusicInfoMod extends SimpleHUDMod {
                             }
 
                             float averageBassMagnitude = energy / bandsToSample;
-
                             float sensitivity = 0.006f;
                             float maxMagnitude = 0.5f;
 
-                            dynamicPulseMagnitude = averageBassMagnitude * sensitivity;
+                            float dynamicPulseMagnitude = averageBassMagnitude * sensitivity;
                             dynamicPulseMagnitude = Math.min(dynamicPulseMagnitude, maxMagnitude);
 
                             targetBeatScale = 1.0f + dynamicPulseMagnitude;
@@ -316,9 +309,17 @@ public class MusicInfoMod extends SimpleHUDMod {
 
                     animatedBeatScale = animatedBeatScale + (targetBeatScale - animatedBeatScale) * (1.0f - (float)Math.pow(smoothingFactor, deltaTime));
 
-                    // 修改：传递 albumBitmap 到 spawnParticles
-                    if (dynamicPulseMagnitude > 0.04f) {
-                        spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, 15, albumBitmap);
+                    float beatTriggerThreshold = 0.1f;
+
+                    if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
+                        if (!beatActive && targetBeatScale > animatedBeatScale + beatTriggerThreshold) {
+                            spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, 40, albumBitmap);
+                            beatActive = true;
+                        } else if (beatActive && targetBeatScale <= animatedBeatScale) {
+                            beatActive = false;
+                        }
+                    } else {
+                        beatActive = false;
                     }
 
                     float animatedAlbumSize = albumSize * animatedBeatScale;
@@ -401,20 +402,12 @@ public class MusicInfoMod extends SimpleHUDMod {
         }
     }
 
-    // region 粒子效果相关方法和内部类 (已修改)
-
-    /**
-     * 修改：接收一个 Bitmap 用于颜色采样
-     */
     private void spawnParticles(float x, float y, int amount, Bitmap albumBitmap) {
         for (int i = 0; i < amount; i++) {
             particles.add(new Particle(x, y, random, albumBitmap));
         }
     }
 
-    /**
-     * 修改：现在无需传递颜色
-     */
     private void updateAndDrawParticles() {
         Iterator<Particle> iterator = particles.iterator();
         while (iterator.hasNext()) {
@@ -435,11 +428,8 @@ public class MusicInfoMod extends SimpleHUDMod {
         private final float size;
         private final float gravity = 0.04f;
         private final float friction = 0.99f;
-        private final Color color; // 修改：每个粒子拥有自己的颜色
+        private final Color color;
 
-        /**
-         * 修改：构造函数接收一个 Bitmap
-         */
         Particle(float x, float y, Random random, Bitmap albumBitmap) {
             this.x = x;
             this.y = y;
@@ -450,14 +440,11 @@ public class MusicInfoMod extends SimpleHUDMod {
             this.alpha = 1.0f;
             this.size = 1.0f + random.nextFloat() * 1.5f;
 
-            // 从传入的位图中随机采样颜色
             if (albumBitmap != null && !albumBitmap.isEmpty()) {
                 int randomX = random.nextInt(albumBitmap.getWidth());
                 int randomY = random.nextInt(albumBitmap.getHeight());
-                // 从位图获取 ARGB 整数颜色值并创建 Color 对象
                 this.color = new Color(albumBitmap.getColor(randomX, randomY), true);
             } else {
-                // 如果没有位图，则使用默认颜色（白色）
                 this.color = Color.WHITE;
             }
         }
@@ -471,9 +458,6 @@ public class MusicInfoMod extends SimpleHUDMod {
             this.alpha -= 0.02f;
         }
 
-        /**
-         * 修改：draw 方法使用粒子自身的颜色
-         */
         void draw() {
             Color particleColor = ColorUtils.applyAlpha(this.color, this.alpha);
             Skia.drawCircle(this.x, this.y, this.size, particleColor);
@@ -483,7 +467,6 @@ public class MusicInfoMod extends SimpleHUDMod {
             return this.alpha <= 0;
         }
     }
-    // endregion
 
     @Override
     public String getText() {
