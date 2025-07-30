@@ -200,9 +200,10 @@ public class MusicInfoMod extends SimpleHUDMod {
 
         boolean cover = type.equals("setting.cover");
         Color textColor = cover ? Color.WHITE : this.getDesign().getTextColor();
-        float coverSize = 256;
 
-        if (backgroundSetting.isEnabled()) {
+        float coverSize = Math.max(width, height) * 1.2f;
+
+        if (backgroundSetting.isEnabled() && !cover) {
             this.drawBackground(getX(), getY(), width, height);
         }
 
@@ -219,6 +220,7 @@ public class MusicInfoMod extends SimpleHUDMod {
                 if (cover && m.getAlbum() != null) {
                     Skia.save();
                     Skia.clip(getX(), getY(), width, height, getRadius());
+                    // The blurred image is now drawn with the corrected dynamic size.
                     drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize, 20);
                     Skia.restore();
                 }
