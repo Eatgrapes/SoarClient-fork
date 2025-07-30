@@ -60,6 +60,11 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     private final LyricsManager lyricsManager = new LyricsManager();
 
+    private String currentLyric = "";
+    private String previousLyric = "";
+    private long lyricChangeTime = 0;
+    private final int lyricAnimationDuration = 200;
+
     public MusicInfoMod() {
         super("mod.musicinfo.name", "mod.musicinfo.description", Icon.MUSIC_NOTE);
         dx = 1;
@@ -80,12 +85,33 @@ public class MusicInfoMod extends SimpleHUDMod {
 
         Music m = Soar.getInstance().getMusicManager().getCurrentMusic();
 
+        if (lyricsDisplaySetting.isEnabled()) {
+            String newLyric = "";
+            if (m != null) {
+                newLyric = lyricsManager.getCurrentLyric(m, Soar.getInstance().getMusicManager().getCurrentTime());
+            }
+            if (newLyric == null) {
+                newLyric = "";
+            }
+
+            if (!newLyric.equals(this.currentLyric)) {
+                this.previousLyric = this.currentLyric;
+                this.currentLyric = newLyric;
+                this.lyricChangeTime = System.currentTimeMillis();
+            }
+        }
+
         if (m != null || HUDCore.isEditing) {
             this.targetHeight = 45;
             this.targetWidth = calculateAdaptiveWidth();
         } else {
             this.targetWidth = 0;
             this.targetHeight = 0;
+            if (!this.currentLyric.isEmpty()) {
+                this.previousLyric = this.currentLyric;
+                this.currentLyric = "";
+                this.lyricChangeTime = System.currentTimeMillis();
+            }
         }
     };
 
@@ -150,7 +176,6 @@ public class MusicInfoMod extends SimpleHUDMod {
         maxTextWidth = Math.max(maxTextWidth, artistBounds.getWidth());
 
         if (lyricsDisplaySetting.isEnabled()) {
-            String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
             if (currentLyric != null && !currentLyric.isEmpty()) {
                 Rect lyricBounds = Skia.getTextBounds(currentLyric, Fonts.getRegular(7));
                 maxTextWidth = Math.max(maxTextWidth, lyricBounds.getWidth());
@@ -212,11 +237,31 @@ public class MusicInfoMod extends SimpleHUDMod {
                     ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
 
                 if (lyricsDisplaySetting.isEnabled()) {
-                    String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
+                    float lyricY = getY() + padding + 24F;
+                    float lyricX = getX() + offsetX;
+                    float lyricAnimationHeight = 10.0f;
+
+                    long timeSinceChange = System.currentTimeMillis() - lyricChangeTime;
+                    float progress = Math.min(1.0f, (float) timeSinceChange / lyricAnimationDuration);
+
+                    progress = 1.0f - (float) Math.pow(1.0f - progress, 3.0f);
+
+                    if (previousLyric != null && !previousLyric.isEmpty()) {
+                        float yOffset = -lyricAnimationHeight * progress;
+                        float alpha = 1.0f - progress;
+                        if(alpha > 0.01f) {
+                            Skia.drawText(previousLyric, lyricX, lyricY + yOffset,
+                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                        }
+                    }
+
                     if (currentLyric != null && !currentLyric.isEmpty()) {
-                        float lyricY = getY() + padding + 24F;
-                        Skia.drawText(currentLyric, getX() + offsetX, lyricY,
-                            ColorUtils.applyAlpha(textColor, 0.9F), Fonts.getRegular(7));
+                        float yOffset = lyricAnimationHeight * (1.0f - progress);
+                        float alpha = progress;
+                        if(alpha > 0.01f) {
+                            Skia.drawText(currentLyric, lyricX, lyricY + yOffset,
+                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                        }
                     }
                 }
             }
