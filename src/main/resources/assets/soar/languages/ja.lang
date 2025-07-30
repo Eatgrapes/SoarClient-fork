@@ -275,6 +275,10 @@ mod.hypixel.description=Hypixel用の便利機能
 mod.particles.name=パーティクル
 mod.particles.description=パーティクル効果をカスタマイズ
 
+mod.watermark.show_icon1.description=アイコンを表示
+mod.watermark.show_icon1=アイコンを表示
+mod.watermark.show_text1.description=テキストを表示
+
 mod.bloodparticles.name=血パーティクル
 mod.bloodparticles.description=血のエフェクトを追加
 

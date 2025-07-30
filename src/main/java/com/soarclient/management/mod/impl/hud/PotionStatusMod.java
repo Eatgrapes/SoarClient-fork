@@ -32,6 +32,12 @@ public class PotionStatusMod extends HUDMod {
     private final BooleanSetting compactSetting = new BooleanSetting("setting.compact", "setting.compact.description",
         Icon.COMPRESS, this, false);
 
+    private final BooleanSetting showIconSetting = new BooleanSetting("mod.watermark.show_icon1",
+        "mod.watermark.show_icon1.description", Icon.IMAGE, this, true);
+
+    private final BooleanSetting showTextSetting = new BooleanSetting("mod.watermark.show_text",
+        "mod.watermark.show_text1.description", Icon.TEXT_FIELDS, this, true);
+
     private Collection<StatusEffectInstance> potions;
 
     private float animatedWidth, animatedHeight;
@@ -62,9 +68,18 @@ public class PotionStatusMod extends HUDMod {
 
         calculateDimensions();
 
-        int ySize = compactSetting.isEnabled() ? 16 : 23;
+        if (!showIconSetting.isEnabled() && !showTextSetting.isEnabled()) {
+            this.targetWidth = 0;
+            this.targetHeight = 0;
+            return;
+        }
 
-        this.targetWidth = potions.isEmpty() ? 0 : maxString + 29;
+        int ySize = compactSetting.isEnabled() ? 16 : 23;
+        int iconWidth = showIconSetting.isEnabled() ? 29 : 0;
+        int textWidth = showTextSetting.isEnabled() ? maxString : 0;
+        int padding = showIconSetting.isEnabled() ? 0 : 8;
+
+        this.targetWidth = potions.isEmpty() ? 0 : iconWidth + textWidth + padding;
         this.targetHeight = potions.isEmpty() ? 0 : (ySize * potions.size()) + 6;
     };
 
@@ -118,20 +133,30 @@ public class PotionStatusMod extends HUDMod {
 
     private void drawPotionEffect(StatusEffectInstance potionEffect, int offsetY) {
         StatusEffect effect = potionEffect.getEffectType().value();
-        drawPotionIcon(effect, offsetY);
-        String name = I18n.translate(effect.getTranslationKey());
+        float offsetX = 0;
 
-        if (potionEffect.getAmplifier() > 0) {
-            name = name + " " + I18n.translate("enchantment.level." + (potionEffect.getAmplifier() + 1));
+        if (showIconSetting.isEnabled()) {
+            drawPotionIcon(effect, offsetY);
+            offsetX += (compactSetting.isEnabled() ? 20 : 25);
+        } else {
+            offsetX += 4;
         }
 
-        String time = formatDuration(potionEffect);
+        if (showTextSetting.isEnabled()) {
+            String name = I18n.translate(effect.getTranslationKey());
 
-        if (compactSetting.isEnabled()) {
-            this.drawText(name + " | " + time, getX() + 20, getY() + offsetY - 10.5F, Fonts.getRegular(9));
-        } else {
-            this.drawText(name, getX() + 25, getY() + offsetY - 12, Fonts.getRegular(9));
-            this.drawText(time, getX() + 25, getY() + offsetY - 1, Fonts.getRegular(8));
+            if (potionEffect.getAmplifier() > 0) {
+                name = name + " " + I18n.translate("enchantment.level." + (potionEffect.getAmplifier() + 1));
+            }
+
+            String time = formatDuration(potionEffect);
+
+            if (compactSetting.isEnabled()) {
+                this.drawText(name + " | " + time, getX() + offsetX, getY() + offsetY - 10.5F, Fonts.getRegular(9));
+            } else {
+                this.drawText(name, getX() + offsetX, getY() + offsetY - 12, Fonts.getRegular(9));
+                this.drawText(time, getX() + offsetX, getY() + offsetY - 1, Fonts.getRegular(8));
+            }
         }
     }
 
@@ -165,7 +190,7 @@ public class PotionStatusMod extends HUDMod {
 
     private void calculateDimensions() {
         maxString = 0;
-        if (potions.isEmpty()) {
+        if (potions.isEmpty() || !showTextSetting.isEnabled()) {
             return;
         }
 

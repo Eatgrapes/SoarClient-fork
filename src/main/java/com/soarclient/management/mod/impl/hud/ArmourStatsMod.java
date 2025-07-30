@@ -35,6 +35,12 @@ public class ArmourStatsMod extends HUDMod {
     private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background",
         "setting.background1.description", Icon.IMAGE, this, true);
 
+    private final BooleanSetting showIconSetting = new BooleanSetting("mod.watermark.show_icon1",
+        "mod.watermark.show_icon1.description", Icon.IMAGE, this, true);
+
+    private final BooleanSetting showTextSetting = new BooleanSetting("mod.watermark.show_text",
+        "mod.watermark.show_text1.description", Icon.TEXT_FIELDS, this, true);
+
     public ArmourStatsMod() {
         super("mod.armourstats.name", "mod.armourstats.description", Icon.SHIELD);
         this.animatedWidth = 0;
@@ -74,7 +80,15 @@ public class ArmourStatsMod extends HUDMod {
 
         int totalItemCount = armourItems.size() + (mainHandItem != null ? 1 : 0);
 
-        this.targetWidth = (totalItemCount > 0) ? maxString + 29 : 0;
+        if (!showIconSetting.isEnabled() && !showTextSetting.isEnabled()) {
+            this.targetWidth = 0;
+            this.targetHeight = 0;
+            return;
+        }
+
+        int iconWidth = showIconSetting.isEnabled() ? 25 : 0;
+        int textWidth = showTextSetting.isEnabled() ? maxString : 0;
+        this.targetWidth = (totalItemCount > 0) ? iconWidth + textWidth + 4 : 0;
         this.targetHeight = (totalItemCount > 0) ? (20 * totalItemCount) + 6 : 0;
     };
 
@@ -152,22 +166,31 @@ public class ArmourStatsMod extends HUDMod {
     }
 
     private void drawItem(ItemStack itemStack, int offsetY) {
-        drawArmourIcon(itemStack, offsetY);
+        float offsetX = 0;
 
-        String name = itemStack.getName().getString();
-        String detailText;
-
-        if (itemStack.getCount() > 1) {
-            detailText = "x" + itemStack.getCount();
-        } else if (itemStack.isDamageable()) {
-            detailText = (itemStack.getMaxDamage() - itemStack.getDamage()) + " / " + itemStack.getMaxDamage();
+        if (showIconSetting.isEnabled()) {
+            drawArmourIcon(itemStack, offsetY);
+            offsetX += 25;
         } else {
-            detailText = "";
+            offsetX += 4;
         }
 
-        this.drawText(name, getX() + 25, getY() + offsetY - 12, Fonts.getRegular(9));
-        if (!detailText.isEmpty()) {
-            this.drawText(detailText, getX() + 25, getY() + offsetY - 1, Fonts.getRegular(8));
+        if (showTextSetting.isEnabled()) {
+            String name = itemStack.getName().getString();
+            String detailText;
+
+            if (itemStack.getCount() > 1) {
+                detailText = "x" + itemStack.getCount();
+            } else if (itemStack.isDamageable()) {
+                detailText = (itemStack.getMaxDamage() - itemStack.getDamage()) + " / " + itemStack.getMaxDamage();
+            } else {
+                detailText = "";
+            }
+
+            this.drawText(name, getX() + offsetX, getY() + offsetY - 12, Fonts.getRegular(9));
+            if (!detailText.isEmpty()) {
+                this.drawText(detailText, getX() + offsetX, getY() + offsetY - 1, Fonts.getRegular(8));
+            }
         }
     }
 
@@ -192,7 +215,8 @@ public class ArmourStatsMod extends HUDMod {
         if (mainHandItem != null) allItems.add(mainHandItem);
         allItems.addAll(armourItems);
 
-        if (allItems.isEmpty()) {
+        if (allItems.isEmpty() || !showTextSetting.isEnabled()) {
+            maxString = 0;
             return;
         }
 

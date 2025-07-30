@@ -247,6 +247,10 @@ setting.shadow.description=Enable shadow effect
 setting.size=Size
 setting.size.description=Set image size multiplier
 
+mod.watermark.show_icon1.description=Show Icon
+mod.watermark.show_icon1=Display Icon
+mod.watermark.show_text1.description=Show Text
+
 mod.autotext.name=Auto Text
 mod.autotext.description=Automatically send predefined text messages with keybinds
 setting.text1key=Text 1 Keybind

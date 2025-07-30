@@ -345,6 +345,10 @@ mod.watermark.show_icon.description=显示客户端Logo
 mod.watermark.show_text=显示文字
 mod.watermark.show_text.description=显示设定的文字
 
+mod.watermark.show_icon1.description=显示图标
+mod.watermark.show_icon1=显示图标
+mod.watermark.show_text1.description=显示文字
+
 mod.armourstats.name=装备显示
 mod.armourstats.description=显示装备
 
