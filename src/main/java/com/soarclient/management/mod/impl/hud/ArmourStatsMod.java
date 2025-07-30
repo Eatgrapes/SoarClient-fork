@@ -9,6 +9,7 @@ import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.mod.api.hud.HUDMod;
+import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
@@ -30,6 +31,9 @@ public class ArmourStatsMod extends HUDMod {
 
     private float animatedWidth, animatedHeight;
     private float targetWidth, targetHeight;
+
+    private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background",
+        "setting.background1.description", Icon.IMAGE, this, true);
 
     public ArmourStatsMod() {
         super("mod.armourstats.name", "mod.armourstats.description", Icon.SHIELD);
@@ -103,7 +107,9 @@ public class ArmourStatsMod extends HUDMod {
         }
 
         this.begin();
-        this.drawBackground(getX(), getY(), animatedWidth, animatedHeight);
+        if (backgroundSetting.isEnabled()) {
+            this.drawBackground(getX(), getY(), animatedWidth, animatedHeight);
+        }
 
         float animationProgress = targetWidth > 0 ? animatedWidth / targetWidth : 0;
         if (animationProgress > 0.85f) {

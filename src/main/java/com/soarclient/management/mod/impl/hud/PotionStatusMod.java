@@ -26,6 +26,9 @@ public class PotionStatusMod extends HUDMod {
 
     private int maxString;
 
+    private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background",
+        "setting.background1.description", Icon.IMAGE, this, true);
+
     private final BooleanSetting compactSetting = new BooleanSetting("setting.compact", "setting.compact.description",
         Icon.COMPRESS, this, false);
 
@@ -94,7 +97,9 @@ public class PotionStatusMod extends HUDMod {
         }
 
         this.begin();
-        this.drawBackground(getX(), getY(), animatedWidth, animatedHeight);
+        if (backgroundSetting.isEnabled()) {
+            this.drawBackground(getX(), getY(), animatedWidth, animatedHeight);
+        }
 
         float animationProgress = targetWidth > 0 ? animatedWidth / targetWidth : 0;
         if (animationProgress > 0.85f) {
