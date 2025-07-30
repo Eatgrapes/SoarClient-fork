@@ -91,6 +91,9 @@ setting.nameprotect.name.description=用于替换真实名字的自定义名字
 setting.nameprotect.color=名字颜色
 setting.nameprotect.color.description=伪装名字的自定义颜色
 
+mod.blockoverlay.name=方块轮廓
+mod.blockoverlay.description=自定义方块轮廓颜色
+
 mod.combocounter.name=连击计数
 mod.combocounter.description=显示连击数
 

@@ -87,6 +87,9 @@ setting.sound.none=No Sound
 mod.reachdisplay.name=Reach Display
 mod.reachdisplay.description=Display reach
 
+mod.blockoverlay.name=Block Overlay
+mod.blockoverlay.description=Customize block outline colors
+
 mod.nameprotect.name=Name Protect
 mod.nameprotect.description=Disguise your player name locally
 

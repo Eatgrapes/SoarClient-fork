@@ -97,6 +97,9 @@ setting.nameprotect.name.description=実際の名前の代わりに表示する�
 setting.nameprotect.color=名前の色
 setting.nameprotect.color.description=偽装名前のカスタム色
 
+mod.blockoverlay.name=ブロックアウトライン
+mod.blockoverlay.description=ブロックアウトラインの色をカスタマイズ
+
 mod.stopwatch.name=ストップウォッチ
 mod.stopwatch.description=時間を計測
 
