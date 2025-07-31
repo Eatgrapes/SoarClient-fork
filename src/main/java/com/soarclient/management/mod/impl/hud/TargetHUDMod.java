@@ -12,6 +12,7 @@ import com.soarclient.event.server.impl.AttackEntityEvent;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.mod.api.hud.HUDMod;
+import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
@@ -38,6 +39,9 @@ public class TargetHUDMod extends HUDMod {
     private final ComboSetting healthDisplaySetting = new ComboSetting("setting.health.display",
         "setting.health.display.description", Icon.FAVORITE, this,
         Arrays.asList("setting.text", "setting.bar"), "setting.text");
+
+    private final BooleanSetting backgroundSetting = new BooleanSetting("setting.background",
+        "setting.background.description", Icon.IMAGE, this, true);
 
     public TargetHUDMod() {
         super("mod.targethud.name", "mod.targethud.description", Icon.PERSON);
@@ -144,7 +148,10 @@ public class TargetHUDMod extends HUDMod {
         final float padding = 4.5f;
         final float avatarSize = height - (padding * 2);
 
-        this.drawBackground(getX(), getY(), width, height);
+        if (backgroundSetting.isEnabled()) {
+            this.drawBackground(getX(), getY(), width, height);
+        }
+
         drawPlayerAvatar(displayPlayer, getX() + padding, getY() + padding, avatarSize);
 
         String playerName = displayPlayer != null ? displayPlayer.getName().getString() : "Unknown";
@@ -161,7 +168,7 @@ public class TargetHUDMod extends HUDMod {
             Skia.drawText(String.format("%.1f HP", health), textX, healthY,
                 this.getDesign().getTextColor(), Fonts.getRegular(10));
         } else {
-            drawHealthBar(textX, nameY + 16, health, maxHealth);
+            drawHealthBar(textX, nameY + 15, health, maxHealth);
         }
     }
 
