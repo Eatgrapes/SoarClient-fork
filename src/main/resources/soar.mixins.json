@@ -13,6 +13,8 @@
 		"minecraft.client.render.BufferRendererAccessor",
 		"minecraft.client.render.MixinCamera",
 		"minecraft.client.render.MixinEntityRenderer",
+		"minecraft.client.render.MixinGameRendererBlockOutline",
+		"minecraft.client.render.MixinWorldRendererBlockOutline",
 		"minecraft.client.render.MixinGameRenderer",
 		"minecraft.client.render.MixinHeldItemRenderer",
 		"minecraft.client.render.MixinInGameHud",

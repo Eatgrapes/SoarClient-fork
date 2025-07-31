@@ -91,6 +91,7 @@ public class ModManager {
 		mods.add(new ProjectileTrailMod());
         mods.add(new ActionCameraMod());
         mods.add(new HitEffectMod());
+        mods.add(new BlockOverlayMod());
 
 		// Misc
 		mods.add(new DiscordRPCMod());
