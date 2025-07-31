@@ -70,6 +70,7 @@ public class ModManager {
         mods.add(new ArrayListMod());
         mods.add(new ImageDisplayMod());
         mods.add(new PotionStatusMod());
+        mods.add(new TargetHUDMod());
 
 		// Player
 		mods.add(new AutoGGMod());

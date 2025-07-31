@@ -29,7 +29,8 @@ public abstract class MixinWindow {
     @Inject(method = "setIcon", at = @At(value = "HEAD"), cancellable = true)
     public void onSetIcon(ResourcePack resourcePack, Icons icons, CallbackInfo ci) {
 
-        try (InputStream inputStream = ResourceReader.class.getClassLoader().getResourceAsStream("assets/soar/logo.dark.png")) {
+        String path = "assets/soar/logo.dark.png";
+        try (InputStream inputStream = ResourceReader.class.getClassLoader().getResourceAsStream(path)) {
             setWindowIcon(getHandle(), inputStream);
             ci.cancel();
         } catch (IOException e) {
