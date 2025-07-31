@@ -2,6 +2,7 @@ package com.soarclient.gui.modmenu.pages;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -24,193 +25,233 @@ import com.soarclient.utils.mouse.MouseUtils;
 
 public class ModsPage extends Page {
 
-	private List<Item> items = new ArrayList<>();
+    private List<Item> items = new ArrayList<>();
+    private Category selectedCategory = Category.ALL;
+    private List<Item> filteredItems = new ArrayList<>();
 
-	public ModsPage(SoarGui parent) {
-		super(parent, "text.mods", Icon.INVENTORY_2, new RightLeftTransition(true));
-	}
+    public enum Category {
+        ALL("text.all"),
+        HUD("text.hud"),
+        RENDER("text.render"),
+        PLAYER("text.player"),
+        MISC("text.misc");
 
-	@Override
-	public void init() {
-		super.init();
+        private final String name;
 
-		items.clear();
-		
-		for (Mod m : Soar.getInstance().getModManager().getMods()) {
+        Category(String name) {
+            this.name = name;
+        }
 
-			Item i = new Item(m);
+        public String getName() {
+            return I18n.get(name);
+        }
+    }
 
-			if (m.isEnabled()) {
-				i.pressAnimation.setPressed();
-			}
+    public ModsPage(SoarGui parent) {
+        super(parent, "text.mods", Icon.INVENTORY_2, new RightLeftTransition(true));
+    }
 
-			items.add(i);
-		}
-		
-		for (Item i : items) {
-			i.xAnimation.setFirstTick(true);
-			i.yAnimation.setFirstTick(true);
-		}
-	}
+    @Override
+    public void init() {
+        super.init();
+        items.clear();
+        for (Mod m : Soar.getInstance().getModManager().getMods()) {
+            Item i = new Item(m);
+            if (m.isEnabled()) {
+                i.pressAnimation.setPressed();
+            }
+            items.add(i);
+        }
+        for (Item i : items) {
+            i.xAnimation.setFirstTick(true);
+            i.yAnimation.setFirstTick(true);
+        }
+        updateFilteredItems();
+    }
 
-	@Override
-	public void draw(double mouseX, double mouseY) {
-		super.draw(mouseX, mouseY);
+    private void updateFilteredItems() {
+        filteredItems = items.stream()
+            .filter(i -> {
+                Mod m = i.mod;
+                if (m.isHidden()) return false;
+                boolean searchMatch = searchBar.getText().isEmpty() || SearchUtils.isSimilar(I18n.get(m.getName()), searchBar.getText());
+                boolean categoryMatch = selectedCategory == Category.ALL ||
+                    (m.getCategory() != null && m.getCategory().name().equalsIgnoreCase(selectedCategory.name()));
+                return searchMatch && categoryMatch;
+            })
+            .collect(Collectors.toList());
+    }
 
-		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
+    private float getEstimatedTextWidth(String text) {
+        float width = 0;
+        float wideCharWidth = 16.0f;
+        float narrowCharWidth = 8.5f;
+        for (char c : text.toCharArray()) {
+            if (c >= '\u4E00' && c <= '\u9FFF' || c >= '\u3000' && c <= '\u303F' ||
+                c >= '\u3040' && c <= '\u309F' || c >= '\u30A0' && c <= '\u30FF' ||
+                c >= '\uFF00' && c <= '\uFFEF') {
+                width += wideCharWidth;
+            } else {
+                width += narrowCharWidth;
+            }
+        }
+        return width;
+    }
 
-		int index = 0;
-		float offsetX = 26;
-		float offsetY = 0;
+    @Override
+    public void draw(double mouseX, double mouseY) {
+        // 1. [核心修正] 把super.draw()也放进滚动的变换里
+        updateFilteredItems();
+        ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
-		mouseY = mouseY - scrollHelper.getValue();
+        double relativeMouseY = mouseY - scrollHelper.getValue();
+        Skia.save();
+        Skia.translate(0, scrollHelper.getValue());
 
-		Skia.save();
-		Skia.translate(0, scrollHelper.getValue());
+        // 2. 绘制标题和搜索框，它们现在会跟随滚动
+        super.draw(mouseX, relativeMouseY);
 
-		for (Item i : items) {
+        // 3. 将分类栏作为第一行内容绘制
+        float categoryBarY = y + 56;
+        float categoryBarHeight = 24;
+        float categoryBarMarginBottom = 16;
+        float categoryX = x + 26;
 
-			Mod m = i.mod;
-			SimpleAnimation focusAnimation = i.focusAnimation;
-			SimpleAnimation xAnimation = i.xAnimation;
-			SimpleAnimation yAnimation = i.yAnimation;
+        for (Category category : Category.values()) {
+            String categoryName = category.getName();
+            float textWidth = getEstimatedTextWidth(categoryName);
+            float padding = 20.0f;
+            float buttonWidth = textWidth + padding;
+            boolean isSelected = category == selectedCategory;
+            boolean isHovered = MouseUtils.isInside(mouseX, relativeMouseY, categoryX, categoryBarY, buttonWidth, categoryBarHeight);
+            Skia.drawRoundedRect(categoryX, categoryBarY, buttonWidth, categoryBarHeight, 12,
+                isHovered ? palette.getSurfaceContainerLow() : palette.getSurface());
+            Skia.drawFullCenteredText(categoryName, categoryX + buttonWidth / 2, categoryBarY + categoryBarHeight / 2,
+                isSelected ? palette.getPrimary() : palette.getOnSurfaceVariant(), Fonts.getRegular(16));
+            categoryX += buttonWidth + 10;
+        }
 
-			if (m.isHidden()) {
-				continue;
-			}
+        // 4. 模组列表从分类栏下方开始
+        int index = 0;
+        float offsetX = 26;
+        float offsetY = categoryBarHeight + categoryBarMarginBottom;
 
-			if (!searchBar.getText().isEmpty() && !SearchUtils.isSimilar(I18n.get(m.getName()), searchBar.getText())) {
-				continue;
-			}
+        for (Item i : filteredItems) {
+            Mod m = i.mod;
+            float itemX = x + offsetX;
+            float itemY = y + 96 + offsetY;
 
-			float itemX = x + offsetX;
-			float itemY = y + 96 + offsetY;
+            i.focusAnimation.onTick(MouseUtils.isInside(mouseX, relativeMouseY, itemX, itemY, 244, 116 + 35) ? (i.pressed ? 0.12F : 0.08F) : 0, 8);
+            i.xAnimation.onTick(itemX, 14);
+            i.yAnimation.onTick(itemY, 14);
+            itemX = i.xAnimation.getValue();
+            itemY = i.yAnimation.getValue();
 
-			focusAnimation.onTick(
-					MouseUtils.isInside(mouseX, mouseY, itemX, itemY, 244, 116 + 35) ? i.pressed ? 0.12F : 0.08F : 0,
-					8);
-			xAnimation.onTick(itemX, 14);
-			yAnimation.onTick(itemY, 14);
+            Skia.drawRoundedRectVarying(itemX, itemY, 244, 116, 26, 26, 0, 0, palette.getSurface());
+            Skia.drawRoundedRectVarying(itemX, itemY + 116, 244, 35, 0, 0, 26, 26, palette.getSurfaceContainerLow());
+            Skia.drawRoundedRectVarying(itemX, itemY + 116, 244, 35, 0, 0, 26, 26, ColorUtils.applyAlpha(palette.getSurfaceContainerLowest(), i.focusAnimation.getValue()));
 
-			itemX = xAnimation.getValue();
-			itemY = yAnimation.getValue();
+            Skia.save();
+            Skia.clip(itemX, itemY + 116, 244, 35, 0, 0, 26, 26);
+            i.pressAnimation.draw(itemX, itemY + 116, 224, 35, palette.getPrimaryContainer(), 1);
+            Skia.restore();
 
-			Skia.drawRoundedRectVarying(itemX, itemY, 244, 116, 26, 26, 0, 0, palette.getSurface());
-			Skia.drawRoundedRectVarying(itemX, itemY + 116, 244, 35, 0, 0, 26, 26, palette.getSurfaceContainerLow());
+            Skia.drawFullCenteredText(I18n.get(m.getName()), itemX + (244 / 2), itemY + 116 + (35 / 2), palette.getOnSurfaceVariant(), Fonts.getRegular(16));
+            Skia.drawFullCenteredText(m.getIcon(), itemX + (244 / 2), itemY + (116 / 2), palette.getOnSurfaceVariant(), Fonts.getIcon(68));
 
-			Skia.drawRoundedRectVarying(itemX, itemY + 116, 244, 35, 0, 0, 26, 26,
-					ColorUtils.applyAlpha(palette.getSurfaceContainerLowest(), focusAnimation.getValue()));
+            index++;
+            offsetX += 32 + 244;
+            if (index % 3 == 0) {
+                offsetX = 26;
+                offsetY += 22 + 151;
+            }
+        }
 
-			Skia.save();
-			Skia.clip(itemX, itemY + 116, 244, 35, 0, 0, 26, 26);
-			i.pressAnimation.draw(itemX, itemY + 116, 224, 35, palette.getPrimaryContainer(), 1);
-			Skia.restore();
+        // 5. 调整总滚动高度
+        scrollHelper.setMaxScroll(151, 22, filteredItems.size() + 3, 3, height);
 
-			Skia.drawFullCenteredText(I18n.get(m.getName()), itemX + (244 / 2), itemY + 116 + (35 / 2),
-					palette.getOnSurfaceVariant(), Fonts.getRegular(16));
-			Skia.drawFullCenteredText(m.getIcon(), itemX + (244 / 2), itemY + (116 / 2), palette.getOnSurfaceVariant(),
-					Fonts.getIcon(68));
+        Skia.restore();
+    }
 
-			index++;
-			offsetX += 32 + 244;
+    @Override
+    public void mousePressed(double mouseX, double mouseY, int button) {
+        double relativeMouseY = mouseY - scrollHelper.getValue();
 
-			if (index % 3 == 0) {
-				offsetX = 26;
-				offsetY += 22 + 151;
-			}
-		}
+        super.mousePressed(mouseX, relativeMouseY, button);
 
-		scrollHelper.setMaxScroll(151, 22, index, 3, height - 96);
-		Skia.restore();
-	}
+        float categoryBarY = y + 56;
+        float categoryBarHeight = 24;
+        float categoryX = x + 26;
 
-	@Override
-	public void mousePressed(double mouseX, double mouseY, int button) {
-		super.mousePressed(mouseX, mouseY, button);
+        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            for (Category category : Category.values()) {
+                String categoryName = category.getName();
+                float textWidth = getEstimatedTextWidth(categoryName);
+                float padding = 20.0f;
+                float buttonWidth = textWidth + padding;
+                if (MouseUtils.isInside(mouseX, relativeMouseY, categoryX, categoryBarY, buttonWidth, categoryBarHeight)) {
+                    if (this.selectedCategory != category) {
+                        this.selectedCategory = category;
+                    }
+                    return;
+                }
+                categoryX += buttonWidth + 10;
+            }
+        }
 
-		for (Item i : items) {
+        for (Item i : filteredItems) {
+            float itemX = i.xAnimation.getValue();
+            float itemY = i.yAnimation.getValue();
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                if (MouseUtils.isInside(mouseX, relativeMouseY, itemX, itemY + 116, 244, 35)) {
+                    i.pressed = true;
+                }
+            }
+        }
+    }
 
-			float itemX = i.xAnimation.getValue();
-			float itemY = i.yAnimation.getValue();
+    @Override
+    public void mouseReleased(double mouseX, double mouseY, int button) {
+        double relativeMouseY = mouseY - scrollHelper.getValue();
+        for (Item i : filteredItems) {
+            Mod m = i.mod;
+            float itemX = i.xAnimation.getValue();
+            float itemY = i.yAnimation.getValue();
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                if (MouseUtils.isInside(mouseX, relativeMouseY, itemX, itemY + 116, 244, 35)) {
+                    m.toggle();
+                    if (m.isEnabled()) {
+                        i.pressAnimation.onPressed(mouseX, relativeMouseY, itemX, itemY + 116);
+                    } else {
+                        i.pressAnimation.onReleased(mouseX, relativeMouseY, itemX, itemY + 116);
+                    }
+                }
+                if (MouseUtils.isInside(mouseX, relativeMouseY, itemX, itemY, 244, 116)
+                    && !Soar.getInstance().getModManager().getSettingsByMod(m).isEmpty()) {
+                    parent.setCurrentPage(new SettingsImplPage(parent, this.getClass(), m));
+                    this.setTransition(new LeftRightTransition(true));
+                }
+            }
+            i.pressed = false;
+        }
+    }
 
-			if (i.mod.isHidden()) {
-				continue;
-			}
+    @Override
+    public void onClosed() {
+        this.setTransition(new RightLeftTransition(true));
+    }
 
-			if (!searchBar.getText().isEmpty()
-					&& !SearchUtils.isSimilar(I18n.get(i.mod.getName()), searchBar.getText())) {
-				continue;
-			}
+    private class Item {
+        private Mod mod;
+        private SimpleAnimation focusAnimation = new SimpleAnimation();
+        private SimpleAnimation xAnimation = new SimpleAnimation();
+        private SimpleAnimation yAnimation = new SimpleAnimation();
+        private PressAnimation pressAnimation = new PressAnimation();
+        private boolean pressed;
 
-			if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-
-				if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 116, 244, 35)) {
-					i.pressed = true;
-				}
-			}
-		}
-	}
-
-	@Override
-	public void mouseReleased(double mouseX, double mouseY, int button) {
-
-		mouseY = mouseY - scrollHelper.getValue();
-
-		for (Item i : items) {
-
-			Mod m = i.mod;
-			float itemX = i.xAnimation.getValue();
-			float itemY = i.yAnimation.getValue();
-
-			if (i.mod.isHidden()) {
-				continue;
-			}
-
-			if (!searchBar.getText().isEmpty()
-					&& !SearchUtils.isSimilar(I18n.get(i.mod.getName()), searchBar.getText())) {
-				continue;
-			}
-
-			if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
-
-				if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 116, 244, 35)) {
-					m.toggle();
-
-					if (m.isEnabled()) {
-						i.pressAnimation.onPressed(mouseX, mouseY, itemX, itemY + 116);
-					} else {
-						i.pressAnimation.onReleased(mouseX, mouseY, itemX, itemY + 116);
-					}
-				}
-
-				if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY, 244, 116)
-						&& !Soar.getInstance().getModManager().getSettingsByMod(m).isEmpty()) {
-					parent.setCurrentPage(new SettingsImplPage(parent, this.getClass(), m));
-					this.setTransition(new LeftRightTransition(true));
-				}
-			}
-
-			i.pressed = false;
-		}
-	}
-
-	@Override
-	public void onClosed() {
-		this.setTransition(new RightLeftTransition(true));
-	}
-
-	private class Item {
-
-		private Mod mod;
-		private SimpleAnimation focusAnimation = new SimpleAnimation();
-		private SimpleAnimation xAnimation = new SimpleAnimation();
-		private SimpleAnimation yAnimation = new SimpleAnimation();
-		private PressAnimation pressAnimation = new PressAnimation();
-		private boolean pressed;
-
-		private Item(Mod mod) {
-			this.mod = mod;
-			this.pressed = false;
-		}
-	}
+        private Item(Mod mod) {
+            this.mod = mod;
+            this.pressed = false;
+        }
+    }
 }
