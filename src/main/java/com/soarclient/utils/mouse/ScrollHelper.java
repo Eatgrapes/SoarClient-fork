@@ -17,7 +17,7 @@ public class ScrollHelper {
 	}
 
 	public void onUpdate() {
-		animation.onTick(scroll, 18);
+		animation.onTick(scroll, 16);
 		scroll = Math.max(Math.min(minScroll, scroll), -maxScroll);
 	}
 
