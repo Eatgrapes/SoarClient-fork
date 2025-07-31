@@ -2,7 +2,11 @@ package com.soarclient.management.mod.impl.hud;
 
 import java.awt.Color;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 import com.soarclient.Soar;
 import com.soarclient.event.EventBus;
@@ -14,6 +18,7 @@ import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.management.music.Music;
 import com.soarclient.management.music.MusicManager;
+import com.soarclient.management.music.MusicPlayer;
 import com.soarclient.management.music.lyrics.LyricsManager;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
@@ -21,6 +26,7 @@ import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.ColorUtils;
 import com.soarclient.utils.TimerUtils;
 
+import io.github.humbleui.skija.Bitmap;
 import io.github.humbleui.skija.FilterTileMode;
 import io.github.humbleui.skija.Image;
 import io.github.humbleui.skija.ImageFilter;
@@ -34,6 +40,17 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     private float animatedWidth, animatedHeight;
     private float targetWidth, targetHeight;
+
+    private float animatedBeatScale = 1.0f;
+    private long lastFrameTime = 0;
+
+    private final List<Particle> particles = new ArrayList<>();
+    private final Random random = new Random();
+
+    private Bitmap albumBitmap = null;
+    private String currentAlbumPath = "";
+
+    private boolean beatActive = false;
 
     private final ComboSetting typeSetting = new ComboSetting("setting.type", "setting.type.description",
         Icon.FORMAT_LIST_BULLETED, this, Arrays.asList("setting.simple", "setting.normal", "setting.cover"),
@@ -57,8 +74,21 @@ public class MusicInfoMod extends SimpleHUDMod {
         }
     };
 
+    private final BooleanSetting coverAnimationSetting = new BooleanSetting("setting.cover.animation", "setting.cover.animation.description", Icon.MOVIE, this, true) {
+        @Override
+        public boolean isVisible() {
+            String type = typeSetting.getOption();
+            return type.equals("setting.normal") || type.equals("setting.cover");
+        }
+    };
+
 
     private final LyricsManager lyricsManager = new LyricsManager();
+
+    private String currentLyric = "";
+    private String previousLyric = "";
+    private long lyricChangeTime = 0;
+    private final int lyricAnimationDuration = 200;
 
     public MusicInfoMod() {
         super("mod.musicinfo.name", "mod.musicinfo.description", Icon.MUSIC_NOTE);
@@ -80,12 +110,33 @@ public class MusicInfoMod extends SimpleHUDMod {
 
         Music m = Soar.getInstance().getMusicManager().getCurrentMusic();
 
+        if (lyricsDisplaySetting.isEnabled()) {
+            String newLyric = "";
+            if (m != null) {
+                newLyric = lyricsManager.getCurrentLyric(m, Soar.getInstance().getMusicManager().getCurrentTime());
+            }
+            if (newLyric == null) {
+                newLyric = "";
+            }
+
+            if (!newLyric.equals(this.currentLyric)) {
+                this.previousLyric = this.currentLyric;
+                this.currentLyric = newLyric;
+                this.lyricChangeTime = System.currentTimeMillis();
+            }
+        }
+
         if (m != null || HUDCore.isEditing) {
             this.targetHeight = 45;
             this.targetWidth = calculateAdaptiveWidth();
         } else {
             this.targetWidth = 0;
             this.targetHeight = 0;
+            if (!this.currentLyric.isEmpty()) {
+                this.previousLyric = this.currentLyric;
+                this.currentLyric = "";
+                this.lyricChangeTime = System.currentTimeMillis();
+            }
         }
     };
 
@@ -150,7 +201,6 @@ public class MusicInfoMod extends SimpleHUDMod {
         maxTextWidth = Math.max(maxTextWidth, artistBounds.getWidth());
 
         if (lyricsDisplaySetting.isEnabled()) {
-            String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
             if (currentLyric != null && !currentLyric.isEmpty()) {
                 Rect lyricBounds = Skia.getTextBounds(currentLyric, Fonts.getRegular(7));
                 maxTextWidth = Math.max(maxTextWidth, lyricBounds.getWidth());
@@ -175,10 +225,35 @@ public class MusicInfoMod extends SimpleHUDMod {
 
         boolean cover = type.equals("setting.cover");
         Color textColor = cover ? Color.WHITE : this.getDesign().getTextColor();
-        float coverSize = 256;
 
-        if (backgroundSetting.isEnabled()) {
+        float coverSize = Math.max(width, height) * 1.2f;
+
+        if (backgroundSetting.isEnabled() && !cover) {
             this.drawBackground(getX(), getY(), width, height);
+        }
+
+        updateAndDrawParticles();
+
+        if (m != null && m.getAlbum() != null) {
+            String albumPath = m.getAlbum().getAbsolutePath();
+            if (!albumPath.equals(currentAlbumPath)) {
+                currentAlbumPath = albumPath;
+                if (Skia.getImageHelper().load(m.getAlbum())) {
+                    Image image = Skia.getImageHelper().get(m.getAlbum().getName());
+                    if (image != null) {
+                        albumBitmap = new Bitmap();
+                        albumBitmap.allocPixels(image.getImageInfo());
+                        image.readPixels(albumBitmap, 0, 0);
+                    } else {
+                        albumBitmap = null;
+                    }
+                } else {
+                    albumBitmap = null;
+                }
+            }
+        } else {
+            albumBitmap = null;
+            currentAlbumPath = "";
         }
 
         float animationProgress = targetWidth > 0 ? width / targetWidth : 0;
@@ -199,7 +274,59 @@ public class MusicInfoMod extends SimpleHUDMod {
                 }
 
                 if (m.getAlbum() != null) {
-                    Skia.drawRoundedImage(m.getAlbum(), getX() + padding, getY() + padding, albumSize, albumSize, 6);
+
+                    float targetBeatScale = 1.0f;
+
+                    if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
+                        float[] spectrum = MusicPlayer.VISUALIZER;
+                        if (spectrum != null && spectrum.length > 0) {
+
+                            float energy = 0;
+                            int bandsToSample = Math.max(1, spectrum.length / 4);
+                            for (int i = 0; i < bandsToSample; i++) {
+                                energy += spectrum[i];
+                            }
+
+                            float averageBassMagnitude = energy / bandsToSample;
+                            float sensitivity = 0.006f;
+                            float maxMagnitude = 0.5f;
+
+                            float dynamicPulseMagnitude = averageBassMagnitude * sensitivity;
+                            dynamicPulseMagnitude = Math.min(dynamicPulseMagnitude, maxMagnitude);
+
+                            targetBeatScale = 1.0f + dynamicPulseMagnitude;
+                        }
+                    }
+
+                    long currentTime = System.currentTimeMillis();
+                    if (lastFrameTime == 0) {
+                        lastFrameTime = currentTime;
+                    }
+                    float deltaTime = (currentTime - lastFrameTime) / 1000.0f;
+                    lastFrameTime = currentTime;
+
+                    float smoothingFactor = 0.1f;
+
+                    animatedBeatScale = animatedBeatScale + (targetBeatScale - animatedBeatScale) * (1.0f - (float)Math.pow(smoothingFactor, deltaTime));
+
+                    float beatTriggerThreshold = 0.1f;
+
+                    if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
+                        if (!beatActive && targetBeatScale > animatedBeatScale + beatTriggerThreshold) {
+                            spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, 40, albumBitmap);
+                            beatActive = true;
+                        } else if (beatActive && targetBeatScale <= animatedBeatScale) {
+                            beatActive = false;
+                        }
+                    } else {
+                        beatActive = false;
+                    }
+
+                    float animatedAlbumSize = albumSize * animatedBeatScale;
+                    float sizeOffset = (animatedAlbumSize - albumSize) / 2.0f;
+
+                    Skia.drawRoundedImage(m.getAlbum(), getX() + padding - sizeOffset, getY() + padding - sizeOffset, animatedAlbumSize, animatedAlbumSize, 6 * animatedBeatScale);
+
                 } else {
                     Skia.drawRoundedRect(getX() + padding, getY() + padding, albumSize, albumSize, 6,
                         ColorUtils.applyAlpha(textColor, 0.2F));
@@ -212,11 +339,31 @@ public class MusicInfoMod extends SimpleHUDMod {
                     ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
 
                 if (lyricsDisplaySetting.isEnabled()) {
-                    String currentLyric = lyricsManager.getCurrentLyric(m, musicManager.getCurrentTime());
+                    float lyricY = getY() + padding + 24F;
+                    float lyricX = getX() + offsetX;
+                    float lyricAnimationHeight = 10.0f;
+
+                    long timeSinceChange = System.currentTimeMillis() - lyricChangeTime;
+                    float progress = Math.min(1.0f, (float) timeSinceChange / lyricAnimationDuration);
+
+                    progress = 1.0f - (float) Math.pow(1.0f - progress, 3.0f);
+
+                    if (previousLyric != null && !previousLyric.isEmpty()) {
+                        float yOffset = -lyricAnimationHeight * progress;
+                        float alpha = 1.0f - progress;
+                        if(alpha > 0.01f) {
+                            Skia.drawText(previousLyric, lyricX, lyricY + yOffset,
+                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                        }
+                    }
+
                     if (currentLyric != null && !currentLyric.isEmpty()) {
-                        float lyricY = getY() + padding + 24F;
-                        Skia.drawText(currentLyric, getX() + offsetX, lyricY,
-                            ColorUtils.applyAlpha(textColor, 0.9F), Fonts.getRegular(7));
+                        float yOffset = lyricAnimationHeight * (1.0f - progress);
+                        float alpha = progress;
+                        if(alpha > 0.01f) {
+                            Skia.drawText(currentLyric, lyricX, lyricY + yOffset,
+                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                        }
                     }
                 }
             }
@@ -252,6 +399,72 @@ public class MusicInfoMod extends SimpleHUDMod {
             dy = -dy;
             if (my <= 0) my = 0;
             if (my + height >= coverSize) my = coverSize - height;
+        }
+    }
+
+    private void spawnParticles(float x, float y, int amount, Bitmap albumBitmap) {
+        for (int i = 0; i < amount; i++) {
+            particles.add(new Particle(x, y, random, albumBitmap));
+        }
+    }
+
+    private void updateAndDrawParticles() {
+        Iterator<Particle> iterator = particles.iterator();
+        while (iterator.hasNext()) {
+            Particle p = iterator.next();
+            p.update();
+            if (p.isDead()) {
+                iterator.remove();
+            } else {
+                p.draw();
+            }
+        }
+    }
+
+    private static class Particle {
+        private float x, y;
+        private float vx, vy;
+        private float alpha;
+        private final float size;
+        private final float gravity = 0.04f;
+        private final float friction = 0.99f;
+        private final Color color;
+
+        Particle(float x, float y, Random random, Bitmap albumBitmap) {
+            this.x = x;
+            this.y = y;
+            double angle = random.nextDouble() * 2 * Math.PI;
+            float speed = 1.0f + random.nextFloat() * 1.5f;
+            this.vx = (float) (Math.cos(angle) * speed);
+            this.vy = (float) (Math.sin(angle) * speed);
+            this.alpha = 1.0f;
+            this.size = 1.0f + random.nextFloat() * 1.5f;
+
+            if (albumBitmap != null && !albumBitmap.isEmpty()) {
+                int randomX = random.nextInt(albumBitmap.getWidth());
+                int randomY = random.nextInt(albumBitmap.getHeight());
+                this.color = new Color(albumBitmap.getColor(randomX, randomY), true);
+            } else {
+                this.color = Color.WHITE;
+            }
+        }
+
+        void update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += gravity;
+            this.vx *= friction;
+            this.vy *= friction;
+            this.alpha -= 0.02f;
+        }
+
+        void draw() {
+            Color particleColor = ColorUtils.applyAlpha(this.color, this.alpha);
+            Skia.drawCircle(this.x, this.y, this.size, particleColor);
+        }
+
+        boolean isDead() {
+            return this.alpha <= 0;
         }
     }
 
