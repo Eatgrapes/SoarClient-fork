@@ -97,6 +97,14 @@ mod.blockoverlay.description=自定义方块轮廓颜色
 mod.combocounter.name=连击计数
 mod.combocounter.description=显示连击数
 
+mod.targethud.name=目标信息显示
+mod.targethud.description=攻击时显示目标玩家信息
+
+setting.health.display=血量显示模式
+setting.health.display.description=选择血量显示方式
+setting.text=文字
+setting.bar=条形
+
 mod.reachdisplay.name=攻击距离显示
 mod.reachdisplay.description=显示攻击距离
 

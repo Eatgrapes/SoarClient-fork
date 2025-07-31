@@ -101,6 +101,14 @@ setting.nameprotect.color.description=Custom color for the disguised name
 mod.daycounter.name=Day Counter
 mod.daycounter.description=Count Minecraft day
 
+mod.targethud.name=Target HUD
+mod.targethud.description=Display target player information when attacking
+
+setting.health.display=Health Display Mode
+setting.health.display.description=Choose how to display target health
+setting.text=Text
+setting.bar=Bar
+
 mod.stopwatch.name=Stopwatch
 mod.stopwatch.description=Measure the time
 
