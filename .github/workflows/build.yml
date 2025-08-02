@@ -39,6 +39,15 @@ jobs:
         run: ./gradlew build
         continue-on-error: false  # Fail the job if build fails
 
+      - name: Generate version.json
+        if: success()
+        run: |
+          BUILD_DATE=$(date -u +"%Y-%m-%d")
+          BUILD_TIME=$(date -u +"%H:%M:%S")
+          BUILD_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          echo "{\"build_date\":\"$BUILD_DATE\",\"build_time\":\"$BUILD_TIME\",\"build_datetime\":\"$BUILD_DATETIME\",\"repository\":\"${{ github.repository }}\",\"commit\":\"${{ github.sha }}\",\"branch\":\"${{ github.ref_name }}\"}" > version.json
+          cat version.json  # Display the generated file for debugging
+
       - name: Upload build artifacts
         if: success()  # Only run if build is successful
         uses: actions/upload-artifact@v4
@@ -70,6 +79,7 @@ jobs:
         run: |
           mkdir -p target-repo/Mod
           cp build/libs/soarclient-fork-8.0.0.jar target-repo/Mod/
+          cp version.json target-repo/Mod/
 
       - name: Commit and push changes to target repository
         if: success() && (github.event_name == 'push' || github.event_name == 'release')
@@ -78,6 +88,7 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           git add Mod/soarclient-fork-8.0.0.jar
-          git commit -m "Update JAR file from ${{ github.repository }} build" || echo "No changes to commit"
+          git add Mod/version.json
+          git commit -m "Update JAR file and version.json from ${{ github.repository }} build" || echo "No changes to commit"
           git push origin main
         continue-on-error: true  # Continue if no changes to commit
