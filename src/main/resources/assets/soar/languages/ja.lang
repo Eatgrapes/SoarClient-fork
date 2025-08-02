@@ -32,6 +32,12 @@ menu.quit=ゲーム終了
 gui.done=完了
 gui.mainmenu.customization=メインメニューの設定
 
+mod.watermark.name=透かし
+mod.watermark.description=カスタム透かしテキストを表示する
+setting.text=テキスト
+setting.text.description=カスタムウォーターマークテキスト
+mode.icon=アイコン
+
 language.english=English  
 language.chinese=中文    
 language.japanese=日本語
