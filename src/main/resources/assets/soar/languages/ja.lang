@@ -3,7 +3,7 @@
 #
 text.all=すべて
 text.hud=HUD
-text.render=レンダー
+text.render=レンダリング
 text.player=プレイヤー
 text.misc=その他
 text.home=ホーム
@@ -16,7 +16,7 @@ text.search=検索
 text.selectfile=ファイルを選択
 text.addcape=マント追加
 text.selectcape=マントファイルを選択
-text.invalidcape=無効なマント形式です！マントは64x32または128x64ピクセルである必要があります。
+text.invalidcape=無効なマント形式！マントは64x32または128x64ピクセルである必要があります。
 text.capeexists=マントは既に存在します！
 text.add=追加
 text.name=名前
@@ -30,7 +30,7 @@ menu.realms=Minecraft Realms
 menu.options=設定
 menu.quit=ゲーム終了
 gui.done=完了
-gui.mainmenu.customization=メインメニューの設定
+gui.mainmenu.customization=メインメニューカスタマイズ
 
 language.english=English  
 language.chinese=中文    
@@ -42,7 +42,7 @@ design.clear=クリア
 design.materialyou=MaterialYou
 
 mod.hudsettings.name=HUD設定
-mod.hudsettings.description=HUDのカスタマイズ
+mod.hudsettings.description=HUDをカスタマイズ
 
 mod.modmenu.name=MODメニュー
 mod.modmenu.description=MODメニュー関連の設定
@@ -60,17 +60,17 @@ mod.reachdisplay.name=リーチ表示
 mod.reachdisplay.description=攻撃リーチを表示
 
 mod.hiteffect.name=ヒットエフェクト
-mod.hiteffect.description=ヒットエフェクトのパーティクルとサウンドをカスタマイズ
+mod.hiteffect.description=パーティクルと音効でヒットエフェクトをカスタマイズ
 setting.particle.enabled=パーティクル有効
 setting.particle.enabled.description=パーティクルエフェクトを有効化
 setting.particle.type=パーティクルタイプ
-setting.particle.type.description=パーティクルエフェクトを選択
+setting.particle.type.description=パーティクルエフェクトタイプを選択
 setting.particle.amount=パーティクル量
 setting.particle.amount.description=パーティクル数を設定
-setting.sound.enabled=サウンド有効
-setting.sound.enabled.description=ヒットサウンドを有効化
-setting.sound.type=サウンドタイプ
-setting.sound.type.description=サウンドを選択
+setting.sound.enabled=音効有効
+setting.sound.enabled.description=ヒット音効を有効化
+setting.sound.type=音効タイプ
+setting.sound.type.description=音効タイプを選択
 setting.always.active=常に有効
 setting.always.active.description=条件に関係なく常にエフェクトを発動
 setting.critical.only=クリティカルのみ
@@ -90,15 +90,15 @@ mod.daycounter.name=日数カウンター
 mod.daycounter.description=Minecraftの経過日数を表示
 
 mod.nameprotect.name=名前保護
-mod.nameprotect.description=あなたの画面のプレイヤー名を偽装
+mod.nameprotect.description=ローカルでプレイヤー名を偽装
 
 setting.nameprotect.name=表示名
 setting.nameprotect.name.description=実際の名前の代わりに表示するカスタム名
 setting.nameprotect.color=名前の色
 setting.nameprotect.color.description=偽装名前のカスタム色
 
-mod.blockoverlay.name=ブロックオーバーレイ
-mod.blockoverlay.description=ブロックオーバーレイの色をカスタマイズ
+mod.blockoverlay.name=ブロックアウトライン
+mod.blockoverlay.description=ブロックアウトラインの色をカスタマイズ
 
 mod.stopwatch.name=ストップウォッチ
 mod.stopwatch.description=時間を計測
@@ -156,7 +156,7 @@ mod.taplook.description=ワンタッチで視点方向を切り替え
 mod.cpsdisplay.name=CPS表示
 mod.cpsdisplay.description=毎秒クリック数を表示
 setting.rightclick=右クリック
-setting.rightclick.description=右クリックのCPSを表示
+setting.rightclick.description=右クリックCPSを表示
 
 mod.serveripdisplay.name=サーバーIP表示
 mod.serveripdisplay.description=接続中のサーバーIPを表示
@@ -169,6 +169,11 @@ mod.namedisplay.description=自分の名前を表示
 
 mod.pingdisplay.name=ping表示
 mod.pingdisplay.description=現在のpingを表示
+
+mod.watermark.name=水印
+mod.watermark.description=显示自定义水印文本
+setting.text=文本
+setting.text.description=自定义水印文本
 
 mod.clientspoof.name=クライアント偽装
 mod.clientspoof.description=サーバーにクライアントブランドを偽装
@@ -184,17 +189,16 @@ setting.clientspoof.custom=カスタムクライアント
 setting.clientspoof.custom.description=偽装用のカスタムクライアント名
 
 tips.oldanimations.title=ヒント:
-tips.oldanimations.content=旧アニメーションを使用するには、ViaFabricPlusプロトコルでクロスバージョンを1.8.xに設定する必要があります。設定しない場合、クラッシュする可能性があります。
+tips.oldanimations.content=現在、旧アニメーションを使用するにはViaFabricPlusプロトコルのクロスバージョンを1.8.xに有効にする必要があります。そうしないとクラッシュします
 
 mod.watermark.name=ウォーターマーク
 mod.watermark.description=カスタムウォーターマークテキストを表示
 setting.text=テキスト
-setting.text.description=カスタムウォーターマークテキストを設定
+setting.text.description=カスタムウォーターマークテキスト
 mode.icon=アイコン
 
 mod.arraylist.name=モジュールリスト
 mod.arraylist.description=有効なモジュールのリストを表示
-setting.background1.description=背景を表示
 setting.hud=HUD
 setting.hud.description=HUDカテゴリのモジュールを表示
 setting.render=レンダー
@@ -215,24 +219,24 @@ setting.radius.description=画像の角丸半径を設定
 setting.alpha=透明度
 setting.alpha.description=画像の透明度を設定
 setting.shadow=影
-setting.shadow.description=影を有効化
+setting.shadow.description=影効果を有効化
 setting.size=サイズ
 setting.size.description=画像サイズの倍率を設定
 
 mod.autotext.name=自動テキスト
 mod.autotext.description=キーバインドで事前定義されたテキストメッセージを自動送信
-setting.text1key=テキスト1のキーバインド
-setting.text1key.description=1つ目のテキストメッセージを送信するキーバインド
+setting.text1key=テキスト1キーバインド
+setting.text1key.description=最初のテキストメッセージを送信するキーバインド
 setting.text1=テキスト1
-setting.text1.description=送信する1つ目のテキストメッセージ1
-setting.text2key=テキスト2のキーバインド
-setting.text2key.description=2つ目のテキストメッセージを送信するキーバインド
+setting.text1.description=送信する最初のテキストメッセージ
+setting.text2key=テキスト2キーバインド
+setting.text2key.description=2番目のテキストメッセージを送信するキーバインド
 setting.text2=テキスト2
-setting.text2.description=送信する2つ目のテキストメッセージ
-setting.text3key=テキスト3のキーバインド
-setting.text3key.description=3つ目のテキストメッセージを送信するキーバインド
+setting.text2.description=送信する2番目のテキストメッセージ
+setting.text3key=テキスト3キーバインド
+setting.text3key.description=3番目のテキストメッセージを送信するキーバインド
 setting.text3=テキスト3
-setting.text3.description=送信する3つ目のテキストメッセージ
+setting.text3.description=送信する3番目のテキストメッセージ
 
 mod.weatherdisplay.name=天気表示
 mod.weatherdisplay.description=現在の天気を表示
@@ -259,10 +263,10 @@ mod.weatherchanger.name=天気変更
 mod.weatherchanger.description=天気を変更
 
 mod.timechanger.name=時間変更
-mod.timechanger.description=ワールドの時間を変更
+mod.timechanger.description=世界の時間を変更
 
 mod.freelook.name=フリールック
-mod.freelook.description=頭の方向を変えずに視点を回転
+mod.freelook.description=移動方向を変えずに頭を回転
 
 mod.clock.name=時計
 mod.clock.description=現在時刻を表示
@@ -286,13 +290,13 @@ mod.watermark.show_icon1.description=アイコンを表示
 mod.watermark.show_icon1=アイコンを表示
 mod.watermark.show_text1.description=テキストを表示
 
-setting.cover.animation=カバーアニメーション
+setting.cover.animation=表紙アニメーション
 setting.cover.animation.description=粒子エフェクトとカバーパルスアニメーション
 
 mod.bloodparticles.name=血パーティクル
 mod.bloodparticles.description=血のエフェクトを追加
 
-mod.projectiletrail.name=投射物軌跡
+mod.projectiletrail.name=投射物トレイル
 mod.projectiletrail.description=投射物の軌跡を表示
 
 mod.musicwaveform.name=音楽波形
@@ -313,8 +317,8 @@ setting.hypixel.description=Hypixelモード
 mod.PackDisplayMod.name=パック表示
 mod.PackDisplayMod.description=マテリアルパックを表示する
 
-mod.armourstats.name=裝備表示
-mod.armourstats.description=現在の裝備を表示する
+mod.armourstats.name=裝備顯示
+mod.armourstats.description=顯示裝備
 
 mod.customhand.name=カスタムハンド
 mod.customhand.description=手の位置、スケールなどを変更
@@ -345,9 +349,9 @@ setting.compact.description=ポーション効果をコンパクトレイアウ�
 mod.actioncamera.disable_first_person=一人称の使用を禁止する
 mod.actioncamera.disable_first_person.desc=一人称の使用を禁止する
 mod.actioncamera.smoothness=滑らかさ
-mod.actioncamera.smoothness.desc=滑らかさの設定
+mod.actioncamera.smoothness.desc=滑らかさ設定
 mod.actioncamera.max_distance=最大距離
-mod.actioncamera.max_distance.desc=最大距離の設定
+mod.actioncamera.max_distance.desc=最大距離設定
 
 mod.watermark.show_icon=ロゴを表示
 mod.watermark.show_icon.description=クライアントのロゴを表示する
@@ -411,9 +415,9 @@ setting.zoomfactor.description=ズーム率を変更
 setting.smoothcamera=スムーズカメラ
 setting.smoothcamera.description=カメラをスムーズに移動
 setting.clearwater=水クリア
-setting.clearwater.description=水面のエフェクトを削除
+setting.clearwater.description=水面のカバーを削除
 setting.clearfire=炎クリア
-setting.clearfire.description=炎のエフェクトを削除
+setting.clearfire.description=炎のカバーを削除
 setting.weather=天気
 setting.weather.description=天気を設定
 setting.clear=晴れ
@@ -424,15 +428,15 @@ setting.time=時間
 setting.time.description=時間を設定
 setting.max=最大
 setting.max.description=最大値を設定
-setting.oldbreaking=古い破壊
+setting.oldbreaking=旧破壊
 setting.oldbreaking.description=剣や食事時のブロックアニメーションを復元
 setting.disableattackcooldown=攻撃クールダウン無効
 setting.disableattackcooldown.description=剣の攻撃クールダウンを防止
-setting.oldpvpsounds=古いPVPサウンド
-setting.oldpvpsounds.description=新しいPVPサウンドを無効化
-setting.oldrod=古い釣竿
+setting.oldpvpsounds=旧PVP音効
+setting.oldpvpsounds.description=新しいPVP音効を無効化
+setting.oldrod=旧釣竿
 setting.oldrod.description=旧バージョンの釣竿を復元
-setting.oldbow=古い弓
+setting.oldbow=旧弓
 setting.oldbow.description=旧バージョンの弓を復元
 setting.disableheartflash=ハートフラッシュ無効
 setting.disableheartflash.description=ハートフラッシュを無効化し1.7効果を復元
@@ -440,18 +444,18 @@ setting.levelhead=レベルヘッド
 setting.levelhead.description=ネームタグにHypixelレベルを表示
 setting.autotip=自動チップ
 setting.autotip.description=チップを自動化
-setting.alwayssharpness=常にシャープネス
-setting.alwayssharpness.description=常にシャープネスエフェクトを生成
+setting.alwayssharpness=常に鋭利
+setting.alwayssharpness.description=常に鋭利効果を生成
 setting.alwayscriticals=常にクリティカル
-setting.alwayscriticals.description=常にクリティカルエフェクトを生成
-setting.sharpness=シャープネス
-setting.sharpness.description=シャープネスエフェクトを有効化
+setting.alwayscriticals.description=常にクリティカル効果を生成
+setting.sharpness=鋭利
+setting.sharpness.description=鋭利効果を有効化
 setting.criticals=クリティカル
-setting.criticals.description=クリティカルエフェクトを有効化
-setting.sharpnessamount=シャープネス効果量
-setting.sharpnessamount.description=シャープネスエフェクトの量を設定
+setting.criticals.description=クリティカル効果を有効化
+setting.sharpnessamount=鋭利効果量
+setting.sharpnessamount.description=鋭利効果の量を設定
 setting.criticalsamount=クリティカル効果量
-setting.criticalsamount.description=クリティカルエフェクトの量を設定
+setting.criticalsamount.description=クリティカル効果の量を設定
 setting.sound=音
 setting.sound.description=音を有効化
 setting.multiplier=倍率
