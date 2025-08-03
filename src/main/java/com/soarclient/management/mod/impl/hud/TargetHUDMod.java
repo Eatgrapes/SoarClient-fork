@@ -8,7 +8,6 @@ import com.soarclient.Soar;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
-import com.soarclient.event.server.impl.AttackEntityEvent;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.mod.api.hud.HUDMod;
@@ -19,10 +18,14 @@ import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.HealthUtils;
 import com.soarclient.utils.SkinUtils;
+
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
 
 public class TargetHUDMod extends HUDMod {
 
@@ -56,23 +59,37 @@ public class TargetHUDMod extends HUDMod {
         return instance;
     }
 
-    public final EventBus.EventListener<AttackEntityEvent> onAttackEntity = event -> {
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.world == null) return;
+    @Override
+    public void onEnable() {
+        super.onEnable();
+        EventBus.getInstance().register(this);
+        registerFabricCallbacks();
+    }
 
-        Entity attackedEntity = client.world.getEntityById(event.getEntityId());
+    @Override
+    public void onDisable() {
+        super.onDisable();
+        EventBus.getInstance().unregister(this);
+    }
 
-        if (attackedEntity instanceof PlayerEntity) {
-            PlayerEntity newTarget = (PlayerEntity) attackedEntity;
-
-            if (targetPlayer == null || !targetPlayer.equals(newTarget)) {
-                targetPlayer = newTarget;
-                lastAttackTime = System.currentTimeMillis();
-            } else {
-                lastAttackTime = System.currentTimeMillis();
+    private void registerFabricCallbacks() {
+        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (world.isClient && player instanceof ClientPlayerEntity && entity instanceof PlayerEntity) {
+                PlayerEntity newTarget = (PlayerEntity) entity;
+                updateTarget(newTarget);
             }
+            return ActionResult.PASS;
+        });
+    }
+
+    private void updateTarget(PlayerEntity newTarget) {
+        if (targetPlayer == null || !targetPlayer.equals(newTarget)) {
+            targetPlayer = newTarget;
+            lastAttackTime = System.currentTimeMillis();
+        } else {
+            lastAttackTime = System.currentTimeMillis();
         }
-    };
+    }
 
     public final EventBus.EventListener<ClientTickEvent> onClientTick = event -> {
         boolean shouldShow = shouldShowTarget() || HUDCore.isEditing;

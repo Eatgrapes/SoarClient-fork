@@ -1,7 +1,6 @@
 package com.soarclient.management.mod.impl.render;
 
 import com.soarclient.event.EventBus;
-import com.soarclient.event.server.impl.AttackEntityEvent;
 import com.soarclient.management.mod.Mod;
 import com.soarclient.management.mod.ModCategory;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
@@ -9,6 +8,7 @@ import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.NumberSetting;
 import com.soarclient.skia.font.Icon;
 
+import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
@@ -18,6 +18,7 @@ import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.sound.SoundCategory;
+import net.minecraft.util.ActionResult;
 
 import java.util.Arrays;
 
@@ -68,6 +69,7 @@ public class HitEffectMod extends Mod {
     public void onEnable() {
         super.onEnable();
         EventBus.getInstance().register(this);
+        registerFabricCallbacks();
     }
 
     @Override
@@ -76,22 +78,22 @@ public class HitEffectMod extends Mod {
         EventBus.getInstance().unregister(this);
     }
 
-    public final EventBus.EventListener<AttackEntityEvent> onAttackEntity = event -> {
-        if (!enabledSetting.isEnabled()) return;
+    private void registerFabricCallbacks() {
+        AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+            if (world.isClient && player instanceof ClientPlayerEntity) {
+                if (!enabledSetting.isEnabled()) return ActionResult.PASS;
+                if (!(entity instanceof LivingEntity)) return ActionResult.PASS;
 
-        Entity target = client.world.getEntityById(event.getEntityId());
-        if (!(target instanceof LivingEntity)) return;
-
-        ClientPlayerEntity player = client.player;
-        if (player == null) return;
-
-        boolean shouldTrigger = shouldTriggerEffect(player, target);
-        if (!shouldTrigger) return;
-
-        spawnParticleEffect(target);
-
-        playSoundEffect(target);
-    };
+                ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
+                boolean shouldTrigger = shouldTriggerEffect(clientPlayer, entity);
+                if (shouldTrigger) {
+                    spawnParticleEffect(entity);
+                    playSoundEffect(entity);
+                }
+            }
+            return ActionResult.PASS;
+        });
+    }
 
     private boolean shouldTriggerEffect(ClientPlayerEntity player, Entity target) {
         if (alwaysActiveSetting.isEnabled()) return true;
