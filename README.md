@@ -1,6 +1,6 @@
 ## SoarClient-Fork
 - This is not an official SoarClient repository
-- If you want to see the original Soar repository,please go to the [SoarClient repo](https://www.github.com/Soar-Client/SoarClient) 
+- If you want to see the original Soar repository, please go to the [SoarClient repo](https://www.github.com/Soar-Client/SoarClient) 
 - it is a SoarClient's fork 
 - We will add more Modules and support
 
@@ -15,7 +15,6 @@
 ### Prerequisites 
 
 - **Java 21** or higher
-
 - **Git** (for cloning the repository
 
 ## Build Commands 
@@ -42,6 +41,6 @@ gradlew.bat build
 ```
 ### Build Output 
 
-After building, the JAR files will be located in the **build/libs/** directory. 
+After building, the JAR files will be located in the **build/libs/** directory 
 
 
