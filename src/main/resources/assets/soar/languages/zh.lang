@@ -339,6 +339,9 @@ mod.webbrowser.description=显示网页浏览器
 mod.forcemainhand.name=强制主手
 mod.forcemainhand.description=强制设置主手
 
+setting.superbooster.description=假的更多
+setting.superbooster=超级提升
+
 setting.darkmode=深色模式
 setting.darkmode.description=启用深色模式
 setting.keybind=快捷键

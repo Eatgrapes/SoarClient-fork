@@ -245,6 +245,9 @@ setting.other.description=Show Other category mods
 setting.mode=Mode
 setting.mode.description=Set alignment mode
 
+setting.superbooster.description=Make more fake FPS
+setting.superbooster=SuperBooster
+
 mod.imagedisplay.name=Image Display
 mod.imagedisplay.description=Display custom images on screen
 setting.image=Image

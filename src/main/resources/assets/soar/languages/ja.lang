@@ -273,6 +273,9 @@ mod.freelook.description=頭の方向を変えずに視点を回転
 mod.clock.name=時計
 mod.clock.description=現在時刻を表示
 
+setting.superbooster.description=もっと偽物FPS
+setting.superbooster=スーパーブースター
+
 mod.memoryusage.name=メモリ使用量
 mod.memoryusage.description=Minecraftのメモリ使用量を表示
 
