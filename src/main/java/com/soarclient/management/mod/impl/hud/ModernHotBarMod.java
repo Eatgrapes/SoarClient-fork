@@ -1,9 +1,11 @@
 package com.soarclient.management.mod.impl.hud;
 
 import com.soarclient.event.EventBus;
+import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.management.mod.api.hud.HUDMod;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.management.mod.settings.impl.ColorSetting;
+import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 
 import net.minecraft.client.MinecraftClient;
@@ -33,6 +35,10 @@ public class ModernHotBarMod extends HUDMod {
         super("mod.modernhotbar.name", "mod.modernhotbar.desc", Icon.SETTINGS);
     }
 
+    public final EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
+        this.render(0, 0, 0);
+    };
+
     private Color getHealthColor(float percentage) {
         int red = percentage < 0.5f ? 255 : (int)(255 - (percentage - 0.5f) * 255);
         int green = percentage > 0.5f ? 255 : (int)(percentage * 2 * 255);
@@ -58,19 +64,20 @@ public class ModernHotBarMod extends HUDMod {
 
     private void renderItem(ItemStack stack, int x, int y, DrawContext context) {
         begin();
-        context.drawItem(stack, x, y);
+        if (context != null) {
+            context.drawItem(stack, x, y);
+        }
 
         if (stack.getCount() > 1) {
             String countText = String.valueOf(stack.getCount());
             float textX = x + 17 - MinecraftClient.getInstance().textRenderer.getWidth(countText);
             float textY = y + 9;
 
-            drawText(countText, textX, textY, Fonts.INSTANCE.getDefaultFont());
+            drawText(countText, textX, textY, Fonts.getRegular(8));
         }
         finish();
     }
 
-    @Override
     public void render(int mouseX, int mouseY, float delta) {
         if (!isEnabled()) return;
 
@@ -96,7 +103,7 @@ public class ModernHotBarMod extends HUDMod {
             if (!stack.isEmpty()) {
                 int itemX = (int)(x + i * 20f + 3);
                 int itemY = (int)(y + 3);
-                renderItem(stack, itemX, itemY, mc.currentScreen.getDrawContext());
+                renderItem(stack, itemX, itemY, null);
             }
         }
 
