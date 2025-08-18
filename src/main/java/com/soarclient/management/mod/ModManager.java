@@ -37,7 +37,7 @@ public class ModManager {
 
 		// HUD
 		mods.add(new BedwarsStatsOverlayMod());
-        mods.add(new ModernHotBarMod());
+        //mods.add(new ModernHotBarMod());
         mods.add(new ArmourStatsMod());
 		mods.add(new BossBarMod());
 		mods.add(new ClockMod());
@@ -94,6 +94,7 @@ public class ModManager {
         mods.add(new ActionCameraMod());
         mods.add(new HitEffectMod());
         mods.add(new BlockOverlayMod());
+        mods.add(new VladimirVladimirovichPutinMod());
 
 		// Misc
 		mods.add(new DiscordRPCMod());
