@@ -94,7 +94,7 @@ public class ModManager {
         mods.add(new ActionCameraMod());
         mods.add(new HitEffectMod());
         mods.add(new BlockOverlayMod());
-        mods.add(new VladimirVladimirovichPutinMod());
+        mods.add(new AspectRatioMod());
 
 		// Misc
 		mods.add(new DiscordRPCMod());
