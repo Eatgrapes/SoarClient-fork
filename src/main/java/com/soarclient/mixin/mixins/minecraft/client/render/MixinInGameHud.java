@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderGameOverlayEvent;
+import com.soarclient.management.mod.impl.hud.PotionStatusMod;
 import com.soarclient.management.mod.impl.player.OldAnimationsMod;
 
 import net.minecraft.client.gui.DrawContext;
@@ -43,5 +44,13 @@ public class MixinInGameHud {
 	@Inject(method = "renderMainHud", at = @At("TAIL"))
 	private void renderMainHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 		EventBus.getInstance().post(new RenderGameOverlayEvent(context));
+	}
+
+	@Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
+	private void onRenderStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+		PotionStatusMod mod = PotionStatusMod.getInstance();
+		if (mod != null && mod.shouldDisableVanillaDisplay()) {
+			ci.cancel();
+		}
 	}
 }
