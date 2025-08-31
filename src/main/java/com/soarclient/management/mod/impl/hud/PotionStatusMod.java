@@ -39,7 +39,7 @@ public class PotionStatusMod extends HUDMod {
 
     private static PotionStatusMod instance;
 
-    private final ComboSetting displayModeSetting = new ComboSetting("setting.display_mode", "setting.display_mode.description", Icon.SETTINGS, this, Arrays.asList("Default", "Modern"), "Default");
+    private final ComboSetting displayModeSetting = new ComboSetting("setting.display_mode", "setting.display_mode.description", Icon.SETTINGS, this, Arrays.asList("ui.Default", "ui.Modern"), "ui.Default");
 
     private final BooleanSetting disableVanillaDisplaySetting = new BooleanSetting("setting.vanilla_effects", "setting.vanilla_effects.description", Icon.VISIBILITY_OFF, this, true);
 
@@ -47,7 +47,7 @@ public class PotionStatusMod extends HUDMod {
         "setting.background1.description", Icon.IMAGE, this, true){
         @Override
         public boolean isVisible() {
-            return !displayModeSetting.getOption().equals("Modern");
+            return !displayModeSetting.getOption().equals("ui.Modern");
         }
     };
 
@@ -55,7 +55,7 @@ public class PotionStatusMod extends HUDMod {
         Icon.COMPRESS, this, false){
         @Override
         public boolean isVisible() {
-            return !displayModeSetting.getOption().equals("Modern");
+            return !displayModeSetting.getOption().equals("ui.Modern");
         }
     };
 
@@ -63,7 +63,7 @@ public class PotionStatusMod extends HUDMod {
         "mod.watermark.show_icon1.description", Icon.IMAGE, this, true){
         @Override
         public boolean isVisible() {
-            return !displayModeSetting.getOption().equals("Modern");
+            return !displayModeSetting.getOption().equals("ui.Modern");
         }
     };
 
@@ -71,7 +71,7 @@ public class PotionStatusMod extends HUDMod {
         "mod.watermark.show_text1.description", Icon.TEXT_FIELDS, this, true){
         @Override
         public boolean isVisible() {
-            return !displayModeSetting.getOption().equals("Modern");
+            return !displayModeSetting.getOption().equals("ui.Modern");
         }
     };
 
@@ -121,7 +121,7 @@ public class PotionStatusMod extends HUDMod {
             }
         }
 
-        if (displayModeSetting.getOption().equals("Modern")) {
+        if (displayModeSetting.getOption().equals("ui.Modern")) {
             for (AnimatedPotionEffect ape : animatedEffects) {
                 if (currentPotions.stream().noneMatch(p -> p.getEffectType().value().equals(ape.effectType))) {
                     ape.isFadingOut = true;
@@ -203,7 +203,7 @@ public class PotionStatusMod extends HUDMod {
 
         this.begin();
 
-        if (displayModeSetting.getOption().equals("Modern")) {
+        if (displayModeSetting.getOption().equals("ui.Modern")) {
             updateAndDrawParticles();
 
             float offsetY = 3;

@@ -1,6 +1,12 @@
 #
 # Version 8.0
 #
+ui.Default=デフォルト
+ui.Modern=モダン
+setting.display_mode=表示モード
+setting.display_mode.description=表示モードを設定
+setting.vanilla_effects=バニラエフェクト
+setting.vanilla_effects.description=バニラのエフェクトを使用
 text.all=すべて
 text.hud=HUD
 text.render=レンダー

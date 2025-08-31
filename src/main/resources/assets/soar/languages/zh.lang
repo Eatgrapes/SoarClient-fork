@@ -1,6 +1,12 @@
 #
 # Version 8.0
 #
+ui.Default=默认
+ui.Modern=现代
+setting.display_mode=显示模式
+setting.display_mode.description=选择显示模式
+setting.vanilla_effects=原版效果
+setting.vanilla_effects.description=开/关原版药水效果显示
 text.all=全部
 text.hud=HUD
 text.render=视觉

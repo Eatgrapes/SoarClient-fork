@@ -1,6 +1,12 @@
 #
 # Version 8.0
 #
+ui.Default=Default
+ui.Modern=Modern
+setting.display_mode=Display Mode
+setting.display_mode.description=Set the display mode
+setting.vanilla_effects=Hide Vanilla Effects
+setting.vanilla_effects.description=Enable/Disable vanilla effects
 text.all=All
 text.hud=HUD
 text.render=Render
