@@ -1,10 +1,5 @@
 package com.soarclient.gui.modmenu.pages;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.lwjgl.glfw.GLFW;
-
 import com.soarclient.Soar;
 import com.soarclient.gui.api.SoarGui;
 import com.soarclient.gui.api.page.Page;
@@ -16,14 +11,18 @@ import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.SearchUtils;
 import com.soarclient.utils.language.I18n;
+import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SettingsImplPage extends Page {
 
-    private List<SettingBar> bars = new ArrayList<>();
-    private List<Setting> lastVisibleSettings = new ArrayList<>();
+    private final List<SettingBar> bars = new ArrayList<>();
+    private final List<Setting> lastVisibleSettings = new ArrayList<>();
 
-    private Class<? extends Page> prevPage;
-    private Mod mod;
+    private final Class<? extends Page> prevPage;
+    private final Mod mod;
 
     public SettingsImplPage(SoarGui parent, Class<? extends Page> prevPage, Mod mod) {
         super(parent, "text.mods", Icon.SETTINGS, new RightTransition(true));

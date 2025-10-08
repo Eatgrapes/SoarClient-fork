@@ -1,12 +1,13 @@
 package com.soarclient.gui.modmenu;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.soarclient.gui.api.SoarGui;
 import com.soarclient.gui.api.page.SimplePage;
 import com.soarclient.gui.modmenu.component.NavigationRail;
 import com.soarclient.gui.modmenu.pages.*;
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiModMenu extends SoarGui {
 
@@ -18,8 +19,11 @@ public class GuiModMenu extends SoarGui {
 
 	@Override
 	public void init() {
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
+		float railWidth = isWinStyle ? 180 : 90;
+
 		components.clear();
-		navigationRail = new NavigationRail(this, getX(), getY(), 90, getHeight());
+		navigationRail = new NavigationRail(this, getX(), getY(), railWidth, getHeight());
 		components.add(navigationRail);
 		super.init();
 	}

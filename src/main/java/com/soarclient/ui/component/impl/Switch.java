@@ -2,6 +2,7 @@ package com.soarclient.ui.component.impl;
 
 import java.awt.Color;
 
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.Soar;
@@ -15,9 +16,9 @@ import com.soarclient.utils.mouse.MouseUtils;
 
 public class Switch extends Component {
 
-	private SimpleAnimation enableAnimation = new SimpleAnimation();
-	private SimpleAnimation pressAnimation = new SimpleAnimation();
-	private SimpleAnimation focusAnimation = new SimpleAnimation();
+	private final SimpleAnimation enableAnimation = new SimpleAnimation();
+	private final SimpleAnimation pressAnimation = new SimpleAnimation();
+	private final SimpleAnimation focusAnimation = new SimpleAnimation();
 	private boolean pressed;
 	private boolean enabled;
 
@@ -32,32 +33,75 @@ public class Switch extends Component {
 	@Override
 	public void draw(double mouseX, double mouseY) {
 
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 		boolean focus = MouseUtils.isInside(mouseX, mouseY, x, y, width, height);
 
-		Skia.drawRoundedRect(x, y, width, height, 16, palette.getSurfaceContainerHighest());
-		Skia.drawOutline(x, y, width, height, 16, 2, palette.getOutline());
-
 		enableAnimation.onTick(enabled ? 1 : 0, 12);
-		pressAnimation.onTick(pressed ? 1 : 0, 12);
-		focusAnimation.onTick(focus ? 1 : 0, 10);
 
-		Skia.drawRoundedRect(x, y, width, height, 16,
-				ColorUtils.applyAlpha(palette.getPrimary(), enableAnimation.getValue()));
+		if (isWinStyle) {
+			float trackWidth = 40;
+			float trackHeight = 20;
+			float trackX = x + (width - trackWidth) / 2;
+			float trackY = y + (height - trackHeight) / 2;
+			float trackCornerRadius = 10;
 
-		Color fc = enabled ? palette.getPrimaryContainer() : palette.getOnSurfaceVariant();
-		Color ec = enabled ? palette.getOnPrimary() : palette.getOutline();
+			// Determine colors based on state
+			Color trackColor;
+			Color thumbColor;
+			Color outlineColor = ColorUtils.applyAlpha(palette.getOutline(), 0.5f); // Softer outline
 
-		Color pc = enabled ? palette.getPrimary() : palette.getOnSurface();
+			if (enabled) {
+				trackColor = palette.getPrimary();
+				thumbColor = new Color(255, 255, 255); // White thumb
+			} else {
+				trackColor = palette.getSurfaceContainerHighest();
+				thumbColor = palette.getOnSurfaceVariant();
+			}
 
-		Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
-				8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 1), ec);
-		Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
-				8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 1),
-				ColorUtils.applyAlpha(fc, focusAnimation.getValue()));
-		Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
-				8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 10),
-				ColorUtils.applyAlpha(pc, pressAnimation.getValue() * 0.12F));
+			// Draw track
+			Skia.drawRoundedRect(trackX, trackY, trackWidth, trackHeight, trackCornerRadius, trackColor);
+			// Draw outline
+			Skia.drawOutline(trackX, trackY, trackWidth, trackHeight, trackCornerRadius, 1, outlineColor);
+
+			// Hover effect
+			if (focus) {
+				Skia.drawRoundedRect(trackX, trackY, trackWidth, trackHeight, trackCornerRadius, new Color(0, 0, 0, 20));
+			}
+
+			// Draw thumb
+			float thumbRadius = (trackHeight / 2) - 3; // 7
+			float startX = trackX + trackHeight / 2;
+			float endX = trackX + trackWidth - trackHeight / 2;
+			float thumbX = startX + (endX - startX) * enableAnimation.getValue();
+			float thumbY = trackY + trackHeight / 2;
+
+			Skia.drawCircle(thumbX, thumbY, thumbRadius, thumbColor);
+
+		} else {
+			pressAnimation.onTick(pressed ? 1 : 0, 12);
+			focusAnimation.onTick(focus ? 1 : 0, 10);
+
+			Skia.drawRoundedRect(x, y, width, height, 16, palette.getSurfaceContainerHighest());
+			Skia.drawOutline(x, y, width, height, 16, 2, palette.getOutline());
+
+			Skia.drawRoundedRect(x, y, width, height, 16,
+					ColorUtils.applyAlpha(palette.getPrimary(), enableAnimation.getValue()));
+
+			Color fc = enabled ? palette.getPrimaryContainer() : palette.getOnSurfaceVariant();
+			Color ec = enabled ? palette.getOnPrimary() : palette.getOutline();
+
+			Color pc = enabled ? palette.getPrimary() : palette.getOnSurface();
+
+			Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
+					8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 1), ec);
+			Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
+					8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 1),
+					ColorUtils.applyAlpha(fc, focusAnimation.getValue()));
+			Skia.drawCircle(x + 16 + (20 * enableAnimation.getValue()), y + 16,
+					8 + (enableAnimation.getValue() * 4) + (pressAnimation.getValue() * 10),
+					ColorUtils.applyAlpha(pc, pressAnimation.getValue() * 0.12F));
+		}
 	}
 
 	@Override
@@ -73,9 +117,7 @@ public class Switch extends Component {
 		if (MouseUtils.isInside(mouseX, mouseY, x, y, width, height) && button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
 			enabled = !enabled;
 
-			if (handler instanceof SwitchHandler) {
-
-				SwitchHandler sHandler = (SwitchHandler) handler;
+			if (handler instanceof SwitchHandler sHandler) {
 
 				if (enabled) {
 					sHandler.onEnabled();

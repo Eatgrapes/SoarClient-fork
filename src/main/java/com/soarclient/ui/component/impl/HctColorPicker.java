@@ -1,24 +1,28 @@
 package com.soarclient.ui.component.impl;
 
-import java.awt.Color;
-
-import org.lwjgl.glfw.GLFW;
-
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.libraries.material3.hct.Hct;
 import com.soarclient.management.color.api.ColorPalette;
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.skia.Skia;
 import com.soarclient.ui.component.Component;
 import com.soarclient.ui.component.handler.impl.HctColorPickerHandler;
 import com.soarclient.utils.mouse.MouseUtils;
+import io.github.humbleui.skija.Paint;
+import io.github.humbleui.types.Rect;
+import io.github.humbleui.skija.Shader;
+import org.lwjgl.glfw.GLFW;
+
+import java.awt.Color;
 
 public class HctColorPicker extends Component {
 
-	private SimpleAnimation slideAnimation = new SimpleAnimation();
+	private final SimpleAnimation slideAnimation = new SimpleAnimation();
 
 	private Hct hct;
-	private float minValue, maxValue, value;
+	private final float minValue, maxValue;
+	private float value;
 	private boolean dragging;
 
 	public HctColorPicker(float x, float y, Hct hct) {
@@ -34,14 +38,36 @@ public class HctColorPicker extends Component {
 	@Override
 	public void draw(double mouseX, double mouseY) {
 
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
 		slideAnimation.onTick(width * value, 20);
 
-		Skia.drawRoundedImage("hue-h.png", x, y, width, height, 12);
-		Skia.drawCircle(x + slideAnimation.getValue(), y + (height / 2), 9.8F,
-				Color.getHSBColor((float) (hct.getHue() / 360), 1, 1));
-		Skia.drawCircle(x + slideAnimation.getValue(), y + (height / 2), 10, 2F, palette.getSurface());
+		if (isWinStyle) {
+			float borderRadius = 6;
+
+			// Draw hue gradient
+			int[] hueColors = {0xFFFF0000, 0xFFFFFF00, 0xFF00FF00, 0xFF00FFFF, 0xFF0000FF, 0xFFFF00FF, 0xFFFF0000};
+			Paint paint = new Paint();
+			paint.setShader(Shader.makeLinearGradient(x, y, x + width, y, hueColors));
+			Skia.getCanvas().drawRect(Rect.makeXYWH(x, y, width, height), paint);
+
+			// Draw outline
+			Skia.drawOutline(x, y, width, height, borderRadius, 1, palette.getOutline());
+
+			// Draw thumb
+			float thumbX = x + slideAnimation.getValue();
+			float thumbY = y + height / 2;
+			float thumbRadius = 6;
+			Skia.drawCircle(thumbX, thumbY, thumbRadius, Color.getHSBColor((float) (hct.getHue() / 360), 1, 1));
+			Skia.drawCircle(thumbX, thumbY, thumbRadius, 1.5f, palette.getOnSurface());
+
+		} else { // MD3 Style
+			Skia.drawRoundedImage("hue-h.png", x, y, width, height, 12);
+			Skia.drawCircle(x + slideAnimation.getValue(), y + (height / 2), 9.8F,
+					Color.getHSBColor((float) (hct.getHue() / 360), 1, 1));
+			Skia.drawCircle(x + slideAnimation.getValue(), y + (height / 2), 10, 2F, palette.getSurface());
+		}
 
 		if (dragging) {
 
@@ -66,8 +92,8 @@ public class HctColorPicker extends Component {
 	}
 
 	private void onPicking(Hct hct) {
-		if (handler instanceof HctColorPickerHandler) {
-			((HctColorPickerHandler) handler).onPicking(hct);
+		if (handler instanceof HctColorPickerHandler hctColorPickerHandler) {
+			hctColorPickerHandler.onPicking(hct);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package com.soarclient.ui.component.impl;
 
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.Soar;
@@ -13,9 +14,11 @@ import com.soarclient.utils.mouse.MouseUtils;
 
 import net.minecraft.client.util.InputUtil;
 
+import java.awt.Color;
+
 public class Keybind extends Component {
 
-	private PressAnimation pressAnimation = new PressAnimation();
+	private final PressAnimation pressAnimation = new PressAnimation();
 
 	private boolean binding;
 	private InputUtil.Key key;
@@ -29,13 +32,9 @@ public class Keybind extends Component {
 
     @Override
     public void draw(double mouseX, double mouseY) {
+        boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
         ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
-
-        Skia.drawRoundedRect(x, y, width, height, 12, palette.getPrimary());
-        Skia.save();
-        Skia.clip(x, y, width, height, 12);
-        pressAnimation.draw(x, y, width, height, palette.getPrimaryContainer(), 0.12F);
-        Skia.restore();
+        boolean isHovered = MouseUtils.isInside(mouseX, mouseY, x, y, width, height);
 
         String displayText;
         if (binding) {
@@ -49,8 +48,46 @@ public class Keybind extends Component {
             }
         }
 
-        Skia.drawFullCenteredText(displayText, x + (width / 2), y + (height / 2),
-            palette.getSurface(), Fonts.getMedium(14));
+        if (isWinStyle) {
+            float borderRadius = 6;
+            boolean isDarkMode = ModMenuSettings.getInstance().getDarkModeSetting().isEnabled();
+
+            Color backgroundColor = palette.getSurfaceContainerHighest();
+            Color textColor = palette.getOnSurface();
+            Color borderColor = palette.getOutline();
+
+            if (binding) {
+                borderColor = palette.getPrimary();
+            }
+
+            // Draw base
+            Skia.drawRoundedRect(x, y, width, height, borderRadius, backgroundColor);
+            Skia.drawOutline(x, y, width, height, borderRadius, 1, borderColor);
+
+            // Draw hover overlay
+            if (isHovered && !binding) {
+                Color hoverColor;
+                if (isDarkMode) {
+                    hoverColor = new Color(255, 255, 255, 10);
+                } else {
+                    hoverColor = new Color(0, 0, 0, 5);
+                }
+                Skia.drawRoundedRect(x, y, width, height, borderRadius, hoverColor);
+            }
+
+            Skia.drawFullCenteredText(displayText, x + (width / 2), y + (height / 2),
+                textColor, Fonts.getMedium(14));
+
+        } else { // MD3 Style
+            Skia.drawRoundedRect(x, y, width, height, 12, palette.getPrimary());
+            Skia.save();
+            Skia.clip(x, y, width, height, 12);
+            pressAnimation.draw(x, y, width, height, palette.getPrimaryContainer(), 0.12F);
+            Skia.restore();
+
+            Skia.drawFullCenteredText(displayText, x + (width / 2), y + (height / 2),
+                palette.getSurface(), Fonts.getMedium(14));
+        }
     }
 
 	@Override
@@ -74,8 +111,7 @@ public class Keybind extends Component {
 
 			if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
 				setKeyCode(InputUtil.UNKNOWN_KEY);
-			} else if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT
-					&& button != GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
+			} else if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
 				setKeyCode(InputUtil.Type.MOUSE.createFromCode(button));
 			}
 
@@ -105,8 +141,8 @@ public class Keybind extends Component {
 
 		this.key = key;
 
-		if (handler instanceof KeybindHandler) {
-			((KeybindHandler) handler).onBinded(key);
+		if (handler instanceof KeybindHandler keybindHandler) {
+			keybindHandler.onBinded(key);
 		}
 	}
 }

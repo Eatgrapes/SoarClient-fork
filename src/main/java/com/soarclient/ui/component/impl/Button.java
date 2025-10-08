@@ -2,6 +2,7 @@ package com.soarclient.ui.component.impl;
 
 import java.awt.Color;
 
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.Soar;
@@ -18,10 +19,10 @@ import io.github.humbleui.types.Rect;
 
 public class Button extends Component {
 
-	private PressAnimation pressAnimation = new PressAnimation();
+	private final PressAnimation pressAnimation = new PressAnimation();
 
-	private String text;
-	private Style style;
+	private final String text;
+	private final Style style;
 
 	public Button(String text, float x, float y, Style style) {
 		super(x, y);
@@ -34,15 +35,44 @@ public class Button extends Component {
 
 	@Override
 	public void draw(double mouseX, double mouseY) {
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
+		boolean isHovered = MouseUtils.isInside(mouseX, mouseY, x, y, width, height);
 
 		Color[] colors = getColor();
+		float borderRadius = isWinStyle ? 6 : 25;
 
-		Skia.drawRoundedRect(x, y, width, height, 25, colors[0]);
+		Color backgroundColor = colors[0];
+		Color textColor = colors[1];
+
+		if (isWinStyle && isHovered && style != Style.FILLED) {
+			boolean isDarkMode = ModMenuSettings.getInstance().getDarkModeSetting().isEnabled();
+			if (isDarkMode) {
+				backgroundColor = new Color(255, 255, 255, 10);
+			} else {
+				backgroundColor = new Color(0, 0, 0, 10);
+			}
+		}
+
+		Skia.drawRoundedRect(x, y, width, height, borderRadius, backgroundColor);
+
+		if(isWinStyle && style != Style.FILLED) {
+			Skia.drawOutline(x, y, width, height, borderRadius, 1.0f, new Color(0, 0, 0, 10));
+		}
+
 		Skia.save();
-		Skia.clip(x, y, width, height, 25);
-		pressAnimation.draw(x, y, width, height, colors[1], 0.12F);
+		Skia.clip(x, y, width, height, borderRadius);
+
+		if (isWinStyle) {
+			if (pressAnimation.isPressed()) {
+				boolean isDarkMode = ModMenuSettings.getInstance().getDarkModeSetting().isEnabled();
+				Skia.drawRect(x, y, width, height, isDarkMode ? new Color(255, 255, 255, 5) : new Color(0, 0, 0, 5));
+			}
+		} else {
+			pressAnimation.draw(x, y, width, height, colors[1], 0.12F);
+		}
+
 		Skia.restore();
-		Skia.drawFullCenteredText(I18n.get(text), x + (width / 2), y + (height / 2), colors[1], Fonts.getRegular(16));
+		Skia.drawFullCenteredText(I18n.get(text), x + (width / 2), y + (height / 2), textColor, Fonts.getRegular(16));
 	}
 
 	@Override
@@ -66,17 +96,32 @@ public class Button extends Component {
 	private Color[] getColor() {
 
 		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 
-		switch (style) {
-		case ELEVATED:
-			return new Color[] { palette.getSurfaceContainerLow(), palette.getPrimary() };
-		case FILLED:
-			return new Color[] { palette.getPrimary(), palette.getOnPrimary() };
-		case TONAL:
-			return new Color[] { palette.getSecondaryContainer(), palette.getOnSecondaryContainer() };
-		default:
-			return new Color[] { Color.RED, Color.RED };
+		if (isWinStyle) {
+			boolean isDarkMode = ModMenuSettings.getInstance().getDarkModeSetting().isEnabled();
+			Color background, foreground;
+
+			if (style == Style.FILLED) { // Accent color button
+				background = palette.getPrimary();
+				foreground = palette.getOnPrimary();
+			} else { // Standard button
+				if (isDarkMode) {
+					background = new Color(47, 47, 47, 120);
+					foreground = Color.WHITE;
+				} else {
+					background = new Color(240, 240, 240, 120);
+					foreground = Color.BLACK;
+				}
+			}
+			return new Color[] { background, foreground };
 		}
+
+		return switch (style) {
+			case ELEVATED -> new Color[]{palette.getSurfaceContainerLow(), palette.getPrimary()};
+			case FILLED -> new Color[]{palette.getPrimary(), palette.getOnPrimary()};
+			case TONAL -> new Color[]{palette.getSecondaryContainer(), palette.getOnSecondaryContainer()};
+		};
 	}
 
 	public enum Style {

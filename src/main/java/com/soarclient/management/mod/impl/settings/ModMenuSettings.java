@@ -38,6 +38,9 @@ public class ModMenuSettings extends Mod {
     private NumberSetting blurIntensitySetting = new NumberSetting("setting.blurintensity",
         "setting.blurintensity.description", Icon.BLUR_LINEAR, this, 5, 1, 20, 1);
 
+    private ComboSetting uiStyleSetting = new ComboSetting("setting.uistyle", "setting.uistyle.description",
+            Icon.VIEW_QUILT, this, Arrays.asList("MD3", "win"), "MD3");
+
     private ComboSetting languageSetting = new ComboSetting("setting.language", "setting.language.description",
         Icon.LANGUAGE, this, Arrays.asList("language.english", "language.chinese", "language.japanese"), "language.english");
 
@@ -172,6 +175,10 @@ public class ModMenuSettings extends Mod {
 
     public NumberSetting getBlurIntensitySetting() {
         return blurIntensitySetting;
+    }
+
+    public ComboSetting getUiStyleSetting() {
+        return uiStyleSetting;
     }
 
     public ComboSetting getLanguageSetting() {

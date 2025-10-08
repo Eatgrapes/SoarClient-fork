@@ -1,12 +1,6 @@
 package com.soarclient.gui.api;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.soarclient.shader.ShaderHelper;
-import org.lwjgl.glfw.GLFW;
-
 import com.soarclient.Soar;
 import com.soarclient.animation.Animation;
 import com.soarclient.animation.Duration;
@@ -16,14 +10,18 @@ import com.soarclient.gui.api.page.SimplePage;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
+import com.soarclient.shader.ShaderHelper;
 import com.soarclient.shader.impl.KawaseBlur;
 import com.soarclient.skia.Skia;
 import com.soarclient.ui.component.Component;
 import com.soarclient.utils.Multithreading;
-
 import io.github.humbleui.skija.SurfaceOrigin;
 import net.minecraft.client.gui.screen.Screen;
+import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SoarGui extends SimpleSoarGui {
 
@@ -76,8 +74,15 @@ public abstract class SoarGui extends SimpleSoarGui {
 		Skia.setAlpha((int) (inOutAnimation.getValue() * 255));
 		Skia.scale(getX(), getY(), getWidth(), getHeight(), 2 - inOutAnimation.getValue());
 
-		Skia.clip(getX(), getY(), getWidth(), getHeight(), 35);
-		Skia.drawRoundedRect(getX(), getY(), getWidth(), getHeight(), 35, palette.getSurfaceContainer());
+		final float borderRadius;
+		if (ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win")) {
+			borderRadius = 8;
+		} else {
+			borderRadius = 35;
+		}
+
+		Skia.clip(getX(), getY(), getWidth(), getHeight(), borderRadius);
+		Skia.drawRoundedRect(getX(), getY(), getWidth(), getHeight(), borderRadius, palette.getSurfaceContainer());
 
 		if (currentPage != null && lastPage == null) {
 			currentPage.draw(mouseX, mouseY);

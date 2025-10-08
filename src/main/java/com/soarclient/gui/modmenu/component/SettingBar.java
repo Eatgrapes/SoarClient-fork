@@ -1,44 +1,27 @@
 package com.soarclient.gui.modmenu.component;
 
-import java.io.File;
-
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.libraries.material3.hct.Hct;
 import com.soarclient.management.color.api.ColorPalette;
+import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.settings.Setting;
-import com.soarclient.management.mod.settings.impl.BooleanSetting;
-import com.soarclient.management.mod.settings.impl.ComboSetting;
-import com.soarclient.management.mod.settings.impl.FileSetting;
-import com.soarclient.management.mod.settings.impl.HctColorSetting;
-import com.soarclient.management.mod.settings.impl.KeybindSetting;
-import com.soarclient.management.mod.settings.impl.NumberSetting;
-import com.soarclient.management.mod.settings.impl.StringSetting;
+import com.soarclient.management.mod.settings.impl.*;
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
 import com.soarclient.ui.component.Component;
-import com.soarclient.ui.component.handler.impl.ComboButtonHandler;
-import com.soarclient.ui.component.handler.impl.FileSelectorHandler;
-import com.soarclient.ui.component.handler.impl.HctColorPickerHandler;
-import com.soarclient.ui.component.handler.impl.KeybindHandler;
-import com.soarclient.ui.component.handler.impl.SliderHandler;
-import com.soarclient.ui.component.handler.impl.SwitchHandler;
-import com.soarclient.ui.component.handler.impl.TextHandler;
-import com.soarclient.ui.component.impl.ComboButton;
-import com.soarclient.ui.component.impl.FileSelector;
-import com.soarclient.ui.component.impl.HctColorPicker;
-import com.soarclient.ui.component.impl.Keybind;
-import com.soarclient.ui.component.impl.Slider;
-import com.soarclient.ui.component.impl.Switch;
+import com.soarclient.ui.component.handler.impl.*;
+import com.soarclient.ui.component.impl.*;
 import com.soarclient.ui.component.impl.text.TextField;
 import com.soarclient.utils.language.I18n;
-
 import net.minecraft.client.util.InputUtil;
+
+import java.io.File;
 
 public class SettingBar extends Component {
 
-	private SimpleAnimation yAnimation = new SimpleAnimation();
-	private String title, description, icon;
+	private final SimpleAnimation yAnimation = new SimpleAnimation();
+	private final String title, description, icon;
 	private Component component;
 
 	public SettingBar(Setting setting, float x, float y, float width) {
@@ -49,9 +32,8 @@ public class SettingBar extends Component {
 		this.width = width;
 		this.height = 68;
 
-		if (setting instanceof BooleanSetting) {
+		if (setting instanceof BooleanSetting bSetting) {
 
-			BooleanSetting bSetting = (BooleanSetting) setting;
 			Switch switchComp = new Switch(x, y, bSetting.isEnabled());
 
 			switchComp.setHandler(new SwitchHandler() {
@@ -70,9 +52,8 @@ public class SettingBar extends Component {
 			component = switchComp;
 		}
 
-		if (setting instanceof NumberSetting) {
+		if (setting instanceof NumberSetting nSetting) {
 
-			NumberSetting nSetting = (NumberSetting) setting;
 			Slider slider = new Slider(0, 0, 200, nSetting.getValue(), nSetting.getMinValue(), nSetting.getMaxValue(),
 					nSetting.getStep());
 
@@ -87,9 +68,8 @@ public class SettingBar extends Component {
 			component = slider;
 		}
 
-		if (setting instanceof ComboSetting) {
+		if (setting instanceof ComboSetting cSetting) {
 
-			ComboSetting cSetting = (ComboSetting) setting;
 			ComboButton button = new ComboButton(0, 0, cSetting.getOptions(), cSetting.getOption());
 
 			button.setHandler(new ComboButtonHandler() {
@@ -103,9 +83,8 @@ public class SettingBar extends Component {
 			component = button;
 		}
 
-		if (setting instanceof KeybindSetting) {
+		if (setting instanceof KeybindSetting kSetting) {
 
-			KeybindSetting kSetting = (KeybindSetting) setting;
 			Keybind bind = new Keybind(0, 0, kSetting.getKey());
 
 			bind.setHandler(new KeybindHandler() {
@@ -119,9 +98,8 @@ public class SettingBar extends Component {
 			component = bind;
 		}
 
-		if (setting instanceof HctColorSetting) {
+		if (setting instanceof HctColorSetting hSetting) {
 
-			HctColorSetting hSetting = (HctColorSetting) setting;
 			HctColorPicker picker = new HctColorPicker(0, 0, hSetting.getHct());
 
 			picker.setHandler(new HctColorPickerHandler() {
@@ -135,9 +113,8 @@ public class SettingBar extends Component {
 			component = picker;
 		}
 
-		if (setting instanceof StringSetting) {
+		if (setting instanceof StringSetting sSetting) {
 
-			StringSetting sSetting = (StringSetting) setting;
 			TextField textField = new TextField(0, 0, 150, sSetting.getValue());
 
 			textField.setHandler(new TextHandler() {
@@ -151,9 +128,8 @@ public class SettingBar extends Component {
 			component = textField;
 		}
 		
-		if(setting instanceof FileSetting) {
+		if(setting instanceof FileSetting fSetting) {
 			
-			FileSetting fSetting = (FileSetting) setting;
 			FileSelector fileSelector = new FileSelector(0, 0, fSetting.getFile(), fSetting.getExtensions());
 			
 			fileSelector.setHandler(new FileSelectorHandler() {
@@ -171,6 +147,7 @@ public class SettingBar extends Component {
 	@Override
 	public void draw(double mouseX, double mouseY) {
 
+		boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
 		float itemY = y;
@@ -179,14 +156,23 @@ public class SettingBar extends Component {
 		itemY = yAnimation.getValue();
 
 		if (component != null) {
-			component.setX(x + width - component.getWidth() - 22);
+			component.setX(x + width - component.getWidth() - (isWinStyle ? 16 : 22));
 			component.setY(itemY + (height - component.getHeight()) / 2);
 		}
 
-		Skia.drawRoundedRect(x, itemY, width, height, 18, palette.getSurface());
-		Skia.drawFullCenteredText(icon, x + 30, itemY + (height / 2), palette.getOnSurface(), Fonts.getIcon(32));
-		Skia.drawText(I18n.get(title), x + 52, itemY + 20, palette.getOnSurface(), Fonts.getRegular(17));
-		Skia.drawText(I18n.get(description), x + 52, itemY + 37, palette.getOnSurfaceVariant(), Fonts.getRegular(14));
+		if (isWinStyle) {
+			height = 56;
+			Skia.drawRect(x, itemY, width, height, palette.getSurface());
+			Skia.drawLine(x, itemY + height, x + width, itemY + height, 1, palette.getOutline());
+			Skia.drawText(I18n.get(title), x + 16, itemY + 12, palette.getOnSurface(), Fonts.getRegular(16));
+			Skia.drawText(I18n.get(description), x + 16, itemY + 28, palette.getOnSurfaceVariant(), Fonts.getRegular(14));
+		} else {
+			height = 68;
+			Skia.drawRoundedRect(x, itemY, width, height, 18, palette.getSurface());
+			Skia.drawFullCenteredText(icon, x + 30, itemY + (height / 2), palette.getOnSurface(), Fonts.getIcon(32));
+			Skia.drawText(I18n.get(title), x + 52, itemY + 20, palette.getOnSurface(), Fonts.getRegular(17));
+			Skia.drawText(I18n.get(description), x + 52, itemY + 37, palette.getOnSurfaceVariant(), Fonts.getRegular(14));
+		}
 
 		if (component != null) {
 			component.draw(mouseX, mouseY);
