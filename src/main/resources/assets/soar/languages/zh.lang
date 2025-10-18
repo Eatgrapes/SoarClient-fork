@@ -113,6 +113,13 @@ setting.health.display.description=选择血量显示方式
 setting.text=文字
 setting.bar=条形
 
+setting.glow=光晕
+setting.glow.description=文本光晕
+setting.glow.intensity=光晕强度
+setting.glow.intensity.description=设置光晕强度
+setting.glow.range=光晕范围
+setting.glow.range.description=设置光晕范围
+
 mod.reachdisplay.name=攻击距离显示
 mod.reachdisplay.description=显示攻击距离
 

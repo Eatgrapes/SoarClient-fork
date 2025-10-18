@@ -32,6 +32,13 @@ text.serveraddress=サーバーアドレス
 text.createprofile=構成を作成
 text.icon=アイコン
 
+setting.glow=光
+setting.glow.description=テキストの光
+setting.glow.intensity=光の強度
+setting.glow.intensity.description=光色の強度を設定
+setting.glow.range=光の影響範囲
+setting.glow.range.description=光の影響範囲の設定
+
 menu.singleplayer=シングルプレイ
 menu.multiplayer=マルチプレイ
 menu.realms=Minecraft Realms

@@ -14,8 +14,9 @@ import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.mod.api.hud.SimpleHUDMod;
-import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
+import com.soarclient.management.mod.settings.impl.ComboSetting;
+import com.soarclient.management.mod.settings.impl.NumberSetting;
 import com.soarclient.management.music.Music;
 import com.soarclient.management.music.MusicManager;
 import com.soarclient.management.music.MusicPlayer;
@@ -28,6 +29,7 @@ import com.soarclient.utils.TimerUtils;
 
 import io.github.humbleui.skija.Bitmap;
 import io.github.humbleui.skija.FilterTileMode;
+import io.github.humbleui.skija.Font;
 import io.github.humbleui.skija.Image;
 import io.github.humbleui.skija.ImageFilter;
 import io.github.humbleui.skija.Paint;
@@ -79,6 +81,22 @@ public class MusicInfoMod extends SimpleHUDMod {
         public boolean isVisible() {
             String type = typeSetting.getOption();
             return type.equals("setting.normal") || type.equals("setting.cover");
+        }
+    };
+
+    private final BooleanSetting glowEffectSetting = new BooleanSetting("setting.glow", "setting.glow.description", Icon.LIGHTBULB_OUTLINE, this, false);
+
+    private final NumberSetting glowIntensitySetting = new NumberSetting("setting.glow.intensity", "setting.glow.intensity.description", Icon.ARROW_UPWARD, this, 10, 1, 20, 1) {
+        @Override
+        public boolean isVisible() {
+            return glowEffectSetting.isEnabled();
+        }
+    };
+
+    private final NumberSetting glowRangeSetting = new NumberSetting("setting.glow.range", "setting.glow.range.description", Icon.EXPAND, this, 4, 1, 20, 1) {
+        @Override
+        public boolean isVisible() {
+            return glowEffectSetting.isEnabled();
         }
     };
 
@@ -215,6 +233,84 @@ public class MusicInfoMod extends SimpleHUDMod {
         return Math.max(180, totalWidth);
     }
 
+    private void drawTextWithGlow(String text, float x, float y, Color color, Font font) {
+        if (glowEffectSetting.isEnabled() && text != null && !text.isEmpty() && glowRangeSetting.getValue() > 0) {
+            int intensity = Math.max(1, (int) glowIntensitySetting.getValue());
+            float maxRange = glowRangeSetting.getValue();
+            Rect bounds = font.measureText(text);
+            int pad = (int) Math.ceil(maxRange * 3.0f);
+
+            int offW = Math.max(1, (int) Math.ceil(bounds.getWidth()) + pad * 2);
+            int offH = Math.max(1, (int) Math.ceil(bounds.getHeight()) + pad * 2);
+            float drawX = x - pad;
+            float drawY = y - pad;
+
+            // Render the text once into an offscreen surface with the chosen color
+            try (io.github.humbleui.skija.Surface surface = io.github.humbleui.skija.Surface.makeRasterN32Premul(offW, offH)) {
+                io.github.humbleui.skija.Canvas offCanvas = surface.getCanvas();
+                offCanvas.clear(0);
+
+                try (var paintText = new Paint()) {
+                    paintText.setAntiAlias(true);
+                    paintText.setColor(ColorUtils.applyAlpha(color, 1.0f).getRGB());
+                    // draw solid text into the offscreen canvas
+                    offCanvas.drawString(text, -bounds.getLeft() + pad, -bounds.getTop() + pad, font, paintText);
+                }
+
+                try (Image srcImg = surface.makeImageSnapshot()) {
+                    final int maxIntensity = 20;
+                    float norm = Math.min(1.0f, intensity / (float) maxIntensity);
+                    float amplify = 1.0f + norm * 3.5f;
+                    float innerBlur = Math.max(0.5f, maxRange * 0.18f);
+                    float midBlur = Math.max(0.5f, maxRange * 0.55f);
+                    float outerBlur = Math.max(0.5f, maxRange * 1.2f);
+                    float innerAlpha = Math.min(1.0f, (0.45f + 0.60f * norm) * amplify);
+                    float midAlpha = Math.min(1.0f, (0.22f + 0.40f * norm) * amplify);
+                    float outerAlpha = Math.min(1.0f, (0.09f + 0.22f * norm) * amplify);
+
+                    try (var paint = new Paint()) {
+                        paint.setImageFilter(ImageFilter.makeBlur(innerBlur, innerBlur, FilterTileMode.DECAL));
+                        int innerA = (int) Math.max(0, Math.min(255, innerAlpha * 255f));
+                        paint.setAlpha(innerA);
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                        paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.7f * 255f)));
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                        paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.45f * 255f)));
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                        paint.setImageFilter(ImageFilter.makeBlur(midBlur, midBlur, FilterTileMode.DECAL));
+                        int midA = (int) Math.max(0, Math.min(255, midAlpha * 255f));
+                        paint.setAlpha(midA);
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                        paint.setAlpha((int) Math.max(0, Math.min(255, midAlpha * 0.6f * 255f)));
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                        paint.setImageFilter(ImageFilter.makeBlur(outerBlur, outerBlur, FilterTileMode.DECAL));
+                        paint.setAlpha((int) Math.max(0, Math.min(255, outerAlpha * 255f)));
+                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
+                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                    }
+                }
+            } catch (Throwable ex) {
+                float baselineY = y - font.getMetrics().getAscent();
+                float blur = Math.max(0.5f, maxRange);
+                float alpha = Math.min(1.0f, 0.25f + (intensity / 8.0f));
+                try (var paint = new Paint()) {
+                    paint.setImageFilter(ImageFilter.makeBlur(blur, blur, FilterTileMode.DECAL));
+                    paint.setColor(ColorUtils.applyAlpha(color, alpha).getRGB());
+                    Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+                    paint.setAlpha((int) (Math.min(1.0f, alpha * 0.65f) * 255f));
+                    Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+                }
+            }
+        }
+
+        Skia.drawText(text, x, y, color, font);
+    }
+
     private void drawInfo(float width, float height) {
         String type = typeSetting.getOption();
         MusicManager musicManager = Soar.getInstance().getMusicManager();
@@ -334,9 +430,8 @@ public class MusicInfoMod extends SimpleHUDMod {
 
                 float offsetX = (padding * 2) + albumSize;
 
-                Skia.drawText(m.getTitle(), getX() + offsetX, getY() + padding + 3F, textColor, Fonts.getRegular(9));
-                Skia.drawText(m.getArtist(), getX() + offsetX, getY() + padding + 12F,
-                    ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
+                drawTextWithGlow(m.getTitle(), getX() + offsetX, getY() + padding + 3F, textColor, Fonts.getRegular(9));
+                drawTextWithGlow(m.getArtist(), getX() + offsetX, getY() + padding + 12F, ColorUtils.applyAlpha(textColor, 0.8F), Fonts.getRegular(6.5F));
 
                 if (lyricsDisplaySetting.isEnabled()) {
                     float lyricY = getY() + padding + 24F;
@@ -352,17 +447,14 @@ public class MusicInfoMod extends SimpleHUDMod {
                         float yOffset = -lyricAnimationHeight * progress;
                         float alpha = 1.0f - progress;
                         if(alpha > 0.01f) {
-                            Skia.drawText(previousLyric, lyricX, lyricY + yOffset,
-                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                            drawTextWithGlow(previousLyric, lyricX, lyricY + yOffset, ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
                         }
                     }
 
                     if (currentLyric != null && !currentLyric.isEmpty()) {
                         float yOffset = lyricAnimationHeight * (1.0f - progress);
-                        float alpha = progress;
-                        if(alpha > 0.01f) {
-                            Skia.drawText(currentLyric, lyricX, lyricY + yOffset,
-                                ColorUtils.applyAlpha(textColor, 0.9F * alpha), Fonts.getRegular(7));
+                        if(progress > 0.01f) {
+                            drawTextWithGlow(currentLyric, lyricX, lyricY + yOffset, ColorUtils.applyAlpha(textColor, 0.9F * progress), Fonts.getRegular(7));
                         }
                     }
                 }

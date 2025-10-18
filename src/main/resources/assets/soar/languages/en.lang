@@ -33,6 +33,13 @@ text.serveraddress=Server Address
 text.createprofile=Create Profile
 text.icon=Icon
 
+setting.glow=Glow
+setting.glow.description=Text Glow effect
+setting.glow.intensity=Glow Intensity
+setting.glow.intensity.description=Set the glow intensity
+setting.glow.range=Glow Range
+setting.glow.range.description=Set the glow range
+
 menu.singleplayer=Singleplayer
 menu.multiplayer=Multiplayer
 menu.realms=Minecraft Realms
