@@ -1,8 +1,10 @@
 package com.soarclient.management.mod;
 
 import com.soarclient.event.EventBus;
-
+import com.soarclient.event.impl.ModToggleEvent;
+import com.soarclient.utils.language.I18n;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.DrawContext;
 
 public class Mod {
 
@@ -21,8 +23,8 @@ public class Mod {
 	}
 
 	public void toggle() {
-
 		enabled = !enabled;
+		EventBus.getInstance().post(new ModToggleEvent(this, enabled));
 
 		if (enabled) {
 			onEnable();
@@ -32,8 +34,10 @@ public class Mod {
 	}
 
 	public void setEnabled(boolean enabled) {
+		if (this.enabled == enabled) return;
 
 		this.enabled = enabled;
+		EventBus.getInstance().post(new ModToggleEvent(this, enabled));
 
 		if (enabled) {
 			onEnable();
@@ -50,12 +54,18 @@ public class Mod {
 		EventBus.getInstance().unregister(this);
 	}
 
+	public void onRender3D(DrawContext context, float partialTicks) {}
+
 	public String getName() {
+		return I18n.get(name);
+	}
+
+	public String getRawName() {
 		return name;
 	}
 
 	public String getDescription() {
-		return description;
+		return I18n.get(description);
 	}
 
 	public String getIcon() {

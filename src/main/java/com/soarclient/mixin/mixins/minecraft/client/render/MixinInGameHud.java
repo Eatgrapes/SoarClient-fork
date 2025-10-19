@@ -8,6 +8,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderGameOverlayEvent;
+import com.soarclient.event.client.RenderHotbarEvent;
+import com.soarclient.event.impl.Render3DEvent;
 import com.soarclient.management.mod.impl.hud.PotionStatusMod;
 import com.soarclient.management.mod.impl.player.OldAnimationsMod;
 
@@ -35,14 +37,15 @@ public class MixinInGameHud {
      */
 	@Overwrite
 	private void drawHeart(DrawContext context, InGameHud.HeartType type, int x, int y, boolean hardcore, boolean blinking, boolean half) {
-		
+
     	OldAnimationsMod mod = OldAnimationsMod.getInstance();
-    	
-		context.drawGuiTexture(RenderLayer::getGuiTextured, type.getTexture(hardcore, half, mod.isEnabled() && mod.isDisableHeartFlash() ? false : blinking), x, y, 9, 9);
+
+		context.drawGuiTexture(RenderLayer::getGuiTextured, type.getTexture(hardcore, half, (!mod.isEnabled() || !mod.isDisableHeartFlash()) && blinking), x, y, 9, 9);
 	}
-    
+
 	@Inject(method = "renderMainHud", at = @At("TAIL"))
 	private void renderMainHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+		EventBus.getInstance().post(new Render3DEvent(tickCounter.getTickDelta(false), context));
 		EventBus.getInstance().post(new RenderGameOverlayEvent(context));
 	}
 
@@ -50,6 +53,15 @@ public class MixinInGameHud {
 	private void onRenderStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
 		PotionStatusMod mod = PotionStatusMod.getInstance();
 		if (mod != null && mod.shouldDisableVanillaDisplay()) {
+			ci.cancel();
+		}
+	}
+
+	@Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
+	private void onRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+		RenderHotbarEvent event = new RenderHotbarEvent(context, tickCounter.getTickDelta(false));
+		EventBus.getInstance().post(event);
+		if (event.isCancelled()) {
 			ci.cancel();
 		}
 	}

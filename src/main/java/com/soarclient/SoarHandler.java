@@ -5,6 +5,7 @@ import java.util.List;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.ServerJoinEvent;
+import com.soarclient.event.impl.Render3DEvent;
 import com.soarclient.event.server.impl.GameJoinEvent;
 import com.soarclient.management.profile.Profile;
 
@@ -34,5 +35,9 @@ public class SoarHandler {
 				break;
 			}
 		}
+	};
+
+	public final EventBus.EventListener<Render3DEvent> onRender3D = event -> {
+		Soar.getInstance().getModManager().onRender3D(event.getContext(), event.getPartialTicks());
 	};
 }

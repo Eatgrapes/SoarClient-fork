@@ -14,11 +14,13 @@ import com.soarclient.management.mod.impl.hud.*;
 import com.soarclient.management.mod.impl.misc.*;
 import com.soarclient.management.mod.impl.player.*;
 import com.soarclient.management.mod.impl.render.*;
+//import com.soarclient.management.mod.impl.h.*;
 import com.soarclient.management.mod.impl.settings.HUDModSettings;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.impl.settings.SystemSettings;
 import com.soarclient.management.mod.settings.Setting;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
+import net.minecraft.client.gui.DrawContext;
 
 public class ModManager {
 
@@ -37,6 +39,7 @@ public class ModManager {
 
 		// HUD
 		mods.add(new BedwarsStatsOverlayMod());
+        //mods.add(new NotificationMod());
         mods.add(new ModernHotBarMod());
         mods.add(new ArmourStatsMod());
 		mods.add(new BossBarMod());
@@ -87,6 +90,7 @@ public class ModManager {
 
         // Render
 		mods.add(new CustomHandMod());
+        //mods.add(new GlowMod());
 		mods.add(new FullbrightMod());
 		mods.add(new MusicWaveformMod());
 		mods.add(new OverlayEditorMod());
@@ -119,6 +123,14 @@ public class ModManager {
 		designs.add(new SimpleDesign());
 		setCurrentDesign("design.simple");
 	}
+
+    public void onRender3D(DrawContext context, float partialTicks) {
+        for (Mod mod : mods) {
+            if (mod.isEnabled()) {
+                mod.onRender3D(context, partialTicks);
+            }
+        }
+    }
 
 	public List<Mod> getMods() {
 		return mods;

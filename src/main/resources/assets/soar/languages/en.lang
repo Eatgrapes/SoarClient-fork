@@ -33,6 +33,9 @@ text.serveraddress=Server Address
 text.createprofile=Create Profile
 text.icon=Icon
 
+mod.modernhotbar.name=Modern Hotbar
+mod.modernhotbar.desc=Make hotbar more modern
+
 setting.glow=Glow
 setting.glow.description=Text Glow effect
 setting.glow.intensity=Glow Intensity

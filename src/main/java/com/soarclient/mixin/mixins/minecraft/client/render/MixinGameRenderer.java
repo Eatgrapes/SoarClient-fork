@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderSkiaEvent;
+import com.soarclient.event.client.RenderSkiaPostEvent;
 import com.soarclient.management.mod.impl.player.ZoomMod;
 import com.soarclient.management.mod.impl.settings.HUDModSettings;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
@@ -44,6 +45,14 @@ public class MixinGameRenderer {
 		if (HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
 			KawaseBlur.GUI_BLUR.draw((int) ModMenuSettings.getInstance().getBlurIntensitySetting().getValue());
 		}
+
+		// 在 HUD 渲染并应用 GUI blur 后执行一个 Skia 绘制事件，用于那些需要置顶显示的 HUD 元素
+		SkiaContext.draw((context) -> {
+			Skia.save();
+			Skia.scale((float) MinecraftClient.getInstance().getWindow().getScaleFactor());
+			EventBus.getInstance().post(new RenderSkiaPostEvent());
+			Skia.restore();
+		});
 	}
 
 	@Inject(method = "getFov", at = @At(value = "RETURN", ordinal = 1), cancellable = true)

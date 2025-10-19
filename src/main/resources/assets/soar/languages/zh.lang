@@ -120,6 +120,9 @@ setting.glow.intensity.description=设置光晕强度
 setting.glow.range=光晕范围
 setting.glow.range.description=设置光晕范围
 
+mod.modernhotbar.name=现代快捷栏
+mod.modernhotbar.desc=让你的快捷栏更好看
+
 mod.reachdisplay.name=攻击距离显示
 mod.reachdisplay.description=显示攻击距离
 

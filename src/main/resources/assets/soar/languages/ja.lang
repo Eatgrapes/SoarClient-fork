@@ -39,6 +39,9 @@ setting.glow.intensity.description=光色の強度を設定
 setting.glow.range=光の影響範囲
 setting.glow.range.description=光の影響範囲の設定
 
+mod.modernhotbar.name=現代のホットバー
+mod.modernhotbar.desc=現代の
+
 menu.singleplayer=シングルプレイ
 menu.multiplayer=マルチプレイ
 menu.realms=Minecraft Realms
