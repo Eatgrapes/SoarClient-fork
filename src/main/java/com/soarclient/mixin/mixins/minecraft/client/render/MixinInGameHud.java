@@ -1,5 +1,7 @@
 package com.soarclient.mixin.mixins.minecraft.client.render;
 
+import com.soarclient.Soar;
+import com.soarclient.management.mod.impl.hud.ModernHotBarMod;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.injection.At;
@@ -62,6 +64,22 @@ public class MixinInGameHud {
 		RenderHotbarEvent event = new RenderHotbarEvent(context, tickCounter.getTickDelta(false));
 		EventBus.getInstance().post(event);
 		if (event.isCancelled()) {
+			ci.cancel();
+		}
+	}
+
+	@Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
+	private void onRenderStatusBars(DrawContext context, CallbackInfo ci) {
+		ModernHotBarMod mod = Soar.getInstance().getModManager().getMod(ModernHotBarMod.class);
+		if (mod != null && mod.isEnabled()) {
+			ci.cancel();
+		}
+	}
+
+	@Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
+	private void onRenderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
+		ModernHotBarMod mod = Soar.getInstance().getModManager().getMod(ModernHotBarMod.class);
+		if (mod != null && mod.isEnabled()) {
 			ci.cancel();
 		}
 	}

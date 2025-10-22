@@ -129,6 +129,13 @@ mod.reachdisplay.description=显示攻击距离
 mod.daycounter.name=天数计数
 mod.daycounter.description=统计Minecraft天数
 
+setting.showarmorbar=装备数值显示
+setting.showarmorbar.description=显示装备数值
+setting.showexperiencebar=经验值显示
+setting.showexperiencebar.description=显示经验值
+setting.shownumericalvalues=数值显示
+setting.shownumericalvalues.description=数值
+
 mod.stopwatch.name=秒表
 mod.stopwatch.description=计时
 

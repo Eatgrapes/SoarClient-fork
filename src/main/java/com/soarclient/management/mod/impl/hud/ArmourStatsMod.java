@@ -1,11 +1,11 @@
 package com.soarclient.management.mod.impl.hud;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ClientTickEvent;
+import com.soarclient.event.client.RenderHotbarEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.management.mod.api.hud.HUDMod;
@@ -15,14 +15,14 @@ import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 
 import io.github.humbleui.types.Rect;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.PotionItem;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registries;
 
+@SuppressWarnings("all")
 public class ArmourStatsMod extends HUDMod {
 
     private final List<ItemStack> armourItems = new ArrayList<>();
@@ -40,6 +40,19 @@ public class ArmourStatsMod extends HUDMod {
 
     private final BooleanSetting showTextSetting = new BooleanSetting("mod.watermark.show_text",
         "mod.watermark.show_text1.description", Icon.TEXT_FIELDS, this, true);
+
+    private final List<PendingRender> pendingRenders = new ArrayList<>();
+
+    private static class PendingRender {
+        ItemStack stack;
+        int x;
+        int y;
+        PendingRender(ItemStack stack, int x, int y) {
+            this.stack = stack;
+            this.x = x;
+            this.y = y;
+        }
+    }
 
     public ArmourStatsMod() {
         super("mod.armourstats.name", "mod.armourstats.description", Icon.SHIELD);
@@ -63,10 +76,7 @@ public class ArmourStatsMod extends HUDMod {
         } else if (client.player != null) {
             ItemStack handStack = client.player.getMainHandStack();
             if (!handStack.isEmpty()) {
-                Item item = handStack.getItem();
-                if (!(item instanceof BlockItem) && !(item instanceof PotionItem)) {
-                    mainHandItem = handStack;
-                }
+                mainHandItem = handStack;
             }
 
             for (ItemStack itemStack : client.player.getInventory().armor) {
@@ -94,6 +104,19 @@ public class ArmourStatsMod extends HUDMod {
 
     public final EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
         this.draw();
+    };
+
+    public final EventBus.EventListener<RenderHotbarEvent> onRenderHotbar = event -> {
+        DrawContext context = event.getContext();
+        if (context == null) return;
+        synchronized (pendingRenders) {
+            for (PendingRender pr : pendingRenders) {
+                if (pr.stack != null && !pr.stack.isEmpty()) {
+                    context.drawItem(pr.stack, pr.x, pr.y);
+                }
+            }
+            pendingRenders.clear();
+        }
     };
 
     private void draw() {
@@ -150,10 +173,7 @@ public class ArmourStatsMod extends HUDMod {
 
         ItemStack handStack = client.player.getMainHandStack();
         if (!handStack.isEmpty()) {
-            Item item = handStack.getItem();
-            if (!(item instanceof BlockItem) && !(item instanceof PotionItem)) {
-                return true;
-            }
+            return true;
         }
 
         for (ItemStack itemStack : client.player.getInventory().armor) {
@@ -169,7 +189,13 @@ public class ArmourStatsMod extends HUDMod {
         float offsetX = 0;
 
         if (showIconSetting.isEnabled()) {
-            drawArmourIcon(itemStack, offsetY);
+            float iconX = getX() + 4;
+            float iconY = getY() + offsetY - 12;
+
+            synchronized (pendingRenders) {
+                pendingRenders.add(new PendingRender(itemStack, (int) iconX, (int) iconY));
+            }
+
             offsetX += 25;
         } else {
             offsetX += 4;
@@ -191,21 +217,6 @@ public class ArmourStatsMod extends HUDMod {
             if (!detailText.isEmpty()) {
                 this.drawText(detailText, getX() + offsetX, getY() + offsetY - 1, Fonts.getRegular(8));
             }
-        }
-    }
-
-    private void drawArmourIcon(ItemStack itemStack, int offsetY) {
-        Identifier itemId = Registries.ITEM.getId(itemStack.getItem());
-        String texturePath = String.format("textures/item/%s.png", itemId.getPath());
-
-        float iconSize = 16;
-        float iconX = getX() + 4;
-        float iconY = getY() + offsetY - 12;
-
-        try {
-            Skia.drawMinecraftImage(texturePath, iconX, iconY, iconSize, iconSize);
-        } catch (Exception e) {
-            drawIconPlaceholder(iconX, iconY, iconSize);
         }
     }
 
@@ -238,10 +249,6 @@ public class ArmourStatsMod extends HUDMod {
                 maxString = (int) currentItemWidth;
             }
         }
-    }
-
-    private void drawIconPlaceholder(float x, float y, float size) {
-        Skia.drawRoundedRect(x, y, size, size, 2, this.getDesign().getTextColor().darker());
     }
 
     @Override

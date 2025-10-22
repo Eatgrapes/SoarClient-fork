@@ -42,6 +42,13 @@ setting.glow.range.description=光の影響範囲の設定
 mod.modernhotbar.name=現代のホットバー
 mod.modernhotbar.desc=現代の
 
+setting.showarmorbar=装備バーを表示
+setting.showarmorbar.description=装備バーを表示
+setting.showexperiencebar=経験値バーを表示
+setting.showexperiencebar.description=経験値バーを表示
+setting.shownumericalvalues=数値を表示
+setting.shownumericalvalues.description=數值
+
 menu.singleplayer=シングルプレイ
 menu.multiplayer=マルチプレイ
 menu.realms=Minecraft Realms
