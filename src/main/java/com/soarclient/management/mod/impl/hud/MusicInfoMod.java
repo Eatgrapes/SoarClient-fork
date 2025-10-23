@@ -38,7 +38,8 @@ import io.github.humbleui.types.Rect;
 public class MusicInfoMod extends SimpleHUDMod {
 
     private final TimerUtils timer = new TimerUtils();
-    private float mx, my, dx, dy;
+    private float mx, my;
+    private long startTime = System.currentTimeMillis();
 
     private float animatedWidth, animatedHeight;
     private float targetWidth, targetHeight;
@@ -110,8 +111,6 @@ public class MusicInfoMod extends SimpleHUDMod {
 
     public MusicInfoMod() {
         super("mod.musicinfo.name", "mod.musicinfo.description", Icon.MUSIC_NOTE);
-        dx = 1;
-        dy = 1;
         this.animatedWidth = 0;
         this.animatedHeight = 0;
         this.targetWidth = 0;
@@ -245,7 +244,6 @@ public class MusicInfoMod extends SimpleHUDMod {
             float drawX = x - pad;
             float drawY = y - pad;
 
-            // Render the text once into an offscreen surface with the chosen color
             try (io.github.humbleui.skija.Surface surface = io.github.humbleui.skija.Surface.makeRasterN32Premul(offW, offH)) {
                 io.github.humbleui.skija.Canvas offCanvas = surface.getCanvas();
                 offCanvas.clear(0);
@@ -253,7 +251,6 @@ public class MusicInfoMod extends SimpleHUDMod {
                 try (var paintText = new Paint()) {
                     paintText.setAntiAlias(true);
                     paintText.setColor(ColorUtils.applyAlpha(color, 1.0f).getRGB());
-                    // draw solid text into the offscreen canvas
                     offCanvas.drawString(text, -bounds.getLeft() + pad, -bounds.getTop() + pad, font, paintText);
                 }
 
@@ -273,25 +270,25 @@ public class MusicInfoMod extends SimpleHUDMod {
                         int innerA = (int) Math.max(0, Math.min(255, innerAlpha * 255f));
                         paint.setAlpha(innerA);
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                         paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.7f * 255f)));
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                         paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.45f * 255f)));
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                         paint.setImageFilter(ImageFilter.makeBlur(midBlur, midBlur, FilterTileMode.DECAL));
                         int midA = (int) Math.max(0, Math.min(255, midAlpha * 255f));
                         paint.setAlpha(midA);
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                         paint.setAlpha((int) Math.max(0, Math.min(255, midAlpha * 0.6f * 255f)));
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                         paint.setImageFilter(ImageFilter.makeBlur(outerBlur, outerBlur, FilterTileMode.DECAL));
                         paint.setAlpha((int) Math.max(0, Math.min(255, outerAlpha * 255f)));
                         Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                                Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
+                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
                     }
                 }
             } catch (Throwable ex) {
@@ -480,18 +477,20 @@ public class MusicInfoMod extends SimpleHUDMod {
     }
 
     private void updatePosition(float width, float height, float coverSize) {
-        mx += dx;
-        my += dy;
-        if (mx <= 0 || mx + width >= coverSize) {
-            dx = -dx;
-            if (mx <= 0) mx = 0;
-            if (mx + width >= coverSize) mx = coverSize - width;
-        }
-        if (my <= 0 || my + height >= coverSize) {
-            dy = -dy;
-            if (my <= 0) my = 0;
-            if (my + height >= coverSize) my = coverSize - height;
-        }
+        long currentTime = System.currentTimeMillis();
+        float elapsedTime = (currentTime - startTime) / 1000.0f;
+
+        float maxOffsetX = coverSize - width;
+        float maxOffsetY = coverSize - height;
+
+        float frequencyX = 0.1f;
+        float frequencyY = 0.08f;
+
+        mx = (float) ((Math.sin(elapsedTime * frequencyX) + 1) / 2.0 * maxOffsetX);
+        my = (float) ((Math.cos(elapsedTime * frequencyY) + 1) / 2.0 * maxOffsetY);
+
+        mx = Math.max(0, Math.min(mx, maxOffsetX));
+        my = Math.max(0, Math.min(my, maxOffsetY));
     }
 
     private void spawnParticles(float x, float y, int amount, Bitmap albumBitmap) {
