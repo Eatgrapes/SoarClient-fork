@@ -33,13 +33,15 @@ import io.github.humbleui.skija.Font;
 import io.github.humbleui.skija.Image;
 import io.github.humbleui.skija.ImageFilter;
 import io.github.humbleui.skija.Paint;
+import io.github.humbleui.skija.MaskFilter;
+import io.github.humbleui.skija.FilterBlurMode;
 import io.github.humbleui.types.Rect;
 
 public class MusicInfoMod extends SimpleHUDMod {
 
     private final TimerUtils timer = new TimerUtils();
     private float mx, my;
-    private long startTime = System.currentTimeMillis();
+    private final long startTime = System.currentTimeMillis();
 
     private float animatedWidth, animatedHeight;
     private float targetWidth, targetHeight;
@@ -107,7 +109,10 @@ public class MusicInfoMod extends SimpleHUDMod {
     private String currentLyric = "";
     private String previousLyric = "";
     private long lyricChangeTime = 0;
-    private final int lyricAnimationDuration = 200;
+    private static final int LYRIC_ANIMATION_DURATION = 200;
+
+    private static final float DEFAULT_BLUR_RADIUS = 20.0f;
+    private static final int DEFAULT_PARTICLE_AMOUNT = 40;
 
     public MusicInfoMod() {
         super("mod.musicinfo.name", "mod.musicinfo.description", Icon.MUSIC_NOTE);
@@ -233,79 +238,58 @@ public class MusicInfoMod extends SimpleHUDMod {
     }
 
     private void drawTextWithGlow(String text, float x, float y, Color color, Font font) {
-        if (glowEffectSetting.isEnabled() && text != null && !text.isEmpty() && glowRangeSetting.getValue() > 0) {
-            int intensity = Math.max(1, (int) glowIntensitySetting.getValue());
-            float maxRange = glowRangeSetting.getValue();
-            Rect bounds = font.measureText(text);
-            int pad = (int) Math.ceil(maxRange * 3.0f);
-
-            int offW = Math.max(1, (int) Math.ceil(bounds.getWidth()) + pad * 2);
-            int offH = Math.max(1, (int) Math.ceil(bounds.getHeight()) + pad * 2);
-            float drawX = x - pad;
-            float drawY = y - pad;
-
-            try (io.github.humbleui.skija.Surface surface = io.github.humbleui.skija.Surface.makeRasterN32Premul(offW, offH)) {
-                io.github.humbleui.skija.Canvas offCanvas = surface.getCanvas();
-                offCanvas.clear(0);
-
-                try (var paintText = new Paint()) {
-                    paintText.setAntiAlias(true);
-                    paintText.setColor(ColorUtils.applyAlpha(color, 1.0f).getRGB());
-                    offCanvas.drawString(text, -bounds.getLeft() + pad, -bounds.getTop() + pad, font, paintText);
-                }
-
-                try (Image srcImg = surface.makeImageSnapshot()) {
-                    final int maxIntensity = 20;
-                    float norm = Math.min(1.0f, intensity / (float) maxIntensity);
-                    float amplify = 1.0f + norm * 3.5f;
-                    float innerBlur = Math.max(0.5f, maxRange * 0.18f);
-                    float midBlur = Math.max(0.5f, maxRange * 0.55f);
-                    float outerBlur = Math.max(0.5f, maxRange * 1.2f);
-                    float innerAlpha = Math.min(1.0f, (0.45f + 0.60f * norm) * amplify);
-                    float midAlpha = Math.min(1.0f, (0.22f + 0.40f * norm) * amplify);
-                    float outerAlpha = Math.min(1.0f, (0.09f + 0.22f * norm) * amplify);
-
-                    try (var paint = new Paint()) {
-                        paint.setImageFilter(ImageFilter.makeBlur(innerBlur, innerBlur, FilterTileMode.DECAL));
-                        int innerA = (int) Math.max(0, Math.min(255, innerAlpha * 255f));
-                        paint.setAlpha(innerA);
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                        paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.7f * 255f)));
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                        paint.setAlpha((int) Math.max(0, Math.min(255, innerAlpha * 0.45f * 255f)));
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                        paint.setImageFilter(ImageFilter.makeBlur(midBlur, midBlur, FilterTileMode.DECAL));
-                        int midA = (int) Math.max(0, Math.min(255, midAlpha * 255f));
-                        paint.setAlpha(midA);
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                        paint.setAlpha((int) Math.max(0, Math.min(255, midAlpha * 0.6f * 255f)));
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                        paint.setImageFilter(ImageFilter.makeBlur(outerBlur, outerBlur, FilterTileMode.DECAL));
-                        paint.setAlpha((int) Math.max(0, Math.min(255, outerAlpha * 255f)));
-                        Skia.getCanvas().drawImageRect(srcImg, Rect.makeWH(srcImg.getWidth(), srcImg.getHeight()),
-                            Rect.makeXYWH(drawX, drawY, offW, offH), paint, true);
-                    }
-                }
-            } catch (Throwable ex) {
-                float baselineY = y - font.getMetrics().getAscent();
-                float blur = Math.max(0.5f, maxRange);
-                float alpha = Math.min(1.0f, 0.25f + (intensity / 8.0f));
-                try (var paint = new Paint()) {
-                    paint.setImageFilter(ImageFilter.makeBlur(blur, blur, FilterTileMode.DECAL));
-                    paint.setColor(ColorUtils.applyAlpha(color, alpha).getRGB());
-                    Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
-                    paint.setAlpha((int) (Math.min(1.0f, alpha * 0.65f) * 255f));
-                    Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
-                }
-            }
+        if (text == null || text.isEmpty()) {
+            return;
         }
 
-        Skia.drawText(text, x, y, color, font);
+        if (!glowEffectSetting.isEnabled() || glowRangeSetting.getValue() <= 0) {
+            Skia.drawText(text, x, y, color, font);
+            return;
+        }
+
+        int intensity = Math.max(1, (int) glowIntensitySetting.getValue());
+        float range = Math.max(0.5f, glowRangeSetting.getValue());
+
+        float sigma = range;
+        float normIntensity = Math.min(1.0f, intensity / 20.0f);
+
+        float baseAlpha = 0.45f + 0.55f * normIntensity;
+        int alpha255 = (int) Math.max(0, Math.min(255, baseAlpha * 255f));
+
+        float baselineY = y - font.getMetrics().getAscent();
+
+        try (Paint paint = new Paint()) {
+            paint.setAntiAlias(true);
+            paint.setColor(ColorUtils.applyAlpha(color, 1.0f).getRGB());
+
+            try (MaskFilter mf = MaskFilter.makeBlur(FilterBlurMode.NORMAL, sigma * 0.6f)) {
+                paint.setMaskFilter(mf);
+                paint.setAlpha(alpha255);
+                Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+            } catch (Throwable ignore) {
+            }
+
+            try (MaskFilter mf = MaskFilter.makeBlur(FilterBlurMode.NORMAL, sigma)) {
+                paint.setMaskFilter(mf);
+                paint.setAlpha((int) (alpha255 * 0.65f));
+                Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+            } catch (Throwable ignore) {
+            }
+
+            try (MaskFilter mf = MaskFilter.makeBlur(FilterBlurMode.NORMAL, sigma * 1.6f)) {
+                paint.setMaskFilter(mf);
+                paint.setAlpha((int) (alpha255 * 0.35f));
+                Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+            } catch (Throwable ignore) {
+            }
+
+            paint.setMaskFilter(null);
+            paint.setAlpha(255);
+            paint.setColor(ColorUtils.applyAlpha(color, 1.0f).getRGB());
+            Skia.getCanvas().drawString(text, x - font.measureText(text).getLeft(), baselineY, font, paint);
+        } catch (Throwable ex) {
+            Skia.drawText(text, x, y, color, font);
+        }
     }
 
     private void drawInfo(float width, float height) {
@@ -362,7 +346,7 @@ public class MusicInfoMod extends SimpleHUDMod {
                 if (cover && m.getAlbum() != null) {
                     Skia.save();
                     Skia.clip(getX(), getY(), width, height, getRadius());
-                    drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize, 20);
+                    drawBlurredImage(m.getAlbum(), getX() - mx, getY() - my, coverSize, coverSize);
                     Skia.restore();
                 }
 
@@ -406,7 +390,7 @@ public class MusicInfoMod extends SimpleHUDMod {
 
                     if (coverAnimationSetting.isEnabled() && musicManager.isPlaying()) {
                         if (!beatActive && targetBeatScale > animatedBeatScale + beatTriggerThreshold) {
-                            spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, 40, albumBitmap);
+                            spawnParticles(getX() + padding + albumSize / 2.0f, getY() + padding + albumSize / 2.0f, albumBitmap);
                             beatActive = true;
                         } else if (beatActive && targetBeatScale <= animatedBeatScale) {
                             beatActive = false;
@@ -436,7 +420,7 @@ public class MusicInfoMod extends SimpleHUDMod {
                     float lyricAnimationHeight = 10.0f;
 
                     long timeSinceChange = System.currentTimeMillis() - lyricChangeTime;
-                    float progress = Math.min(1.0f, (float) timeSinceChange / lyricAnimationDuration);
+                    float progress = Math.min(1.0f, (float) timeSinceChange / LYRIC_ANIMATION_DURATION);
 
                     progress = 1.0f - (float) Math.pow(1.0f - progress, 3.0f);
 
@@ -464,9 +448,9 @@ public class MusicInfoMod extends SimpleHUDMod {
         }
     }
 
-    private void drawBlurredImage(File file, float x, float y, float width, float height, float blurRadius) {
+    private void drawBlurredImage(File file, float x, float y, float width, float height) {
         Paint blurPaint = new Paint();
-        blurPaint.setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.REPEAT));
+        blurPaint.setImageFilter(ImageFilter.makeBlur(DEFAULT_BLUR_RADIUS, DEFAULT_BLUR_RADIUS, FilterTileMode.REPEAT));
         if (Skia.getImageHelper().load(file)) {
             Image image = Skia.getImageHelper().get(file.getName());
             if (image != null) {
@@ -493,8 +477,8 @@ public class MusicInfoMod extends SimpleHUDMod {
         my = Math.max(0, Math.min(my, maxOffsetY));
     }
 
-    private void spawnParticles(float x, float y, int amount, Bitmap albumBitmap) {
-        for (int i = 0; i < amount; i++) {
+    private void spawnParticles(float x, float y, Bitmap albumBitmap) {
+        for (int i = 0; i < DEFAULT_PARTICLE_AMOUNT; i++) {
             particles.add(new Particle(x, y, random, albumBitmap));
         }
     }
@@ -517,8 +501,8 @@ public class MusicInfoMod extends SimpleHUDMod {
         private float vx, vy;
         private float alpha;
         private final float size;
-        private final float gravity = 0.04f;
-        private final float friction = 0.99f;
+        private static final float GRAVITY = 0.04f;
+        private static final float FRICTION = 0.99f;
         private final Color color;
 
         Particle(float x, float y, Random random, Bitmap albumBitmap) {
@@ -543,9 +527,9 @@ public class MusicInfoMod extends SimpleHUDMod {
         void update() {
             this.x += this.vx;
             this.y += this.vy;
-            this.vy += gravity;
-            this.vx *= friction;
-            this.vy *= friction;
+            this.vy += GRAVITY;
+            this.vx *= FRICTION;
+            this.vy *= FRICTION;
             this.alpha -= 0.02f;
         }
 
