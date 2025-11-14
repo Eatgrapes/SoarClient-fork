@@ -8,6 +8,7 @@ import com.soarclient.skia.utils.SkiaUtils;
 
 import io.github.humbleui.skija.Data;
 import io.github.humbleui.skija.Font;
+import io.github.humbleui.skija.FontMgr;
 import io.github.humbleui.skija.Typeface;
 
 public class FontHelper {
@@ -18,10 +19,10 @@ public class FontHelper {
 		return typefaceCache.computeIfAbsent(font, k -> loadTypeface(k, type));
 	}
 
-	private static Typeface loadTypeface(String font, FontType type) {
-		Optional<Data> fontDataOptional = SkiaUtils.convertToData("/assets/soar/fonts/" + font);
-		return fontDataOptional.map(Typeface::makeFromData)
-				.orElseThrow(() -> new IllegalArgumentException("Font not found: " + font));
+    private static Typeface loadTypeface(String font, FontType type) {
+        Optional<Data> fontDataOptional = SkiaUtils.convertToData("/assets/soar/fonts/" + font);
+        return fontDataOptional.map(data -> FontMgr.getDefault().makeFromData(data))
+            .orElseThrow(() -> new IllegalArgumentException("Font not found: " + font));
 	}
 
 	public static Font load(String font, float size, FontType fontType) {

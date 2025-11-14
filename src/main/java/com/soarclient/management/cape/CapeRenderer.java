@@ -47,7 +47,7 @@ public class CapeRenderer {
 
         if (Skia.getImageHelper().load(textureId, 64, 32, SurfaceOrigin.TOP_LEFT)) {
             Path path = new Path();
-            path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+            path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
             Rect srcRect = Rect.makeXYWH(1, 1, 10, 16);
             Rect dstRect = Rect.makeXYWH(x, y, width, height);

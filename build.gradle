@@ -66,9 +66,10 @@ dependencies {
 
 	jij 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	jij 'io.github.humbleui:types:0.2.0'
-	jij 'io.github.humbleui:skija-windows-x64:0.116.4'
-	jij 'io.github.humbleui:skija-linux-x64:0.116.4'
-	jij 'io.github.humbleui:skija-macos-x64:0.116.4'
+	jij 'io.github.humbleui:skija-windows-x64:0.143.2'
+	jij 'io.github.humbleui:skija-linux-x64:0.143.2'
+	jij 'io.github.humbleui:skija-linux-arm64:0.143.2'
+	jij 'io.github.humbleui:skija-macos-x64:0.143.2'
 	jij 'com.mpatric:mp3agic:0.9.1'
 	jij 'javazoom:jlayer:1.0.1'
 	jij 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
@@ -86,6 +87,7 @@ dependencies {
     def lwjglNfdDeps = [
         "org.lwjgl:lwjgl-nfd:$lwjglVersion",
         "org.lwjgl:lwjgl-nfd::natives-linux",
+        "org.lwjgl:lwjgl-nfd::natives-linux-arm64",
         "org.lwjgl:lwjgl-nfd::natives-macos",
         "org.lwjgl:lwjgl-nfd::natives-macos-arm64",
         "org.lwjgl:lwjgl-nfd::natives-windows"

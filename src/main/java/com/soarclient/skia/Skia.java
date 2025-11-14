@@ -64,8 +64,7 @@ public class Skia {
 		if (HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
 
 			Window window = MinecraftClient.getInstance().getWindow();
-			Path path = new Path();
-			path.addRect(Rect.makeXYWH(x, y, width, height));
+            Path path = Path.makeRect(Rect.makeXYWH(x, y, width, height));
 
 			save();
 			getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -80,8 +79,7 @@ public class Skia {
 		if (HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
 
 			Window window = MinecraftClient.getInstance().getWindow();
-			Path path = new Path();
-			path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+            Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 			save();
 			getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -108,8 +106,7 @@ public class Skia {
 
 		float halfStroke = strokeWidth / 2;
 
-		Path path = new Path();
-		path.addRRect(RRect.makeXYWH(x + halfStroke, y + halfStroke, width - strokeWidth, height - strokeWidth,
+        Path path = Path.makeRRect(RRect.makeXYWH(x + halfStroke, y + halfStroke, width - strokeWidth, height - strokeWidth,
 				radius - halfStroke));
 
 		Paint paint = getPaint(color);
@@ -161,8 +158,7 @@ public class Skia {
 
 	public static void drawRoundedImage(int textureId, float x, float y, float width, float height, float radius) {
 
-		Path path = new Path();
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 		save();
 		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -172,8 +168,7 @@ public class Skia {
 
 	public static void drawRoundedImage(String filePath, float x, float y, float width, float height, float radius) {
 
-		Path path = new Path();
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 		save();
 		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -183,8 +178,7 @@ public class Skia {
 
 	public static void drawRoundedImage(File file, float x, float y, float width, float height, float radius) {
 
-		Path path = new Path();
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 		save();
 		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -194,8 +188,7 @@ public class Skia {
 
 	public static void drawRoundedImage(int textureId, float x, float y, float width, float height, float radius,
 			float alpha, SurfaceOrigin origin) {
-		Path path = new Path();
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 		save();
 		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
@@ -211,8 +204,7 @@ public class Skia {
 	public static void drawPlayerHead(File file, float x, float y, float width, float height, float radius) {
 		if (imageHelper.load(file)) {
 
-			Path path = new Path();
-			path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+            Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 			Rect srcRect = Rect.makeXYWH(8, 8, 8, 8);
 			Rect srcRect1 = Rect.makeXYWH(40, 8, 8, 8);
@@ -325,9 +317,7 @@ public class Skia {
 		double tick = (currentTime * speed) % (2 * Math.PI);
 		float max = Math.max(width, height);
 
-		Path path = new Path();
-
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 
 		float startX = x + width / 2 - (max / 2) * (float) Math.cos(tick);
 		float startY = y + height / 2 - (max / 2) * (float) Math.sin(tick);
@@ -361,9 +351,7 @@ public class Skia {
 
 	public static void clip(float x, float y, float width, float height, float radius, ClipMode mode) {
 
-		Path path = new Path();
-
-		path.addRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
 		clipPath(path, mode, true);
 	}
 
@@ -373,9 +361,7 @@ public class Skia {
 		float[] corners = new float[] { topLeft, topLeft, topRight, topRight, bottomRight, bottomRight, bottomLeft,
 				bottomLeft };
 
-		Path path = new Path();
-
-		path.addRRect(RRect.makeComplexXYWH(x, y, width, height, corners));
+        Path path = Path.makeRRect(RRect.makeComplexXYWH(x, y, width, height, corners));
 		clipPath(path, ClipMode.INTERSECT, true);
 	}
 

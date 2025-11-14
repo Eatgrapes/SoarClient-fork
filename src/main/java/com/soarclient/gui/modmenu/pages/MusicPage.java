@@ -292,7 +292,7 @@ public class MusicPage extends Page {
     private void drawMd3AlbumArt(File file, float x, float y, float blurRadius) {
         float width = 174, height = 174, cornerRadius = 26;
         try (Path path = new Path()) {
-            path.addRRect(RRect.makeXYWH(x, y, width, height, cornerRadius));
+            Path.makeRRect(RRect.makeXYWH(x, y, width, height, cornerRadius));
             try (Paint blurPaint = new Paint()) {
                 blurPaint.setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.CLAMP));
                 Skia.save();

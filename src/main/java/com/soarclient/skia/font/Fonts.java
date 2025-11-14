@@ -42,11 +42,13 @@ public class Fonts {
                     name.toLowerCase().endsWith(".otf"));
 
             if (fontFiles != null) {
+                FontMgr fontMgr = FontMgr.getDefault();
+
                 for (File fontFile : fontFiles) {
                     try {
                         byte[] fontData = Files.readAllBytes(fontFile.toPath());
                         Data skData = Data.makeFromBytes(fontData);
-                        Typeface typeface = Typeface.makeFromData(skData);
+                        Typeface typeface = fontMgr.makeFromData(skData);
                         if (typeface != null) {
                             String fontName = fontFile.getName();
                             customFonts.put(fontName, typeface);
@@ -63,7 +65,6 @@ public class Fonts {
             e.printStackTrace();
         }
     }
-
     private static Font createSystemFont(String familyName, float size) {
         try {
             Typeface typeface = fontMgr.matchFamilyStyle(familyName, NORMAL_STYLE);
