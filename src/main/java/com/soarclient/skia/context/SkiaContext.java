@@ -12,9 +12,9 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.humbleui.skija.BackendRenderTarget;
 import io.github.humbleui.skija.Canvas;
 import io.github.humbleui.skija.ColorSpace;
+import io.github.humbleui.skija.ColorType;
 import io.github.humbleui.skija.DirectContext;
 import io.github.humbleui.skija.Surface;
-import io.github.humbleui.skija.SurfaceColorFormat;
 import io.github.humbleui.skija.SurfaceOrigin;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferRenderer;
@@ -47,8 +47,8 @@ public class SkiaContext {
 
 		renderTarget = BackendRenderTarget.makeGL(width, height, 0, 8,
 				MinecraftClient.getInstance().getFramebuffer().fbo, GL11.GL_RGBA8);
-		surface = Surface.wrapBackendRenderTarget(context, renderTarget, SurfaceOrigin.BOTTOM_LEFT,
-				SurfaceColorFormat.RGBA_8888, ColorSpace.getSRGB());
+		surface = Surface.wrapBackendRenderTarget(context, renderTarget, SurfaceOrigin.BOTTOM_LEFT,  
+        ColorType.RGBA_8888, ColorSpace.getSRGB());
 	}
 
 	public static void draw(Consumer<Canvas> drawingLogic) {
