@@ -259,7 +259,7 @@ public class ModConfig extends Config {
 
 					if (s instanceof FileSetting) {
 						File f = ((FileSetting) s).getFile();
-						settingJsonObject.addProperty(s.getName(), f != null ? f.getAbsolutePath() : "null");
+						settingJsonObject.addProperty(s.getName(), f != null ? f.getAbsolutePath() : "");
 					}
 				}
 

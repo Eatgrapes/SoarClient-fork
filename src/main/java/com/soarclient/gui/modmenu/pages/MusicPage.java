@@ -291,8 +291,7 @@ public class MusicPage extends Page {
 
     private void drawMd3AlbumArt(File file, float x, float y, float blurRadius) {
         float width = 174, height = 174, cornerRadius = 26;
-        try (Path path = new Path()) {
-            Path.makeRRect(RRect.makeXYWH(x, y, width, height, cornerRadius));
+        try (Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, cornerRadius))) {
             try (Paint blurPaint = new Paint()) {
                 blurPaint.setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.CLAMP));
                 Skia.save();
@@ -300,10 +299,8 @@ public class MusicPage extends Page {
                 if (Skia.getImageHelper().load(file)) {
                     Image image = Skia.getImageHelper().get(file.getName());
                     if (image != null) {
-                        try (Paint paint = new Paint()) {
-                            Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), paint);
-                            Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), blurPaint, true);
-                        }
+                        Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height));
+                        Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), blurPaint, true);
                     }
                 }
                 Skia.restore();

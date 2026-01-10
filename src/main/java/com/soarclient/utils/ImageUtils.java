@@ -44,14 +44,14 @@ public class ImageUtils {
 
 
     public static byte[] convertToPng(byte[] bytes) throws IOException {
-        if (Arrays.equals(Arrays.copyOfRange(bytes, 0, 4), new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0})) {
-            // jpg image
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(createImageFromBytes(bytes), "png", outputStream);
-            return outputStream.toByteArray();
+        BufferedImage image = createImageFromBytes(bytes);
+        if (image == null) {
+            return bytes;
         }
-        // not supported
-        return bytes;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", outputStream);
+        return outputStream.toByteArray();
     }
 
     public static BufferedImage createImageFromBytes(byte[] imageData) {

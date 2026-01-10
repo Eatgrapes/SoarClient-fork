@@ -17,6 +17,8 @@ import com.soarclient.utils.ColorUtils;
 import com.soarclient.utils.SearchUtils;
 import com.soarclient.utils.language.I18n;
 import com.soarclient.utils.mouse.MouseUtils;
+import io.github.humbleui.skija.Path;
+import io.github.humbleui.types.Rect;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.Color;
@@ -105,11 +107,16 @@ public class ModsPage extends Page {
         boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
         ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
+        // Draw static header
+        super.draw(mouseX, mouseY);
+
+        // Draw scrollable content
         double relativeMouseY = mouseY - scrollHelper.getValue();
         Skia.save();
+        // Clip the scrollable area
+        Path clipPath = Path.makeRect(Rect.makeXYWH(x, y + 56, width, height - 56));
+        Skia.clipPath(clipPath);
         Skia.translate(0, scrollHelper.getValue());
-
-        super.draw(mouseX, relativeMouseY);
 
         if (isWinStyle) {
             drawWinStyle(mouseX, relativeMouseY, palette);
@@ -186,7 +193,14 @@ public class ModsPage extends Page {
             }
         }
 
-        float contentHeight = (currentY + totalItemHeight) - gridTopY;
+        float gridHeight;
+        if (filteredItems.isEmpty()) {
+            gridHeight = 0;
+        } else {
+            int numRows = (int) Math.ceil(filteredItems.size() / (double) columnCount);
+            gridHeight = numRows * totalItemHeight + (numRows - 1) * 16;
+        }
+        float contentHeight = (gridTopY - (y + topMargin)) + gridHeight;
         scrollHelper.setMaxScroll(contentHeight, height - topMargin);
     }
 
@@ -252,14 +266,21 @@ public class ModsPage extends Page {
                 currentY += totalItemHeight + 22;
             }
         }
-        float contentHeight = (currentY + totalItemHeight) - gridTopY;
+        float gridHeight;
+        if (filteredItems.isEmpty()) {
+            gridHeight = 0;
+        } else {
+            int numRows = (int) Math.ceil(filteredItems.size() / (double) columnCount);
+            gridHeight = numRows * totalItemHeight + (numRows - 1) * 22;
+        }
+        float contentHeight = (gridTopY - (y + topMargin)) + gridHeight;
         scrollHelper.setMaxScroll(contentHeight, height - topMargin);
     }
 
     @Override
     public void mousePressed(double mouseX, double mouseY, int button) {
+        super.mousePressed(mouseX, mouseY, button);
         double relativeMouseY = mouseY - scrollHelper.getValue();
-        super.mousePressed(mouseX, relativeMouseY, button);
         boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
@@ -334,6 +355,7 @@ public class ModsPage extends Page {
 
     @Override
     public void mouseReleased(double mouseX, double mouseY, int button) {
+        super.mouseReleased(mouseX, mouseY, button);
         double relativeMouseY = mouseY - scrollHelper.getValue();
         boolean isWinStyle = ModMenuSettings.getInstance().getUiStyleSetting().getOption().equals("win");
 

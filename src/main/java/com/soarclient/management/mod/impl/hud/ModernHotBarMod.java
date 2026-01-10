@@ -80,7 +80,6 @@ public class ModernHotBarMod extends HUDMod {
         drawBackground(hotbarX, hotbarY, 182f, 22f);
         float slotX = animatedSlotX;
         drawBackground(hotbarX + slotX, hotbarY, 22f, 22f);
-        drawBlurBackground(hotbarX + slotX, hotbarY, 22f, 22f);
 
         if (!player.getOffHandStack().isEmpty()) {
             float offhandSlotX = hotbarX - 22f - 4f;
@@ -96,7 +95,7 @@ public class ModernHotBarMod extends HUDMod {
         float expWidth = 182f;
         float expY = hotbarY - expHeight - barSpacing;
 
-        if (showExperienceBar.isEnabled()) {
+        if (showExperienceBar.isEnabled() && !player.isCreative()) {
             float experience = player.experienceProgress;
 
             drawBackground(expX, expY, expWidth, expHeight);
@@ -121,48 +120,50 @@ public class ModernHotBarMod extends HUDMod {
         float healthX = scaledWidth / 2f - 91f;
         float hungerX = scaledWidth / 2f + 91f - barWidth;
 
-        float absorption = player.getAbsorptionAmount();
-        float maxHealth = Math.max(1f, player.getMaxHealth());
-        float absorptionPercentage = MathHelper.clamp(absorption / maxHealth, 0.0f, 1.0f);
-        float absorptionFillW = barWidth * absorptionPercentage;
-        float absorptionTarget = Math.max(0f, absorptionFillW);
-        float tAbs = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
-        float absEased = 1f - (float)Math.pow(1f - tAbs, 3);
-        displayedAbsorptionFillW = displayedAbsorptionFillW + (absorptionTarget - displayedAbsorptionFillW) * absEased;
-        if (displayedAbsorptionFillW > 0f) {
-            drawBackground(healthX, absorptionBarY, barWidth, barHeight);
-            if (Math.abs(displayedAbsorptionFillW - barWidth) < 0.001f) {
-                Skia.drawRoundedRect(healthX, absorptionBarY, displayedAbsorptionFillW, barHeight, getRadius(), new Color(255, 215, 0));
-            } else {
-                Skia.drawRoundedRectVarying(healthX, absorptionBarY, displayedAbsorptionFillW, barHeight, getRadius(), 0f, 0f, getRadius(), new Color(255, 215, 0));
+        if (!player.isCreative()) {
+            float absorption = player.getAbsorptionAmount();
+            float maxHealth = Math.max(1f, player.getMaxHealth());
+            float absorptionPercentage = MathHelper.clamp(absorption / maxHealth, 0.0f, 1.0f);
+            float absorptionFillW = barWidth * absorptionPercentage;
+            float absorptionTarget = Math.max(0f, absorptionFillW);
+            float tAbs = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
+            float absEased = 1f - (float)Math.pow(1f - tAbs, 3);
+            displayedAbsorptionFillW = displayedAbsorptionFillW + (absorptionTarget - displayedAbsorptionFillW) * absEased;
+            if (displayedAbsorptionFillW > 0f) {
+                drawBackground(healthX, absorptionBarY, barWidth, barHeight);
+                if (Math.abs(displayedAbsorptionFillW - barWidth) < 0.001f) {
+                    Skia.drawRoundedRect(healthX, absorptionBarY, displayedAbsorptionFillW, barHeight, getRadius(), new Color(255, 215, 0));
+                } else {
+                    Skia.drawRoundedRectVarying(healthX, absorptionBarY, displayedAbsorptionFillW, barHeight, getRadius(), 0f, 0f, getRadius(), new Color(255, 215, 0));
+                }
+                if (showNumericalValues.isEnabled()) {
+                    String absorptionText = String.valueOf((int) absorption);
+                    Skia.drawHeightCenteredText(absorptionText, healthX + 4f, absorptionBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
+                }
+            }
+
+            float health = player.getHealth();
+            float healthPercentage = MathHelper.clamp(health / maxHealth, 0.0f, 1.0f);
+            float healthFillW = barWidth * healthPercentage;
+            float healthTarget = Math.max(0f, healthFillW);
+            float tHealth = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
+            float healthEased = 1f - (float)Math.pow(1f - tHealth, 3);
+            displayedHealthFillW = displayedHealthFillW + (healthTarget - displayedHealthFillW) * healthEased;
+            drawBackground(healthX, healthBarY, barWidth, barHeight);
+            if (displayedHealthFillW > 0f) {
+                if (Math.abs(displayedHealthFillW - barWidth) < 0.001f) {
+                    Skia.drawRoundedRect(healthX, healthBarY, displayedHealthFillW, barHeight, getRadius(), new Color(205, 50, 50));
+                } else {
+                    Skia.drawRoundedRectVarying(healthX, healthBarY, displayedHealthFillW, barHeight, getRadius(), 0f, 0f, getRadius(), new Color(205, 50, 50));
+                }
             }
             if (showNumericalValues.isEnabled()) {
-                String absorptionText = String.valueOf((int) absorption);
-                Skia.drawHeightCenteredText(absorptionText, healthX + 4f, absorptionBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
+                String healthText = String.valueOf((int) health);
+                Skia.drawHeightCenteredText(healthText, healthX + 4f, healthBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
             }
         }
 
-        float health = player.getHealth();
-        float healthPercentage = MathHelper.clamp(health / maxHealth, 0.0f, 1.0f);
-        float healthFillW = barWidth * healthPercentage;
-        float healthTarget = Math.max(0f, healthFillW);
-        float tHealth = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
-        float healthEased = 1f - (float)Math.pow(1f - tHealth, 3);
-        displayedHealthFillW = displayedHealthFillW + (healthTarget - displayedHealthFillW) * healthEased;
-        drawBackground(healthX, healthBarY, barWidth, barHeight);
-        if (displayedHealthFillW > 0f) {
-            if (Math.abs(displayedHealthFillW - barWidth) < 0.001f) {
-                Skia.drawRoundedRect(healthX, healthBarY, displayedHealthFillW, barHeight, getRadius(), new Color(205, 50, 50));
-            } else {
-                Skia.drawRoundedRectVarying(healthX, healthBarY, displayedHealthFillW, barHeight, getRadius(), 0f, 0f, getRadius(), new Color(205, 50, 50));
-            }
-        }
-        if (showNumericalValues.isEnabled()) {
-            String healthText = String.valueOf((int) health);
-            Skia.drawHeightCenteredText(healthText, healthX + 4f, healthBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
-        }
-
-        if (showArmorBar.isEnabled() && player.getArmor() > 0) {
+        if (showArmorBar.isEnabled() && player.getArmor() > 0 && !player.isCreative()) {
             float armor = player.getArmor();
             float armorPercentage = MathHelper.clamp(armor / 20.0f, 0.0f, 1.0f);
             float armorFillW = barWidth * armorPercentage;
@@ -184,25 +185,27 @@ public class ModernHotBarMod extends HUDMod {
             }
         }
 
-        float hunger = player.getHungerManager().getFoodLevel();
-        float hungerPercentage = MathHelper.clamp(hunger / 20.0f, 0.0f, 1.0f);
-        float hungerFillW = barWidth * hungerPercentage;
-        float hungerTarget = Math.max(0f, hungerFillW);
-        float tHunger = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
-        float hungerEased = 1f - (float)Math.pow(1f - tHunger, 3);
-        displayedHungerFillW = displayedHungerFillW + (hungerTarget - displayedHungerFillW) * hungerEased;
-        drawBackground(hungerX, healthBarY, barWidth, barHeight);
-        if (displayedHungerFillW > 0f) {
-            float hungerFillX = hungerX + (barWidth - displayedHungerFillW);
-            if (Math.abs(displayedHungerFillW - barWidth) < 0.001f) {
-                Skia.drawRoundedRect(hungerFillX, healthBarY, displayedHungerFillW, barHeight, getRadius(), new Color(218,165,32));
-            } else {
-                Skia.drawRoundedRectVarying(hungerFillX, healthBarY, displayedHungerFillW, barHeight, 0f, getRadius(), getRadius(), 0f, new Color(218,165,32));
+        if (!player.isCreative()) {
+            float hunger = player.getHungerManager().getFoodLevel();
+            float hungerPercentage = MathHelper.clamp(hunger / 20.0f, 0.0f, 1.0f);
+            float hungerFillW = barWidth * hungerPercentage;
+            float hungerTarget = Math.max(0f, hungerFillW);
+            float tHunger = Math.min(1f, delta / Math.max(0.0001f, BAR_ANIM_DURATION));
+            float hungerEased = 1f - (float)Math.pow(1f - tHunger, 3);
+            displayedHungerFillW = displayedHungerFillW + (hungerTarget - displayedHungerFillW) * hungerEased;
+            drawBackground(hungerX, healthBarY, barWidth, barHeight);
+            if (displayedHungerFillW > 0f) {
+                float hungerFillX = hungerX + (barWidth - displayedHungerFillW);
+                if (Math.abs(displayedHungerFillW - barWidth) < 0.001f) {
+                    Skia.drawRoundedRect(hungerFillX, healthBarY, displayedHungerFillW, barHeight, getRadius(), new Color(218,165,32));
+                } else {
+                    Skia.drawRoundedRectVarying(hungerFillX, healthBarY, displayedHungerFillW, barHeight, 0f, getRadius(), getRadius(), 0f, new Color(218,165,32));
+                }
             }
-        }
-        if (showNumericalValues.isEnabled()) {
-            String hungerText = String.valueOf((int) hunger);
-            Skia.drawHeightCenteredText(hungerText, hungerX + 4f, healthBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
+            if (showNumericalValues.isEnabled()) {
+                String hungerText = String.valueOf((int) hunger);
+                Skia.drawHeightCenteredText(hungerText, hungerX + 4f, healthBarY + barHeight / 2f, Color.WHITE, Fonts.getRegular(9f));
+            }
         }
 
         finish();
