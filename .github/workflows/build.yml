@@ -2,7 +2,7 @@ name: Build and Deploy JAR
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, Android ]
   pull_request:
     branches: [ main, master ]
   release:
