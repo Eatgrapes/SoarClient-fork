@@ -70,7 +70,6 @@ dependencies {
 	jij 'io.github.humbleui:skija-linux-x64:0.143.8'
 	jij 'io.github.humbleui:skija-linux-arm64:0.143.8'
 	jij 'io.github.humbleui:skija-macos-x64:0.143.8'
-	jij 'io.github.humbleui:skija-android-arm64:0.143.8'
 	jij 'com.mpatric:mp3agic:0.9.1'
 	jij 'javazoom:jlayer:1.0.1'
 	jij 'com.googlecode.soundlibs:mp3spi:1.9.5.4'
