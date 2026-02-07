@@ -280,6 +280,13 @@ mod.protocolversion.description=プロトコルバージョンを表示
 mod.zoom.name=ズーム
 mod.zoom.description=視点をズーム
 
+mod.togglesprint.name=自動スプリント
+mod.togglesprint.description=キーを押し続けなくても自動的にスプリント状态を維持します
+setting.togglesprint.toggled=自動スプリント
+setting.togglesprint.toggled.description=自動スプリント状態を有効または無効にします
+setting.togglesprint.keybind=スプリントキー
+setting.togglesprint.keybind.description=スプリント状態を切り替えるキーを設定します
+
 mod.overlayeditor.name=オーバーレイエディター
 mod.overlayeditor.description=オーバーレイを編集
 
