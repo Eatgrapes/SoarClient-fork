@@ -56,7 +56,7 @@ dependencies {
 	modImplementation "com.viaversion:viafabricplus-api:4.0.2"
 
 	modRuntimeOnly "maven.modrinth:sodium:mc1.21.4-0.6.6-fabric"
-	modRuntimeOnly "maven.modrinth:iris:1.8.5+1.21.4-fabric"
+	modRuntimeOnly "maven.modrinth:iris:1.10.5+"
 	modRuntimeOnly "maven.modrinth:sodium-extra:mc1.21.4-0.6.1+fabric"
 	modRuntimeOnly "maven.modrinth:lithium:mc1.21.4-0.14.7-fabric"
 	modJij "maven.modrinth:in-game-account-switcher:WBbjirJP"
