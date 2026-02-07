@@ -323,6 +323,8 @@ mod.oldanimations.description=恢复1.7版本的动画
 
 mod.hypixel.name=Hypixel
 mod.hypixel.description=为Hypixel提供实用功能
+setting.hypixel.apikey=API密钥
+setting.hypixel.apikey.description=Hypixel API密钥 (可在 developer.hypixel.net 或 winstreak.ws Discord获取)
 
 mod.particles.name=粒子
 mod.particles.description=自定义粒子效果

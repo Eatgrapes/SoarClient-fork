@@ -239,6 +239,8 @@ mod.oldanimations.description=Return animation to 1.7
 
 mod.hypixel.name=Hypixel
 mod.hypixel.description=Useful features for Hypixel
+setting.hypixel.apikey=API Key
+setting.hypixel.apikey.description=Hypixel API Key (Get at developer.hypixel.net or winstreak.ws Discord)
 
 mod.cpsdisplay.name=CPS Display
 mod.cpsdisplay.description=Display clicks per second

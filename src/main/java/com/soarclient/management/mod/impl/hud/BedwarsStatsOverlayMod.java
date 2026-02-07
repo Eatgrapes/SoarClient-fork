@@ -56,7 +56,7 @@ public class BedwarsStatsOverlayMod extends HUDMod {
 				String uuid = player.getProfile().getId().toString().replace("-", "");
 				HypixelUser hypixelUser = Soar.getInstance().getHypixelManager().getByUuid(uuid);
 
-				if (hypixelUser != null) {
+				if (hypixelUser != null && !hypixelUser.getBedwarsLevel().equals("-1")) {
 
 					if (player.getSkinTextures() != null) {
 
@@ -76,7 +76,7 @@ public class BedwarsStatsOverlayMod extends HUDMod {
 					Skia.drawFullCenteredText(hypixelUser.getBedsBrokeLostRatio(), getX() + 270, getY() + offsetY + 6F,
 							this.getDesign().getTextColor(), Fonts.getRegular(9));
 
-					if (prevIndex > maxSetting.getValue()) {
+					if (prevIndex >= maxSetting.getValue()) {
 						prevIndex++;
 						index = prevIndex;
 						break;

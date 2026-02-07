@@ -5,6 +5,7 @@ import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.management.mod.Mod;
 import com.soarclient.management.mod.ModCategory;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
+import com.soarclient.management.mod.settings.impl.StringSetting;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.TimerUtils;
 import com.soarclient.utils.server.Server;
@@ -13,6 +14,8 @@ import com.soarclient.utils.server.ServerUtils;
 public class HypixelMod extends Mod {
 
 	private static HypixelMod instance;
+	private StringSetting apiKeySetting = new StringSetting("setting.hypixel.apikey", "setting.hypixel.apikey.description",
+			Icon.KEY, this, "");
 	private BooleanSetting levelHeadSetting = new BooleanSetting("setting.levelhead", "setting.levelhead.description",
 			Icon._123, this, false);
 	private BooleanSetting autoTipSetting = new BooleanSetting("setting.autotip", "setting.autotip.description",
@@ -39,6 +42,10 @@ public class HypixelMod extends Mod {
 
 	public static HypixelMod getInstance() {
 		return instance;
+	}
+
+	public StringSetting getApiKeySetting() {
+		return apiKeySetting;
 	}
 
 	public BooleanSetting getLevelHeadSetting() {
