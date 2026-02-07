@@ -60,11 +60,8 @@ public class BedwarsStatsOverlayMod extends HUDMod {
 
 					if (player.getSkinTextures() != null) {
 
-						File file = SkinUtils.getSkin(player.getSkinTextures().texture());
-
-						if (file.exists()) {
-							Skia.drawPlayerHead(file, getX() + 5.5F, getY() + offsetY, 12, 12, 2.5F);
-						}
+						var texture = player.getSkinTextures().texture();
+                        Skia.drawPlayerHead(texture, getX() + 5.5F, getY() + offsetY, 12, 12, 2.5F);
 					}
 
 					Skia.drawHeightCenteredText(name, getX() + 21, getY() + offsetY + 6F,
