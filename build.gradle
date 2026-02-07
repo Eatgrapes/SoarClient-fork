@@ -80,7 +80,7 @@ dependencies {
 	jij "net.lenni0451:MCPing:1.4.2"
 	jij "net.lenni0451:Reflect:1.4.0"
 	
-	modJij 'com.github.CCBlueX:mcef:3.0.0-1.21.4'
+	modJij 'com.github.CCBlueX:mcef:3.3.0-1.21.11'
 
 	proguard 'com.guardsquare:proguard-base:7.6.1'
 
