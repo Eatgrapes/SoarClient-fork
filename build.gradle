@@ -62,7 +62,7 @@ dependencies {
 	modJij "maven.modrinth:in-game-account-switcher:WBbjirJP"
 	modJij "com.viaversion:viafabricplus:4.0.2"
 	modRuntimeOnly "maven.modrinth:immediatelyfast:1.3.3+1.21.4-fabric"
-	modRuntimeOnly "maven.modrinth:entityculling:NkBXk0Ye"
+	modRuntimeOnly "maven.modrinth:entityculling:92bPVm5F"
 
 	jij 'com.github.ben-manes.caffeine:caffeine:3.1.8'
 	jij 'io.github.humbleui:types:0.2.0'
