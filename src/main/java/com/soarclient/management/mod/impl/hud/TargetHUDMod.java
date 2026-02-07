@@ -191,7 +191,7 @@ public class TargetHUDMod extends HUDMod {
 
     private void drawHealthBar(float x, float y, float health, float maxHealth) {
         float barWidth = 120;
-        float barHeight = 12;
+        float barHeight = 8;
 
         float healthPercentage = Math.min(health / maxHealth, 1.0f);
         targetHealthWidth = barWidth * healthPercentage;
