@@ -16,7 +16,7 @@ public class ColorUtils {
 	}
 
 	public static Color blend(Color color1, Color color2, double ratio) {
-		float r = (float) ratio;
+		float r = (float) MathUtils.clamp(ratio, 0.0, 1.0);
 		float ir = 1.0f - r;
 		float[] rgb1 = new float[3];
 		float[] rgb2 = new float[3];
