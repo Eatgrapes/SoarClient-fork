@@ -7,6 +7,7 @@ import com.soarclient.gui.api.page.Page;
 import com.soarclient.gui.api.page.impl.LeftRightTransition;
 import com.soarclient.gui.api.page.impl.RightLeftTransition;
 import com.soarclient.management.color.api.ColorPalette;
+import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.mod.Mod;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.skia.Skia;
@@ -379,10 +380,10 @@ public class ModsPage extends Page {
             float itemY = i.yAnimation.getValue();
             float itemWidth = (width - (32 * 2) - (16 * (4 - 1))) / 4;
 
-            if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 100, itemWidth, 30)) {
-                m.toggle();
-            } else if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY, itemWidth, 100)) {
-                if (!Soar.getInstance().getModManager().getSettingsByMod(m).isEmpty()) {
+            			if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 100, itemWidth, 30)) {
+            				m.toggle();
+            				Soar.getInstance().getConfigManager().save(ConfigType.MOD);
+            			} else if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY, itemWidth, 100)) {                if (!Soar.getInstance().getModManager().getSettingsByMod(m).isEmpty()) {
                     parent.setCurrentPage(new SettingsImplPage(parent, this.getClass(), m));
                     this.setTransition(new LeftRightTransition(true));
                 }
@@ -395,10 +396,10 @@ public class ModsPage extends Page {
             Mod m = i.mod;
             float itemX = i.xAnimation.getValue();
             float itemY = i.yAnimation.getValue();
-            if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 116, 244, 35)) {
-                m.toggle();
-                if (m.isEnabled()) {
-                    i.pressAnimation.onPressed(mouseX, mouseY, itemX, itemY + 116);
+            			if (MouseUtils.isInside(mouseX, mouseY, itemX, itemY + 116, 244, 35)) {
+            				m.toggle();
+            				Soar.getInstance().getConfigManager().save(ConfigType.MOD);
+            				if (m.isEnabled()) {                    i.pressAnimation.onPressed(mouseX, mouseY, itemX, itemY + 116);
                 } else {
                     i.pressAnimation.onReleased(mouseX, mouseY, itemX, itemY + 116);
                 }

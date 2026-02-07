@@ -3,6 +3,7 @@ package com.soarclient.gui.modmenu.component;
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.libraries.material3.hct.Hct;
+import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.settings.Setting;
@@ -41,11 +42,13 @@ public class SettingBar extends Component {
 				@Override
 				public void onEnabled() {
 					bSetting.setEnabled(true);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 
 				@Override
 				public void onDisabled() {
 					bSetting.setEnabled(false);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -62,6 +65,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onValueChanged(float value) {
 					nSetting.setValue(value);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -77,6 +81,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onChanged(String option) {
 					cSetting.setOption(option);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -92,6 +97,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onBinded(InputUtil.Key key) {
 					kSetting.setKey(key);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -107,6 +113,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onPicking(Hct hct) {
 					hSetting.setHct(hct);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -122,6 +129,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onTyped(String value) {
 					sSetting.setValue(value);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 
@@ -137,6 +145,7 @@ public class SettingBar extends Component {
 				@Override
 				public void onSelect(File file) {
 					fSetting.setFile(file);
+					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}
 			});
 			

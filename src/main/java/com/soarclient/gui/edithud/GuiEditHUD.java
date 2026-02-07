@@ -12,6 +12,7 @@ import com.soarclient.gui.api.SimpleSoarGui;
 import com.soarclient.gui.edithud.api.GrabOffset;
 import com.soarclient.gui.edithud.api.HUDCore;
 import com.soarclient.gui.edithud.api.SnappingLine;
+import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.mod.api.Position;
 import com.soarclient.management.mod.api.hud.HUDMod;
 
@@ -70,6 +71,7 @@ public class GuiEditHUD extends SimpleSoarGui {
 			Position position = mod.getPosition();
 			float newScale = calculateNewScale(position.getScale(), dWheel);
 			position.setScale(newScale);
+			Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 		});
 	}
 
@@ -98,12 +100,14 @@ public class GuiEditHUD extends SimpleSoarGui {
 	@Override
 	public void mouseReleased(double mouseX, double mouseY, int button) {
 		selectedMod = Optional.empty();
+		Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 	}
 
 	@Override
 	public void keyPressed(int keyCode, int scanCode, int modifiers) {
 		if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
 			HUDCore.isEditing = false;
+			Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 			client.setScreen(prevScreen);
 		}
 	}

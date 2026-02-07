@@ -26,7 +26,7 @@ public class SkiaContext {
 	private static BackendRenderTarget renderTarget;
 
 	public static Canvas getCanvas() {
-		return surface.getCanvas();
+		return surface != null ? surface.getCanvas() : null;
 	}
 
 	public static void createSurface(int width, int height) {
@@ -52,20 +52,18 @@ public class SkiaContext {
 	}
 
 	public static void draw(Consumer<Canvas> drawingLogic) {
-
+		if (getCanvas() == null) return;
 		RenderSystem.pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
 		RenderSystem.pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
 		RenderSystem.pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
 		RenderSystem.pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
 		RenderSystem.clearColor(0f, 0f, 0f, 0f);
-		context.resetGLAll();
-
+		if (context != null) context.resetGLAll();
 		Canvas canvas = getCanvas();
-		drawingLogic.accept(canvas);
-
-		context.flush();
-
-		BufferRenderer.reset();
+		if (canvas != null) {
+			drawingLogic.accept(canvas);
+		}
+		if (context != null) context.flush();
 		GL33.glBindSampler(0, 0);
 		RenderSystem.disableBlend();
 		GL11.glDisable(GL11.GL_BLEND);
