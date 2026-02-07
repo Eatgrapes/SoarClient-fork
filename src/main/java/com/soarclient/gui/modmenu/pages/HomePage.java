@@ -62,27 +62,7 @@ public class HomePage extends Page {
 
             SkinTextures skinTextures = player.getSkinTextures();
             if (skinTextures != null && skinTextures.texture() != null) {
-                MinecraftClient mc = MinecraftClient.getInstance();
-                int textureId = mc.getTextureManager().getTexture(skinTextures.texture()).getGlId();
-
-                Skia.save();
-
-                float skinWidth = 64;
-                float skinHeight = 64;
-                float headX = 8;
-                float headY = 8;
-                float headSize = 8;
-
-                float scale = avatarSize / headSize;
-                float drawX = avatarX - (headX * scale);
-                float drawY = avatarY - (headY * scale);
-                float totalWidth = skinWidth * scale;
-                float totalHeight = skinHeight * scale;
-
-                Skia.getCanvas().clipRRect(io.github.humbleui.types.RRect.makeXYWH(avatarX, avatarY, avatarSize, avatarSize, 8), ClipMode.INTERSECT, true);
-                Skia.drawImage(textureId, drawX, drawY, totalWidth, totalHeight);
-
-                Skia.restore();
+                Skia.drawPlayerHead(skinTextures.texture(), avatarX, avatarY, avatarSize, avatarSize, 8);
             }
 
             float textX = avatarX + avatarSize + 15;

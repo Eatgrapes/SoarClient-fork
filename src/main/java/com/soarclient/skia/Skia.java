@@ -243,19 +243,33 @@ public class Skia {
 
 	public static void drawPlayerHead(File file, float x, float y, float width, float height, float radius) {
 		if (imageHelper.load(file)) {
-
-            Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
-
-			Rect srcRect = Rect.makeXYWH(8, 8, 8, 8);
-			Rect srcRect1 = Rect.makeXYWH(40, 8, 8, 8);
-			Rect dstRect = Rect.makeXYWH(x, y, width, height);
-
-			save();
-			getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), srcRect, dstRect, null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), srcRect1, dstRect, null, false);
-			restore();
+			drawPlayerHeadInternal(imageHelper.get(file.getName()), x, y, width, height, radius);
 		}
+	}
+
+	public static void drawPlayerHead(Identifier identifier, float x, float y, float width, float height, float radius) {
+		if (imageHelper.load(identifier)) {
+			drawPlayerHeadInternal(imageHelper.get(identifier.getPath()), x, y, width, height, radius);
+		}
+	}
+
+	private static void drawPlayerHeadInternal(io.github.humbleui.skija.Image image, float x, float y, float width, float height, float radius) {
+		if (image == null) return;
+
+		Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
+
+		Rect srcRect = Rect.makeXYWH(8, 8, 8, 8);
+		Rect srcRect1 = Rect.makeXYWH(40, 8, 8, 8);
+		Rect dstRect = Rect.makeXYWH(x, y, width, height);
+
+		Paint paint = new Paint();
+		paint.setAntiAlias(true);
+
+		save();
+		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
+		getCanvas().drawImageRect(image, srcRect, dstRect, paint, true);
+		getCanvas().drawImageRect(image, srcRect1, dstRect, paint, true);
+		restore();
 	}
 
 	public static void drawSkin(File file, float x, float y, float scale) {

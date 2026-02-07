@@ -62,12 +62,7 @@ public class ImageHelper {
         if (!images.containsKey(filePath)) {
             Optional<byte[]> encodedBytes = SkiaUtils.convertToBytes(filePath);
             if (encodedBytes.isPresent()) {
-                Image image;
-                try {
-                    image = Image.makeDeferredFromEncodedBytes(ImageUtils.convertToPng(encodedBytes.get()));
-                } catch (IOException e) {
-                    return false;
-                }
+                Image image = Image.makeDeferredFromEncodedBytes(encodedBytes.get());
                 images.put(filePath, image);
                 return true;
             } else {
@@ -83,12 +78,7 @@ public class ImageHelper {
 
             try {
                 byte[] encoded = org.apache.commons.io.IOUtils.toByteArray(new FileInputStream(file));
-                Image image;
-                try {
-                    image = Image.makeDeferredFromEncodedBytes(ImageUtils.convertToPng(encoded));
-                } catch (IOException e) {
-                    return false;
-                }
+                Image image = Image.makeDeferredFromEncodedBytes(encoded);
                 images.put(file.getName(), image);
                 return true;
             } catch (IOException e) {
