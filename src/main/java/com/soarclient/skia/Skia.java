@@ -242,13 +242,16 @@ public class Skia {
 	}
 
 	public static void drawPlayerHead(File file, float x, float y, float width, float height, float radius) {
-		if (imageHelper.load(file)) {
+		if (imageHelper.load(file, true)) {
 			drawPlayerHeadInternal(imageHelper.get(file.getName()), x, y, width, height, radius);
 		}
 	}
 
 	public static void drawPlayerHead(Identifier identifier, float x, float y, float width, float height, float radius) {
-		if (imageHelper.load(identifier)) {
+		File skinFile = com.soarclient.utils.SkinUtils.getSkin(identifier);
+		if (skinFile != null && skinFile.exists()) {
+			drawPlayerHead(skinFile, x, y, width, height, radius);
+		} else if (imageHelper.load(identifier, true)) {
 			drawPlayerHeadInternal(imageHelper.get(identifier.getPath()), x, y, width, height, radius);
 		}
 	}
@@ -273,7 +276,7 @@ public class Skia {
 	}
 
 	public static void drawSkin(File file, float x, float y, float scale) {
-		if (imageHelper.load(file)) {
+		if (imageHelper.load(file, true)) {
 
 			Rect head = Rect.makeXYWH(8, 8, 8, 8);
 			Rect headLayer = Rect.makeXYWH(40, 8, 8, 8);

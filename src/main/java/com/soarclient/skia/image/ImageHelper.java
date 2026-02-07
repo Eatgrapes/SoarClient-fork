@@ -34,6 +34,10 @@ public class ImageHelper {
     }
 
     public boolean load(Identifier identifier) {
+        return load(identifier, false);
+    }
+
+    public boolean load(Identifier identifier, boolean isSkin) {
 
         if (!images.containsKey(identifier.getPath())) {
             ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
@@ -43,7 +47,13 @@ public class ImageHelper {
                 try (InputStream inputStream = resource.getInputStream()) {
 
                     byte[] imageData = inputStream.readAllBytes();
-                    Image image = Image.makeDeferredFromEncodedBytes(imageData);
+                    Image image;
+                    try {
+                        byte[] data = isSkin ? imageData : ImageUtils.convertToPng(imageData);
+                        image = Image.makeDeferredFromEncodedBytes(data);
+                    } catch (IOException e) {
+                        return false;
+                    }
                     images.put(identifier.getPath(), image);
                     return true;
                 } catch (IOException e) {
@@ -59,10 +69,20 @@ public class ImageHelper {
     }
 
     public boolean load(String filePath) {
+        return load(filePath, false);
+    }
+
+    public boolean load(String filePath, boolean isSkin) {
         if (!images.containsKey(filePath)) {
             Optional<byte[]> encodedBytes = SkiaUtils.convertToBytes(filePath);
             if (encodedBytes.isPresent()) {
-                Image image = Image.makeDeferredFromEncodedBytes(encodedBytes.get());
+                Image image;
+                try {
+                    byte[] data = isSkin ? encodedBytes.get() : ImageUtils.convertToPng(encodedBytes.get());
+                    image = Image.makeDeferredFromEncodedBytes(data);
+                } catch (IOException e) {
+                    return false;
+                }
                 images.put(filePath, image);
                 return true;
             } else {
@@ -73,12 +93,22 @@ public class ImageHelper {
     }
 
     public boolean load(File file) {
+        return load(file, false);
+    }
+
+    public boolean load(File file, boolean isSkin) {
 
         if (!images.containsKey(file.getName())) {
 
             try {
                 byte[] encoded = org.apache.commons.io.IOUtils.toByteArray(new FileInputStream(file));
-                Image image = Image.makeDeferredFromEncodedBytes(encoded);
+                Image image;
+                try {
+                    byte[] data = isSkin ? encoded : ImageUtils.convertToPng(encoded);
+                    image = Image.makeDeferredFromEncodedBytes(data);
+                } catch (IOException e) {
+                    return false;
+                }
                 images.put(file.getName(), image);
                 return true;
             } catch (IOException e) {

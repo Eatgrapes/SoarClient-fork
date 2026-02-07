@@ -49,8 +49,13 @@ public class ImageUtils {
             return bytes;
         }
 
+        BufferedImage argbImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = argbImage.createGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", outputStream);
+        ImageIO.write(argbImage, "png", outputStream);
         return outputStream.toByteArray();
     }
 
