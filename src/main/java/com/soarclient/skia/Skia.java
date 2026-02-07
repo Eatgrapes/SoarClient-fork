@@ -8,17 +8,7 @@ import com.soarclient.shader.impl.KawaseBlur;
 import com.soarclient.skia.context.SkiaContext;
 import com.soarclient.skia.image.ImageHelper;
 
-import io.github.humbleui.skija.Canvas;
-import io.github.humbleui.skija.ClipMode;
-import io.github.humbleui.skija.FilterTileMode;
-import io.github.humbleui.skija.Font;
-import io.github.humbleui.skija.FontMetrics;
-import io.github.humbleui.skija.ImageFilter;
-import io.github.humbleui.skija.Paint;
-import io.github.humbleui.skija.PaintMode;
-import io.github.humbleui.skija.Path;
-import io.github.humbleui.skija.Shader;
-import io.github.humbleui.skija.SurfaceOrigin;
+import io.github.humbleui.skija.*;
 import io.github.humbleui.types.Point;
 import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
@@ -241,42 +231,31 @@ public class Skia {
 		drawRoundedImage(textureId, x, y, width, height, radius, alpha, SurfaceOrigin.TOP_LEFT);
 	}
 
-	public static void drawPlayerHead(File file, float x, float y, float width, float height, float radius) {
-		if (imageHelper.load(file, true)) {
-			drawPlayerHeadInternal(imageHelper.get(file.getName()), x, y, width, height, radius);
-		}
-	}
-
 	public static void drawPlayerHead(Identifier identifier, float x, float y, float width, float height, float radius) {
-		File skinFile = com.soarclient.utils.SkinUtils.getSkin(identifier);
-		if (skinFile != null && skinFile.exists()) {
-			drawPlayerHead(skinFile, x, y, width, height, radius);
-		} else if (imageHelper.load(identifier, true)) {
+		if (imageHelper.load(identifier)) {
 			drawPlayerHeadInternal(imageHelper.get(identifier.getPath()), x, y, width, height, radius);
 		}
 	}
 
-	private static void drawPlayerHeadInternal(io.github.humbleui.skija.Image image, float x, float y, float width, float height, float radius) {
-		if (image == null) return;
+    public static void drawPlayerHeadInternal(Image img, float x, float y, float width, float height, float radius) {
+        float ratio = img.getWidth() / 64.0f;
 
-		Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
+        Rect srcRect = Rect.makeXYWH(8 * ratio, 8 * ratio, 8 * ratio, 8 * ratio);
+        Rect srcRect1 = Rect.makeXYWH(40 * ratio, 8 * ratio, 8 * ratio, 8 * ratio);
+        Rect dstRect = Rect.makeXYWH(x, y, width, height);
+        RRect rrect = RRect.makeXYWH(x, y, width, height, radius);
 
-		Rect srcRect = Rect.makeXYWH(8, 8, 8, 8);
-		Rect srcRect1 = Rect.makeXYWH(40, 8, 8, 8);
-		Rect dstRect = Rect.makeXYWH(x, y, width, height);
+        save();
 
-		Paint paint = new Paint();
-		paint.setAntiAlias(true);
+        getCanvas().clipRRect(rrect, ClipMode.INTERSECT, true);
+        getCanvas().drawImageRect(img, srcRect, dstRect, SamplingMode.DEFAULT, null, true);
+        getCanvas().drawImageRect(img, srcRect1, dstRect, SamplingMode.DEFAULT, null, true);
 
-		save();
-		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-		getCanvas().drawImageRect(image, srcRect, dstRect, paint, true);
-		getCanvas().drawImageRect(image, srcRect1, dstRect, paint, true);
-		restore();
-	}
+        restore();
+    }
 
 	public static void drawSkin(File file, float x, float y, float scale) {
-		if (imageHelper.load(file, true)) {
+		if (imageHelper.load(file)) {
 
 			Rect head = Rect.makeXYWH(8, 8, 8, 8);
 			Rect headLayer = Rect.makeXYWH(40, 8, 8, 8);
