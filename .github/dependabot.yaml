@@ -8,7 +8,7 @@ updates:
     ignore:
       - dependency-name: "io.github.humbleui:*"
         update-types: ["version-update:semver-major", "version-update:semver-minor", "version-update:semver-patch"]
-      
+      # Fuck Skija 
       - dependency-name: "io.github.humbleui:types"
       - dependency-name: "io.github.humbleui:skija-windows-x64"
       - dependency-name: "io.github.humbleui:skija-linux-x64"
