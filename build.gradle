@@ -4,7 +4,7 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath 'com.guardsquare:proguard-gradle:7.6.1'
+        classpath 'com.guardsquare:proguard-gradle:7.8.2'
     }
 }
 
@@ -82,7 +82,7 @@ dependencies {
 	
 	modJij 'com.github.CCBlueX:mcef:3.0.0-1.21.4'
 
-	proguard 'com.guardsquare:proguard-base:7.6.1'
+	proguard 'com.guardsquare:proguard-base:7.8.2'
 
     def lwjglNfdDeps = [
         "org.lwjgl:lwjgl-nfd:$lwjglVersion",
