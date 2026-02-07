@@ -200,6 +200,13 @@ mod.protocolversion.description=Display the Protocol Version
 mod.zoom.name=Zoom
 mod.zoom.description=Zoom in on a viewpoint
 
+mod.togglesprint.name=Toggle Sprint
+mod.togglesprint.description=Automatically sprint without holding the key
+setting.togglesprint.toggled=Toggle Sprint
+setting.togglesprint.toggled.description=Enable or disable the auto-sprint state
+setting.togglesprint.keybind=Sprint Key
+setting.togglesprint.keybind.description=Set the key to toggle sprint state
+
 mod.overlayeditor.name=Overlay Editor
 mod.overlayeditor.description=Edit Overlay
 

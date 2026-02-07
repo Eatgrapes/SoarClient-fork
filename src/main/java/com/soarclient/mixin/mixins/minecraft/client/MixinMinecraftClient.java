@@ -113,13 +113,14 @@ public abstract class MixinMinecraftClient implements IMixinMinecraftClient {
 			attackCooldown = 0;
 		}
 	}
-    /**
-     * Overrides the vanilla Minecraft window title update method to customize the window title format.
-     * The format will be: "Soar Client v[version] for [original window title]"
-     * @reason To display custom client branding in the window title
-     * @see MinecraftClient#updateWindowTitle()
-     * @author EldoDebug
-     */
+
+	/**
+	 * Overrides the vanilla Minecraft window title update method to customize the window title format.
+	 * The format will be: "Soar Client v[version] for [original window title]"
+	 * @reason To display custom client branding in the window title
+	 * @see net.minecraft.client.MinecraftClient#updateWindowTitle()
+	 * @author EldoDebug
+	 */
 	@Overwrite
 	public void updateWindowTitle() {
 		this.window.setTitle(Soar.getInstance().getName() + " Client v" + Soar.getInstance().getVersion() + " for "

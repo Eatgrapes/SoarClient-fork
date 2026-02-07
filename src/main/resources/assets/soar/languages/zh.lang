@@ -287,6 +287,13 @@ mod.protocolversion.description=显示协议版本
 mod.zoom.name=缩放
 mod.zoom.description=放大视角
 
+mod.togglesprint.name=自动疾跑
+mod.togglesprint.description=自动保持疾跑状态，无需长按按键
+setting.togglesprint.toggled=自动疾跑
+setting.togglesprint.toggled.description=启用或禁用自动疾跑状态
+setting.togglesprint.keybind=疾跑按键
+setting.togglesprint.keybind.description=设置用于切换疾跑状态的按键
+
 mod.overlayeditor.name=覆盖编辑器
 mod.overlayeditor.description=编辑覆盖层
 

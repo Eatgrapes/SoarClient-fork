@@ -85,6 +85,7 @@ public class ModManager {
 		mods.add(new OldAnimationsMod());
 		mods.add(new SnapTapMod());
 		mods.add(new TaplookMod());
+		mods.add(new ToggleSprintMod());
 		mods.add(new ZoomMod());
         mods.add(new AutoTextMod());
 
