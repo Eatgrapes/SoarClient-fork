@@ -3,16 +3,19 @@ package com.soarclient.skia.image;
 import com.soarclient.skia.context.SkiaContext;
 import com.soarclient.skia.utils.SkiaUtils;
 import com.soarclient.utils.ImageUtils;
-import io.github.humbleui.skija.ColorType;
-import io.github.humbleui.skija.Image;
-import io.github.humbleui.skija.SurfaceOrigin;
+import io.github.humbleui.skija.*;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.DynamicTexture;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import org.lwjgl.opengl.GL11;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -26,7 +29,7 @@ public class ImageHelper {
 
         if (!textures.containsKey(texture)) {
             Image image = Image.adoptGLTextureFrom(SkiaContext.getContext(), texture, GL11.GL_TEXTURE_2D, (int) width,
-                    (int) height, GL11.GL_RGBA8, origin, ColorType.RGBA_8888);
+                (int) height, GL11.GL_RGBA8, origin, ColorType.RGBA_8888);
             textures.put(texture, image);
         }
 
@@ -34,55 +37,36 @@ public class ImageHelper {
     }
 
     public boolean load(Identifier identifier) {
-        return load(identifier, false);
-    }
+        if (images.containsKey(identifier.getPath())) return true;
 
-    public boolean load(Identifier identifier, boolean isSkin) {
+        var mc = MinecraftClient.getInstance();
+        var texture = mc.getTextureManager().getTexture(identifier);
 
-        if (!images.containsKey(identifier.getPath())) {
-            ResourceManager resourceManager = MinecraftClient.getInstance().getResourceManager();
-            Resource resource;
-            try {
-                resource = resourceManager.getResourceOrThrow(identifier);
-                try (InputStream inputStream = resource.getInputStream()) {
-
-                    byte[] imageData = inputStream.readAllBytes();
-                    Image image;
-                    try {
-                        byte[] data = isSkin ? imageData : ImageUtils.convertToPng(imageData);
-                        image = Image.makeDeferredFromEncodedBytes(data);
-                    } catch (IOException e) {
-                        return false;
-                    }
-                    images.put(identifier.getPath(), image);
-                    return true;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+        if (texture instanceof NativeImageBackedTexture nbt) {
+            var ni = nbt.getImage();
+            if (ni != null) {
+                images.put(identifier.getPath(), nativeImageToSkijaImage(ni));
+                return true;
             }
-
-
+        } else {
+            try {
+                var resource = mc.getResourceManager().getResource(identifier);
+                if (resource.isPresent()) {
+                    try (InputStream is = resource.get().getInputStream()) {
+                        images.put(identifier.getPath(), Image.makeDeferredFromEncodedBytes(is.readAllBytes()));
+                        return true;
+                    }
+                }
+            } catch (Exception ignored) {}
         }
-        return true;
+        return false;
     }
 
     public boolean load(String filePath) {
-        return load(filePath, false);
-    }
-
-    public boolean load(String filePath, boolean isSkin) {
         if (!images.containsKey(filePath)) {
             Optional<byte[]> encodedBytes = SkiaUtils.convertToBytes(filePath);
             if (encodedBytes.isPresent()) {
-                Image image;
-                try {
-                    byte[] data = isSkin ? encodedBytes.get() : ImageUtils.convertToPng(encodedBytes.get());
-                    image = Image.makeDeferredFromEncodedBytes(data);
-                } catch (IOException e) {
-                    return false;
-                }
+                Image image = Image.makeDeferredFromEncodedBytes(encodedBytes.get());
                 images.put(filePath, image);
                 return true;
             } else {
@@ -93,22 +77,12 @@ public class ImageHelper {
     }
 
     public boolean load(File file) {
-        return load(file, false);
-    }
-
-    public boolean load(File file, boolean isSkin) {
 
         if (!images.containsKey(file.getName())) {
 
             try {
                 byte[] encoded = org.apache.commons.io.IOUtils.toByteArray(new FileInputStream(file));
-                Image image;
-                try {
-                    byte[] data = isSkin ? encoded : ImageUtils.convertToPng(encoded);
-                    image = Image.makeDeferredFromEncodedBytes(data);
-                } catch (IOException e) {
-                    return false;
-                }
+                Image image = Image.makeDeferredFromEncodedBytes(encoded);
                 images.put(file.getName(), image);
                 return true;
             } catch (IOException e) {
@@ -136,5 +110,25 @@ public class ImageHelper {
         }
 
         return null;
+    }
+
+    public static Image nativeImageToSkijaImage(NativeImage nativeImage) {
+        int[] pixels = nativeImage.copyPixelsAbgr();
+
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(pixels.length * 4);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.asIntBuffer().put(pixels);
+
+        byte[] byteArray = new byte[byteBuffer.remaining()];
+        byteBuffer.get(byteArray);
+
+        ImageInfo info = new ImageInfo(
+            nativeImage.getWidth(),
+            nativeImage.getHeight(),
+            ColorType.RGBA_8888,
+            ColorAlphaType.PREMUL
+        );
+
+        return Image.makeRasterFromBytes(info, byteArray, nativeImage.getWidth() * 4L);
     }
 }

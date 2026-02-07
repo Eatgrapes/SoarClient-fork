@@ -1,7 +1,6 @@
 package com.soarclient.management.mod.impl.hud;
 
 import java.awt.Color;
-import java.io.File;
 import java.util.Arrays;
 
 import com.soarclient.Soar;
@@ -17,15 +16,14 @@ import com.soarclient.skia.Skia;
 import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.HealthUtils;
-import com.soarclient.utils.SkinUtils;
 
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
 
 public class TargetHUDMod extends HUDMod {
 
@@ -74,8 +72,7 @@ public class TargetHUDMod extends HUDMod {
 
     private void registerFabricCallbacks() {
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClient && player instanceof ClientPlayerEntity && entity instanceof PlayerEntity) {
-                PlayerEntity newTarget = (PlayerEntity) entity;
+            if (world.isClient && player instanceof ClientPlayerEntity && entity instanceof PlayerEntity newTarget) {
                 updateTarget(newTarget);
             }
             return ActionResult.PASS;
@@ -85,10 +82,8 @@ public class TargetHUDMod extends HUDMod {
     private void updateTarget(PlayerEntity newTarget) {
         if (targetPlayer == null || !targetPlayer.equals(newTarget)) {
             targetPlayer = newTarget;
-            lastAttackTime = System.currentTimeMillis();
-        } else {
-            lastAttackTime = System.currentTimeMillis();
         }
+        lastAttackTime = System.currentTimeMillis();
     }
 
     public final EventBus.EventListener<ClientTickEvent> onClientTick = event -> {
@@ -154,7 +149,7 @@ public class TargetHUDMod extends HUDMod {
             return;
         }
 
-        if (!isEditing && displayPlayer != null) {
+        if (!isEditing) {
             MinecraftClient client = MinecraftClient.getInstance();
             if (client.world == null || client.world.getEntityById(displayPlayer.getId()) == null) {
                 targetPlayer = null;
@@ -267,17 +262,13 @@ public class TargetHUDMod extends HUDMod {
         Skia.save();
 
         try {
-            File skinFile = getSkinFile(player);
+            var skin = getSkin(player);
 
-            if (skinFile != null && skinFile.exists()) {
-                Skia.save();
-                try {
-                    Skia.drawPlayerHead(skinFile, x, y, size, size, 6);
-                } finally {
-                    Skia.restore();
-                }
-            } else {
-                Skia.drawRoundedRect(x, y, size, size, 6, this.getDesign().getTextColor());
+            Skia.save();
+            try {
+                Skia.drawPlayerHead(skin, x, y, size, size, 6);
+            } finally {
+                Skia.restore();
             }
         } catch (Exception e) {
             Skia.drawRoundedRect(x, y, size, size, 6, this.getDesign().getTextColor());
@@ -286,14 +277,10 @@ public class TargetHUDMod extends HUDMod {
         }
     }
 
-    private File getSkinFile(PlayerEntity player) {
-        if (player instanceof AbstractClientPlayerEntity) {
-            AbstractClientPlayerEntity clientPlayer = (AbstractClientPlayerEntity) player;
+    private Identifier getSkin(PlayerEntity player) {
+        if (player instanceof AbstractClientPlayerEntity clientPlayer) {
             if (clientPlayer.getSkinTextures() != null) {
-                File skinFile = SkinUtils.getSkin(clientPlayer.getSkinTextures().texture());
-                if (skinFile != null && skinFile.exists()) {
-                    return skinFile;
-                }
+                return clientPlayer.getSkinTextures().texture();
             }
         }
         return null;
