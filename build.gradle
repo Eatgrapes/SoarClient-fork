@@ -77,7 +77,7 @@ dependencies {
 	jij 'com.googlecode.soundlibs:jlayer:1.0.1.4'
 	jij 'com.kohlschutter.junixsocket:junixsocket-common:2.10.1'
 	jij 'org.java-websocket:Java-WebSocket:1.6.0'
-	jij "net.lenni0451:MCPing:1.4.2"
+	jij "net.lenni0451:MCPing:1.4.4"
 	jij "net.lenni0451:Reflect:1.4.0"
 	
 	modJij 'com.github.CCBlueX:mcef:3.0.0-1.21.4'
