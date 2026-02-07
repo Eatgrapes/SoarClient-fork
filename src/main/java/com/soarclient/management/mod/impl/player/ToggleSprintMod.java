@@ -43,17 +43,10 @@ public class ToggleSprintMod extends Mod {
             Soar.getInstance().getConfigManager().save(ConfigType.MOD);
         }
 
-        if (toggled.isEnabled() && canSprint()) {
+        if (toggled.isEnabled()) {
             client.options.sprintKey.setPressed(true);
         }
     };
-
-    private boolean canSprint() {
-        return !client.player.isSneaking() 
-            && !client.player.isHorizontalCollision 
-            && client.player.getHungerManager().getFoodLevel() > 6
-            && client.player.input.movementForward > 0;
-    }
 
     @Override
     public void onDisable() {
