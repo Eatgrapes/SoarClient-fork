@@ -12,12 +12,11 @@ import com.soarclient.utils.language.I18n;
 import io.github.humbleui.skija.ClipMode;
 import io.github.humbleui.skija.Font;
 import io.github.humbleui.types.Rect;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.SkinTextures;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.entity.player.PlayerSkin;
 
 public class HomePage extends Page {
     private static final float CARD_WIDTH = 400;
@@ -46,7 +45,7 @@ public class HomePage extends Page {
         super.draw(mouseX, mouseY);
 
         ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        LocalPlayer player = Minecraft.getInstance().player;
 
         Skia.drawText(I18n.get("text.home"), x + 32, y + 30,
             palette.getOnSurface(), Fonts.getRegular(40));
@@ -60,9 +59,9 @@ public class HomePage extends Page {
 
             Skia.drawRoundedRect(avatarX, avatarY, avatarSize, avatarSize, 8, palette.getSurfaceContainerHighest());
 
-            SkinTextures skinTextures = player.getSkinTextures();
-            if (skinTextures != null && skinTextures.texture() != null) {
-                Skia.drawPlayerHead(skinTextures.texture(), avatarX, avatarY, avatarSize, avatarSize, 8);
+            PlayerSkin skinTextures = player.getSkin();
+            if (skinTextures != null) {
+                Skia.drawPlayerHead(skinTextures.body().texturePath(), avatarX, avatarY, avatarSize, avatarSize, 8);
             }
 
             float textX = avatarX + avatarSize + 15;

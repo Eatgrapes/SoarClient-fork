@@ -2,12 +2,16 @@ package com.soarclient.gui.mainmenu;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
+import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 import com.google.gson.JsonObject;
+import com.mojang.realmsclient.RealmsMainScreen;
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.gui.api.SimpleSoarGui;
@@ -31,11 +35,6 @@ import com.soarclient.utils.file.dialog.SoarFileDialog;
 import com.soarclient.utils.file.FileLocation;
 import com.soarclient.utils.mouse.ScrollHelper;
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
-
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.gui.screen.option.OptionsScreen;
-import net.minecraft.client.gui.screen.world.SelectWorldScreen;
-import net.minecraft.client.realms.gui.screen.RealmsMainScreen;
 
 public class MainMenuGui extends SimpleSoarGui {
 
@@ -88,57 +87,57 @@ public class MainMenuGui extends SimpleSoarGui {
 
         float scaleFactor = calculateScaleFactor();
 
-        float centerX = client.getWindow().getWidth() / 2f;
-        float centerY = client.getWindow().getHeight() / 2f;
+        float centerX = client.getWindow().getScreenWidth() / 2f;
+        float centerY = client.getWindow().getScreenHeight() / 2f;
         float buttonWidth = 240 * scaleFactor;
 
         buttons.add(new MainMenuButton("menu.singleplayer", Icon.HOME,
             centerX - buttonWidth / 2, centerY - (120 * scaleFactor), buttonWidth, scaleFactor, () -> {
-            client.setScreen(new SelectWorldScreen(this.build()));
+            client.gui.setScreen(new SelectWorldScreen(this.build()));
         }));
 
         buttons.add(new MainMenuButton("menu.multiplayer", Icon.GROUPS,
             centerX - buttonWidth / 2, centerY - (60 * scaleFactor), buttonWidth, scaleFactor, () -> {
-            client.setScreen(new MultiplayerScreen(this.build()));
+            client.gui.setScreen(new JoinMultiplayerScreen(this.build()));
         }));
 
         buttons.add(new MainMenuButton("menu.realms", Icon.DNS,
             centerX - buttonWidth / 2, centerY, buttonWidth, scaleFactor, () -> {
-            client.setScreen(new RealmsMainScreen(this.build()));
+            client.gui.setScreen(new RealmsMainScreen(this.build()));
         }));
 
         buttons.add(new MainMenuButton("menu.options", Icon.SETTINGS,
             centerX - buttonWidth / 2, centerY + (60 * scaleFactor), buttonWidth, scaleFactor, () -> {
-            client.setScreen(new OptionsScreen(this.build(), client.options));
+            client.gui.setScreen(new OptionsScreen(this.build(), client.options, false));
         }));
 
         buttons.add(new MainMenuButton("menu.quit", Icon.CLOSE,
             centerX - buttonWidth / 2, centerY + (120 * scaleFactor), buttonWidth, scaleFactor, () -> {
-            client.scheduleStop();
+            client.stop();
         }));
 
         float buttonSize = 40 * scaleFactor;
         float buttonSpacing = 10 * scaleFactor;
 
         backgroundButton = new MainMenuButton("", Icon.IMAGE,
-            client.getWindow().getWidth() - (buttonSize * 2) - buttonSpacing - (20 * scaleFactor),
+            client.getWindow().getScreenWidth() - (buttonSize * 2) - buttonSpacing - (20 * scaleFactor),
             20 * scaleFactor, buttonSize, scaleFactor, () -> {
             showBackgroundWindow = true;
         });
 
         settingsButton = new MainMenuButton("", Icon.SETTINGS,
-            client.getWindow().getWidth() - buttonSize - (20 * scaleFactor),
+            client.getWindow().getScreenWidth() - buttonSize - (20 * scaleFactor),
             20 * scaleFactor, buttonSize, scaleFactor, () -> {
             showCustomizationWindow = true;
         });
 
-        lastWindowWidth = client.getWindow().getWidth();
-        lastWindowHeight = client.getWindow().getHeight();
+        lastWindowWidth = client.getWindow().getScreenWidth();
+        lastWindowHeight = client.getWindow().getScreenHeight();
     }
 
     private void initCustomizationComponents() {
-        float centerX = client.getWindow().getWidth() / 2f;
-        float centerY = client.getWindow().getHeight() / 2f;
+        float centerX = client.getWindow().getScreenWidth() / 2f;
+        float centerY = client.getWindow().getScreenHeight() / 2f;
         float panelWidth = 450;
         float panelX = centerX - panelWidth / 2;
 
@@ -240,12 +239,12 @@ public class MainMenuGui extends SimpleSoarGui {
     }
 
     private boolean isWindowMinimized() {
-        return client.getWindow().getWidth() < 100 || client.getWindow().getHeight() < 100;
+        return client.getWindow().getScreenWidth() < 100 || client.getWindow().getScreenHeight() < 100;
     }
 
     private float calculateScaleFactor() {
-        float currentWidth = client.getWindow().getWidth();
-        float currentHeight = client.getWindow().getHeight();
+        float currentWidth = client.getWindow().getScreenWidth();
+        float currentHeight = client.getWindow().getScreenHeight();
 
         if (isWindowMinimized()) {
             return 0.5f;
@@ -268,8 +267,8 @@ public class MainMenuGui extends SimpleSoarGui {
     public void draw(double mouseX, double mouseY) {
         boolean currentlyMinimized = isWindowMinimized();
 
-        if (client.getWindow().getWidth() != lastWindowWidth ||
-            client.getWindow().getHeight() != lastWindowHeight ||
+        if (client.getWindow().getScreenWidth() != lastWindowWidth ||
+            client.getWindow().getScreenHeight() != lastWindowHeight ||
             wasMinimized != currentlyMinimized) {
             updateLayout();
             initCustomizationComponents();
@@ -303,14 +302,14 @@ public class MainMenuGui extends SimpleSoarGui {
     }
 
     private void drawCustomizationWindow(double mouseX, double mouseY, ColorPalette palette) {
-        float centerX = client.getWindow().getWidth() / 2f;
-        float centerY = client.getWindow().getHeight() / 2f;
+        float centerX = client.getWindow().getScreenWidth() / 2f;
+        float centerY = client.getWindow().getScreenHeight() / 2f;
         float panelWidth = 450;
         float panelHeight = 200;
         float panelX = centerX - panelWidth / 2;
         float panelY = centerY - panelHeight / 2;
 
-        Skia.drawRect(0, 0, client.getWindow().getWidth(), client.getWindow().getHeight(),
+        Skia.drawRect(0, 0, client.getWindow().getScreenWidth(), client.getWindow().getScreenHeight(),
             ColorUtils.applyAlpha(palette.getSurface(), 0.3f));
 
         Skia.drawRoundedRect(panelX, panelY, panelWidth, panelHeight, 20, palette.getSurfaceContainer());
@@ -326,14 +325,14 @@ public class MainMenuGui extends SimpleSoarGui {
     }
 
     private void drawBackgroundWindow(double mouseX, double mouseY, ColorPalette palette) {
-        float centerX = client.getWindow().getWidth() / 2f;
-        float centerY = client.getWindow().getHeight() / 2f;
+        float centerX = client.getWindow().getScreenWidth() / 2f;
+        float centerY = client.getWindow().getScreenHeight() / 2f;
         float panelWidth = 600;
         float panelHeight = 400;
         float panelX = centerX - panelWidth / 2;
         float panelY = centerY - panelHeight / 2;
 
-        Skia.drawRect(0, 0, client.getWindow().getWidth(), client.getWindow().getHeight(),
+        Skia.drawRect(0, 0, client.getWindow().getScreenWidth(), client.getWindow().getScreenHeight(),
             ColorUtils.applyAlpha(palette.getSurface(), 0.3f));
 
         Skia.drawRoundedRect(panelX, panelY, panelWidth, panelHeight, 20, palette.getSurfaceContainer());
@@ -399,17 +398,17 @@ public class MainMenuGui extends SimpleSoarGui {
 
     private void drawCustomBackground(ColorPalette palette) {
         // 计算视差效果
-        float targetParallaxX = (float) (client.mouse.getX() - client.getWindow().getWidth() / 2) / client.getWindow().getWidth() * parallaxStrength;
-        float targetParallaxY = (float) (client.mouse.getY() - client.getWindow().getHeight() / 2) / client.getWindow().getHeight() * parallaxStrength;
+        float targetParallaxX = (float) (client.mouseHandler.xpos() - client.getWindow().getScreenWidth() / 2) / client.getWindow().getScreenWidth() * parallaxStrength;
+        float targetParallaxY = (float) (client.mouseHandler.ypos() - client.getWindow().getScreenHeight() / 2) / client.getWindow().getScreenHeight() * parallaxStrength;
 
         parallaxX += (targetParallaxX - parallaxX) * 0.1f;
         parallaxY += (targetParallaxY - parallaxY) * 0.1f;
 
-        float scaledWidth = client.getWindow().getWidth() * backgroundScale;
-        float scaledHeight = client.getWindow().getHeight() * backgroundScale;
+        float scaledWidth = client.getWindow().getScreenWidth() * backgroundScale;
+        float scaledHeight = client.getWindow().getScreenHeight() * backgroundScale;
 
-        float offsetX = (scaledWidth - client.getWindow().getWidth()) / 2 - parallaxX;
-        float offsetY = (scaledHeight - client.getWindow().getHeight()) / 2 - parallaxY;
+        float offsetX = (scaledWidth - client.getWindow().getScreenWidth()) / 2 - parallaxX;
+        float offsetY = (scaledHeight - client.getWindow().getScreenHeight()) / 2 - parallaxY;
 
         if (selectedBackgroundId.equals("Background.png")) {
             Skia.drawImage("Background.png", -offsetX, -offsetY, scaledWidth, scaledHeight);
@@ -429,9 +428,9 @@ public class MainMenuGui extends SimpleSoarGui {
     private void drawLogoIcon() {
         float scaleFactor = calculateScaleFactor();
         float logoSize = 170 * scaleFactor;
-        float logoX = client.getWindow().getWidth() / 2f - logoSize / 2;
+        float logoX = client.getWindow().getScreenWidth() / 2f - logoSize / 2;
 
-        float centerY = client.getWindow().getHeight() / 2f;
+        float centerY = client.getWindow().getScreenHeight() / 2f;
         float singleplayerButtonY = centerY - (120 * scaleFactor);
         float logoY = singleplayerButtonY - logoSize - (1 * scaleFactor);
 
@@ -449,8 +448,8 @@ public class MainMenuGui extends SimpleSoarGui {
             addBackgroundButton.mousePressed(mouseX, mouseY, button);
 
             float adjustedMouseY = (float) (mouseY - backgroundScrollHelper.getValue());
-            float panelX = client.getWindow().getWidth() / 2f - 300;
-            float panelY = client.getWindow().getHeight() / 2f - 200;
+            float panelX = client.getWindow().getScreenWidth() / 2f - 300;
+            float panelY = client.getWindow().getScreenHeight() / 2f - 200;
             float startX = panelX + 20;
             float startY = panelY + 60;
             float itemWidth = 160;

@@ -297,7 +297,7 @@ public class MusicPage extends Page {
                 Skia.save();
                 Skia.getCanvas().clipPath(path, ClipMode.INTERSECT, true);
                 if (Skia.getImageHelper().load(file)) {
-                    Image image = Skia.getImageHelper().get(file.getName());
+                    Image image = Skia.getImageHelper().get(file);
                     if (image != null) {
                         Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height));
                         Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), blurPaint, true);

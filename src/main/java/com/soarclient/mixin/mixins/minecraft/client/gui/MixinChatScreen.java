@@ -9,10 +9,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.soarclient.libraries.browser.JCefBrowser;
 import com.soarclient.management.mod.impl.hud.WebBrowserMod;
 import com.soarclient.utils.mouse.MouseUtils;
-
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 @Mixin(ChatScreen.class)
 public class MixinChatScreen extends Screen {
@@ -20,7 +19,7 @@ public class MixinChatScreen extends Screen {
 	@Unique
 	private boolean isInWebBrowser;
 
-	protected MixinChatScreen(Text title) {
+	protected MixinChatScreen(Component title) {
 		super(title);
 	}
 

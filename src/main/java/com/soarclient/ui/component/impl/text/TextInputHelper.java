@@ -3,13 +3,12 @@ package com.soarclient.ui.component.impl.text;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.utils.MathUtils;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.StringHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.util.StringUtil;
 
 public class TextInputHelper {
 
-	private MinecraftClient client = MinecraftClient.getInstance();
+	private Minecraft client = Minecraft.getInstance();
 
 	private String text;
 	private boolean focused;
@@ -28,13 +27,13 @@ public class TextInputHelper {
 		if (!focused) {
 			return;
 		} else if (modifiers == GLFW.GLFW_MOD_CONTROL && keyCode == GLFW.GLFW_KEY_C) {
-			client.keyboard.setClipboard(this.getSelectedText());
+			client.keyboardHandler.setClipboard(this.getSelectedText());
 			return;
 		} else if (modifiers == GLFW.GLFW_MOD_CONTROL && keyCode == GLFW.GLFW_KEY_V) {
-			writeText(client.keyboard.getClipboard());
+			writeText(client.keyboardHandler.getClipboard());
 			return;
 		} else if (modifiers == GLFW.GLFW_MOD_CONTROL && keyCode == GLFW.GLFW_KEY_X) {
-			client.keyboard.setClipboard(this.getSelectedText());
+			client.keyboardHandler.setClipboard(this.getSelectedText());
 			this.writeText("");
 			return;
 		} else if (modifiers == GLFW.GLFW_MOD_CONTROL && keyCode == GLFW.GLFW_KEY_A) {
@@ -104,7 +103,7 @@ public class TextInputHelper {
 	}
 
 	public void charTyped(char chr, int modifiers) {
-		if (StringHelper.isValidChar(chr) && this.isFocused()) {
+		if (StringUtil.isAllowedChatCharacter(chr) && this.isFocused()) {
 			this.writeText(Character.toString(chr));
 		}
 	}
@@ -112,7 +111,7 @@ public class TextInputHelper {
 	private void writeText(String text) {
 
 		String s = "";
-		String s1 = StringHelper.stripInvalidChars(text);
+		String s1 = StringUtil.filterText(text);
 		int min = Math.min(this.cursorPosition, this.selectionEnd);
 		int max = Math.max(this.cursorPosition, this.selectionEnd);
 		int len = this.maxStringLength - this.text.length() - (min - max);

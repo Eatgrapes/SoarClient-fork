@@ -6,26 +6,25 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.soarclient.gui.GuiResourcePackConvert;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.packs.PackSelectionScreen;
+import net.minecraft.network.chat.Component;
 
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.pack.PackScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.text.Text;
-
-@Mixin(PackScreen.class)
+@Mixin(PackSelectionScreen.class)
 public class MixinPackScreen extends Screen {
 
-	protected MixinPackScreen(Text title) {
+	protected MixinPackScreen(Component title) {
 		super(title);
 	}
 
 	@Inject(method = "init", at = @At("HEAD"))
 	private void onInit(CallbackInfo ci) {
 
-		ButtonWidget.Builder builder = ButtonWidget
-				.builder(Text.of("Convert"), button -> client.setScreen(new GuiResourcePackConvert(this))).size(98, 20);
+		Button.Builder builder = Button
+				.builder(Component.nullToEmpty("Convert"), button -> minecraft.gui.setScreen(new GuiResourcePackConvert(this))).size(98, 20);
 
-		builder.position(width - 98 - 5, 5);
-		this.addDrawableChild(builder.build());
+		builder.pos(width - 98 - 5, 5);
+		this.addRenderableWidget(builder.build());
 	}
 }

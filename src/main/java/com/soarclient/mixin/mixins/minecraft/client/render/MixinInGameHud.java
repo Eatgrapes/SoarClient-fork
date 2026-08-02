@@ -1,86 +1,64 @@
 package com.soarclient.mixin.mixins.minecraft.client.render;
 
 import com.soarclient.Soar;
-import com.soarclient.management.mod.impl.hud.ModernHotBarMod;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Overwrite;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderGameOverlayEvent;
 import com.soarclient.event.client.RenderHotbarEvent;
 import com.soarclient.event.impl.Render3DEvent;
+import com.soarclient.management.mod.impl.hud.ModernHotBarMod;
 import com.soarclient.management.mod.impl.hud.PotionStatusMod;
 import com.soarclient.management.mod.impl.player.OldAnimationsMod;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.Hud;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderTickCounter;
-
-@Mixin(InGameHud.class)
+@Mixin(Hud.class)
 public class MixinInGameHud {
 
-    /**
-     * Overrides the vanilla heart rendering method to support old animation mod features.
-     * When the old animations mod is enabled and heart flashing is disabled, it will override the vanilla flashing logic.
-     *@reason To provide customizable heart rendering behavior for old animation preferences
-     * @param context The drawing context
-     * @param type The type of heart to render
-     * @param x The x coordinate to render at
-     * @param y The y coordinate to render at
-     * @param hardcore Whether in hardcore mode
-     * @param blinking Whether the heart should blink (vanilla logic)
-     * @param half Whether to render half a heart
-     *
-     *             @author EldoDebug
-     */
-	@Overwrite
-	private void drawHeart(DrawContext context, InGameHud.HeartType type, int x, int y, boolean hardcore, boolean blinking, boolean half) {
+    @ModifyArg(
+        method = "extractHearts",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Hud;extractHeart(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Hud$HeartType;IIZZZ)V"),
+        index = 5
+    )
+    private boolean disableHeartFlash(boolean blinking) {
+        OldAnimationsMod mod = OldAnimationsMod.getInstance();
+        return mod != null && mod.isEnabled() && mod.isDisableHeartFlash() ? false : blinking;
+    }
 
-    	OldAnimationsMod mod = OldAnimationsMod.getInstance();
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    private void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        float partialTick = deltaTracker.getGameTimeDeltaPartialTick(false);
+        EventBus.getInstance().post(new Render3DEvent(partialTick, graphics));
+        EventBus.getInstance().post(new RenderGameOverlayEvent(graphics));
+    }
 
-		context.drawGuiTexture(RenderLayer::getGuiTextured, type.getTexture(hardcore, half, (!mod.isEnabled() || !mod.isDisableHeartFlash()) && blinking), x, y, 9, 9);
-	}
+    @Inject(method = "extractEffects", at = @At("HEAD"), cancellable = true)
+    private void extractEffects(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        PotionStatusMod mod = PotionStatusMod.getInstance();
+        if (mod != null && mod.shouldDisableVanillaDisplay()) {
+            ci.cancel();
+        }
+    }
 
-	@Inject(method = "renderMainHud", at = @At("TAIL"))
-	private void renderMainHud(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-		EventBus.getInstance().post(new Render3DEvent(tickCounter.getTickDelta(false), context));
-		EventBus.getInstance().post(new RenderGameOverlayEvent(context));
-	}
+    @Inject(method = "extractItemHotbar", at = @At("HEAD"), cancellable = true)
+    private void extractItemHotbar(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        RenderHotbarEvent event = new RenderHotbarEvent(graphics, deltaTracker.getGameTimeDeltaPartialTick(false));
+        EventBus.getInstance().post(event);
+        if (event.isCancelled()) {
+            ci.cancel();
+        }
+    }
 
-	@Inject(method = "renderStatusEffectOverlay", at = @At("HEAD"), cancellable = true)
-	private void onRenderStatusEffectOverlay(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-		PotionStatusMod mod = PotionStatusMod.getInstance();
-		if (mod != null && mod.shouldDisableVanillaDisplay()) {
-			ci.cancel();
-		}
-	}
-
-	@Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
-	private void onRenderHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-		RenderHotbarEvent event = new RenderHotbarEvent(context, tickCounter.getTickDelta(false));
-		EventBus.getInstance().post(event);
-		if (event.isCancelled()) {
-			ci.cancel();
-		}
-	}
-
-	@Inject(method = "renderStatusBars", at = @At("HEAD"), cancellable = true)
-	private void onRenderStatusBars(DrawContext context, CallbackInfo ci) {
-		ModernHotBarMod mod = Soar.getInstance().getModManager().getMod(ModernHotBarMod.class);
-		if (mod != null && mod.isEnabled()) {
-			ci.cancel();
-		}
-	}
-
-	@Inject(method = "renderExperienceBar", at = @At("HEAD"), cancellable = true)
-	private void onRenderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
-		ModernHotBarMod mod = Soar.getInstance().getModManager().getMod(ModernHotBarMod.class);
-		if (mod != null && mod.isEnabled()) {
-			ci.cancel();
-		}
-	}
+    @Inject(method = "extractPlayerHealth", at = @At("HEAD"), cancellable = true)
+    private void extractPlayerHealth(GuiGraphicsExtractor graphics, CallbackInfo ci) {
+        ModernHotBarMod mod = Soar.getInstance().getModManager().getMod(ModernHotBarMod.class);
+        if (mod != null && mod.isEnabled()) {
+            ci.cancel();
+        }
+    }
 }

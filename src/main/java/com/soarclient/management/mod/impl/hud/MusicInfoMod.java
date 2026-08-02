@@ -316,7 +316,7 @@ public class MusicInfoMod extends SimpleHUDMod {
             if (!albumPath.equals(currentAlbumPath)) {
                 currentAlbumPath = albumPath;
                 if (Skia.getImageHelper().load(m.getAlbum())) {
-                    Image image = Skia.getImageHelper().get(m.getAlbum().getName());
+                    Image image = Skia.getImageHelper().get(m.getAlbum());
                     if (image != null) {
                         albumBitmap = new Bitmap();
                         albumBitmap.allocPixels(image.getImageInfo());
@@ -449,13 +449,14 @@ public class MusicInfoMod extends SimpleHUDMod {
     }
 
     private void drawBlurredImage(File file, float x, float y, float width, float height) {
-        Paint blurPaint = new Paint();
-        blurPaint.setImageFilter(ImageFilter.makeBlur(DEFAULT_BLUR_RADIUS, DEFAULT_BLUR_RADIUS, FilterTileMode.REPEAT));
-        if (Skia.getImageHelper().load(file)) {
-            Image image = Skia.getImageHelper().get(file.getName());
-            if (image != null) {
-                Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()),
-                    Rect.makeXYWH(x, y, width, height), blurPaint, true);
+        try (Paint blurPaint = new Paint()) {
+            blurPaint.setImageFilter(ImageFilter.makeBlur(DEFAULT_BLUR_RADIUS, DEFAULT_BLUR_RADIUS, FilterTileMode.REPEAT));
+            if (Skia.getImageHelper().load(file)) {
+                Image image = Skia.getImageHelper().get(file);
+                if (image != null) {
+                    Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()),
+                        Rect.makeXYWH(x, y, width, height), blurPaint, true);
+                }
             }
         }
     }

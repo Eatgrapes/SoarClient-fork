@@ -1,35 +1,34 @@
 package com.soarclient.mixin.mixins.minecraft.client.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.soarclient.management.mod.impl.render.OverlayEditorMod;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ScreenEffectRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.soarclient.management.mod.impl.render.OverlayEditorMod;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.hud.InGameOverlayRenderer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-
-@Mixin(InGameOverlayRenderer.class)
+@Mixin(ScreenEffectRenderer.class)
 public class MixinInGameOverlayRenderer {
 
-	@Inject(method = "renderUnderwaterOverlay", at = @At("HEAD"), cancellable = true)
-	private static void renderUnderwaterOverlay(MinecraftClient client, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, CallbackInfo ci) {
+    @Inject(method = "submitWater", at = @At("HEAD"), cancellable = true)
+    private static void clearWater(Minecraft minecraft, PoseStack poseStack,
+            SubmitNodeCollector collector, CallbackInfo ci) {
+        OverlayEditorMod mod = OverlayEditorMod.getInstance();
+        if (mod != null && mod.isEnabled() && mod.isClearWater()) {
+            ci.cancel();
+        }
+    }
 
-		if (OverlayEditorMod.getInstance().isEnabled() && OverlayEditorMod.getInstance().isClearWater()) {
-			ci.cancel();
-		}
-	}
-
-	@Inject(method = "renderFireOverlay", at = @At("HEAD"), cancellable = true)
-	private static void renderFireOverlay(MatrixStack matrices, VertexConsumerProvider vertexConsumers,
-			CallbackInfo ci) {
-
-		if (OverlayEditorMod.getInstance().isEnabled() && OverlayEditorMod.getInstance().isClearFire()) {
-			ci.cancel();
-		}
-	}
+    @Inject(method = "submitFire", at = @At("HEAD"), cancellable = true)
+    private static void clearFire(PoseStack poseStack, SubmitNodeCollector collector,
+            TextureAtlasSprite sprite, CallbackInfo ci) {
+        OverlayEditorMod mod = OverlayEditorMod.getInstance();
+        if (mod != null && mod.isEnabled() && mod.isClearFire()) {
+            ci.cancel();
+        }
+    }
 }

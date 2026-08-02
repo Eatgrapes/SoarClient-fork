@@ -3,12 +3,12 @@ package com.soarclient.management.mod;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.impl.ModToggleEvent;
 import com.soarclient.utils.language.I18n;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class Mod {
 
-	protected MinecraftClient client = MinecraftClient.getInstance();
+	protected Minecraft client = Minecraft.getInstance();
 	private final String name, description, icon;
 	private boolean enabled, movable, hidden;
 	private ModCategory category;
@@ -54,7 +54,7 @@ public class Mod {
 		EventBus.getInstance().unregister(this);
 	}
 
-	public void onRender3D(DrawContext context, float partialTicks) {}
+	public void onRender3D(GuiGraphicsExtractor context, float partialTicks) {}
 
 	public String getName() {
 		return I18n.get(name);

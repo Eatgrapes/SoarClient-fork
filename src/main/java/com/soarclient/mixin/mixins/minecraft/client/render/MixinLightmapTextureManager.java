@@ -1,21 +1,22 @@
 package com.soarclient.mixin.mixins.minecraft.client.render;
 
+import com.soarclient.management.mod.impl.render.FullbrightMod;
+import net.minecraft.client.renderer.LightmapRenderStateExtractor;
+import net.minecraft.client.renderer.state.LightmapRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import com.soarclient.management.mod.impl.render.FullbrightMod;
-
-import net.minecraft.client.render.LightmapTextureManager;
-
-@Mixin(LightmapTextureManager.class)
+@Mixin(LightmapRenderStateExtractor.class)
 public class MixinLightmapTextureManager {
 
-    @ModifyExpressionValue(method = "update(F)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/SimpleOption;getValue()Ljava/lang/Object;", ordinal = 1))
-    private Object injectFullBright(Object original) {
-        if (FullbrightMod.getInstance().isEnabled()) {
-            return Double.valueOf(FullbrightMod.getInstance().getGamma());
+    @Inject(method = "extract", at = @At("TAIL"))
+    private void applyFullbright(LightmapRenderState state, float partialTicks, CallbackInfo ci) {
+        FullbrightMod mod = FullbrightMod.getInstance();
+        if (mod != null && mod.isEnabled()) {
+            state.brightness = mod.getGamma();
+            state.needsUpdate = true;
         }
-        return original;
     }
 }

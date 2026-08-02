@@ -1,134 +1,120 @@
 package com.soarclient.skia.image;
 
-import com.soarclient.skia.context.SkiaContext;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.soarclient.skia.utils.SkiaUtils;
-import com.soarclient.utils.ImageUtils;
-import io.github.humbleui.skija.*;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.DynamicTexture;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import org.lwjgl.opengl.GL11;
-
-import java.io.*;
+import io.github.humbleui.skija.ColorAlphaType;
+import io.github.humbleui.skija.ColorType;
+import io.github.humbleui.skija.Image;
+import io.github.humbleui.skija.ImageInfo;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 
-public class ImageHelper {
+public class ImageHelper implements AutoCloseable {
 
-    private final Map<String, Image> images = new HashMap<>();
-    private final Map<Integer, Image> textures = new HashMap<>();
+	private final Map<String, Image> images = new HashMap<>();
 
-    public boolean load(int texture, float width, float height, SurfaceOrigin origin) {
+	public boolean load(Identifier identifier) {
+		String key = identifier.toString();
+		if (images.containsKey(key)) {
+			return true;
+		}
 
-        if (!textures.containsKey(texture)) {
-            Image image = Image.adoptGLTextureFrom(SkiaContext.getContext(), texture, GL11.GL_TEXTURE_2D, (int) width,
-                (int) height, GL11.GL_RGBA8, origin, ColorType.RGBA_8888);
-            textures.put(texture, image);
-        }
+		Minecraft minecraft = Minecraft.getInstance();
+		var texture = minecraft.getTextureManager().getTexture(identifier);
+		if (texture instanceof DynamicTexture dynamicTexture) {
+			NativeImage pixels = dynamicTexture.getPixels();
+			if (pixels != null) {
+				images.put(key, nativeImageToSkijaImage(pixels));
+				return true;
+			}
+		}
 
-        return true;
-    }
+		try {
+			var resource = minecraft.getResourceManager().getResource(identifier);
+			if (resource.isPresent()) {
+				try (InputStream stream = resource.get().open()) {
+					images.put(key, Image.makeDeferredFromEncodedBytes(stream.readAllBytes()));
+					return true;
+				}
+			}
+		} catch (Exception ignored) {
+		}
+		return false;
+	}
 
-    public boolean load(Identifier identifier) {
-        if (images.containsKey(identifier.getPath())) return true;
+	public boolean load(String filePath) {
+		if (!images.containsKey(filePath)) {
+			Optional<byte[]> encodedBytes = SkiaUtils.convertToBytes(filePath);
+			if (encodedBytes.isEmpty()) {
+				return false;
+			}
+			images.put(filePath, Image.makeDeferredFromEncodedBytes(encodedBytes.get()));
+		}
+		return true;
+	}
 
-        var mc = MinecraftClient.getInstance();
-        var texture = mc.getTextureManager().getTexture(identifier);
+	public boolean load(File file) {
+		String key = file.getAbsolutePath();
+		if (!images.containsKey(key)) {
+			try (FileInputStream stream = new FileInputStream(file)) {
+				images.put(key, Image.makeDeferredFromEncodedBytes(stream.readAllBytes()));
+			} catch (IOException exception) {
+				return false;
+			}
+		}
+		return true;
+	}
 
-        if (texture instanceof NativeImageBackedTexture nbt) {
-            var ni = nbt.getImage();
-            if (ni != null) {
-                images.put(identifier.getPath(), nativeImageToSkijaImage(ni));
-                return true;
-            }
-        } else {
-            try {
-                var resource = mc.getResourceManager().getResource(identifier);
-                if (resource.isPresent()) {
-                    try (InputStream is = resource.get().getInputStream()) {
-                        images.put(identifier.getPath(), Image.makeDeferredFromEncodedBytes(is.readAllBytes()));
-                        return true;
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-        return false;
-    }
+	public Image get(String path) {
+		return images.get(path);
+	}
 
-    public boolean load(String filePath) {
-        if (!images.containsKey(filePath)) {
-            Optional<byte[]> encodedBytes = SkiaUtils.convertToBytes(filePath);
-            if (encodedBytes.isPresent()) {
-                Image image = Image.makeDeferredFromEncodedBytes(encodedBytes.get());
-                images.put(filePath, image);
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
+	public Image get(Identifier identifier) {
+		return images.get(identifier.toString());
+	}
 
-    public boolean load(File file) {
+	public Image get(File file) {
+		return images.get(file.getAbsolutePath());
+	}
 
-        if (!images.containsKey(file.getName())) {
+	public void put(Identifier identifier, Image image) {
+		Image previous = images.put(identifier.toString(), image);
+		if (previous != null) {
+			previous.close();
+		}
+	}
 
-            try {
-                byte[] encoded = org.apache.commons.io.IOUtils.toByteArray(new FileInputStream(file));
-                Image image = Image.makeDeferredFromEncodedBytes(encoded);
-                images.put(file.getName(), image);
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
+	public void remove(Identifier identifier) {
+		Image image = images.remove(identifier.toString());
+		if (image != null) {
+			image.close();
+		}
+	}
 
-        return true;
-    }
+	@Override
+	public void close() {
+		images.values().forEach(Image::close);
+		images.clear();
+	}
 
-    public Image get(String path) {
-
-        if (images.containsKey(path)) {
-            return images.get(path);
-        }
-
-        return null;
-    }
-
-    public Image get(int texture) {
-
-        if (textures.containsKey(texture)) {
-            return textures.get(texture);
-        }
-
-        return null;
-    }
-
-    public static Image nativeImageToSkijaImage(NativeImage nativeImage) {
-        int[] pixels = nativeImage.copyPixelsAbgr();
-
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(pixels.length * 4);
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        byteBuffer.asIntBuffer().put(pixels);
-
-        byte[] byteArray = new byte[byteBuffer.remaining()];
-        byteBuffer.get(byteArray);
-
-        ImageInfo info = new ImageInfo(
-            nativeImage.getWidth(),
-            nativeImage.getHeight(),
-            ColorType.RGBA_8888,
-            ColorAlphaType.PREMUL
-        );
-
-        return Image.makeRasterFromBytes(info, byteArray, nativeImage.getWidth() * 4L);
-    }
+	public static Image nativeImageToSkijaImage(NativeImage nativeImage) {
+		int[] pixels = nativeImage.getPixelsABGR();
+		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(pixels.length * 4).order(ByteOrder.LITTLE_ENDIAN);
+		byteBuffer.asIntBuffer().put(pixels);
+		byte[] byteArray = new byte[pixels.length * 4];
+		byteBuffer.position(0);
+		byteBuffer.get(byteArray);
+		ImageInfo info = new ImageInfo(nativeImage.getWidth(), nativeImage.getHeight(), ColorType.RGBA_8888, ColorAlphaType.UNPREMUL);
+		return Image.makeRasterFromBytes(info, byteArray, nativeImage.getWidth() * 4L);
+	}
 }

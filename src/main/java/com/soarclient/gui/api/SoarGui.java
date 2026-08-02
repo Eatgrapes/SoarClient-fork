@@ -1,6 +1,5 @@
 package com.soarclient.gui.api;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.soarclient.Soar;
 import com.soarclient.animation.Animation;
 import com.soarclient.animation.Duration;
@@ -10,18 +9,14 @@ import com.soarclient.gui.api.page.SimplePage;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.management.config.ConfigType;
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
-import com.soarclient.shader.ShaderHelper;
-import com.soarclient.shader.impl.KawaseBlur;
 import com.soarclient.skia.Skia;
 import com.soarclient.ui.component.Component;
 import com.soarclient.utils.Multithreading;
-import io.github.humbleui.skija.SurfaceOrigin;
-import net.minecraft.client.gui.screen.Screen;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.gui.screens.Screen;
 
 public abstract class SoarGui extends SimpleSoarGui {
 
@@ -66,8 +61,8 @@ public abstract class SoarGui extends SimpleSoarGui {
 		ColorPalette palette = Soar.getInstance().getColorManager().getPalette();
 
 		if (ModMenuSettings.getInstance().getBlurSetting().isEnabled()) {
-			Skia.drawImage(KawaseBlur.GUI_BLUR.getTexture(), 0, 0, client.getWindow().getWidth(),
-					client.getWindow().getHeight(), inOutAnimation.getValue(), SurfaceOrigin.BOTTOM_LEFT);
+			Skia.drawBlur(0, 0, client.getWindow().getWidth(), client.getWindow().getHeight(),
+					ModMenuSettings.getInstance().getBlurIntensitySetting().getValue(), (float) inOutAnimation.getValue());
 		}
 
 		Skia.save();
@@ -128,7 +123,7 @@ public abstract class SoarGui extends SimpleSoarGui {
 		Skia.restore();
 
 		if (inOutAnimation.getEnd() == 0 && inOutAnimation.isFinished()) {
-			client.setScreen(nextScreen);
+			client.gui.setScreen(nextScreen);
 			nextScreen = null;
 		}
 	}
@@ -196,14 +191,6 @@ public abstract class SoarGui extends SimpleSoarGui {
         if (inOutAnimation.getEnd() == 1) {
             this.nextScreen = nextScreen;
             inOutAnimation = new EaseEmphasizedDecelerate(Duration.EXTRA_LONG_1, 1, 0);
-
-            ShaderHelper.disableBlend();
-            ShaderHelper.disableCull();
-            RenderSystem.disableScissor();
-            RenderSystem.disableDepthTest();
-            GL11.glDisable(GL11.GL_BLEND);
-            GL11.glDisable(GL11.GL_DEPTH_TEST);
-            GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
             Multithreading.runAsync(() -> {
                 Soar.getInstance().getConfigManager().save(ConfigType.MOD);

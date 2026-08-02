@@ -1,20 +1,19 @@
 package com.soarclient.event.client;
 
 import com.soarclient.event.Event;
-
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class RenderHotbarEvent extends Event {
 
-    private final DrawContext context;
+    private final GuiGraphicsExtractor context;
     private final float tickDelta;
 
-    public RenderHotbarEvent(DrawContext context, float tickDelta) {
+    public RenderHotbarEvent(GuiGraphicsExtractor context, float tickDelta) {
         this.context = context;
         this.tickDelta = tickDelta;
     }
 
-    public DrawContext getContext() {
+    public GuiGraphicsExtractor getContext() {
         return context;
     }
 

@@ -1,7 +1,7 @@
 package com.soarclient.mixin.interfaces;
 
-import net.minecraft.util.Hand;
+import net.minecraft.world.InteractionHand;
 
 public interface IMixinLivingEntity {
-	void fakeSwingHand(Hand hand);
+	void fakeSwingHand(InteractionHand hand);
 }

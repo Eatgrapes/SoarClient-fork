@@ -1,24 +1,25 @@
 package com.soarclient.management.cape;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.texture.NativeImageBackedTexture;
-import net.minecraft.util.Identifier;
-
+import com.mojang.blaze3d.platform.NativeImage;
+import com.soarclient.skia.Skia;
+import com.soarclient.skia.image.ImageHelper;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.resources.Identifier;
 
 public class CapeManager implements Closeable {
     private static CapeManager instance;
 
     private final Map<String, Identifier> loadedCapes = Collections.synchronizedMap(new HashMap<>());
-    private final Map<Identifier, NativeImageBackedTexture> loadedCapeTextures = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Identifier, DynamicTexture> loadedCapeTextures = Collections.synchronizedMap(new HashMap<>());
 
     private String selectedCapeId = null;
+    private volatile boolean closed;
 
     private final String namespace = "soar-capes";
     private final ExecutorService executorService = Executors.newCachedThreadPool();
@@ -49,17 +50,32 @@ public class CapeManager implements Closeable {
     }
 
     public void loadCape(String id, byte[] textureData) {
-        if (id == null || textureData == null) return;
+        if (closed || id == null || textureData == null) return;
 
         executorService.submit(() -> {
-            RenderSystem.recordRenderCall(() -> {
-                NativeImageBackedTexture nativeImage = createNativeTexture(textureData);
-                if (nativeImage != null) {
-                    Identifier identifier = Identifier.of("soar", namespace + "/" + id);
-                    MinecraftClient.getInstance().getTextureManager().registerTexture(identifier, nativeImage);
-                    loadedCapes.put(id, identifier);
-                    loadedCapeTextures.put(identifier, nativeImage);
+            NativeImage pixels;
+            try {
+                pixels = NativeImage.read(textureData);
+            } catch (IOException exception) {
+                throw new RuntimeException(exception);
+            }
+
+            if (closed) {
+                pixels.close();
+                return;
+            }
+
+            Minecraft.getInstance().execute(() -> {
+                if (closed) {
+                    pixels.close();
+                    return;
                 }
+                DynamicTexture nativeImage = new DynamicTexture(() -> "Soar cape " + id, pixels);
+                Identifier identifier = Identifier.fromNamespaceAndPath("soar", namespace + "/" + id);
+                Skia.getImageHelper().put(identifier, ImageHelper.nativeImageToSkijaImage(pixels));
+                Minecraft.getInstance().getTextureManager().register(identifier, nativeImage);
+                loadedCapes.put(id, identifier);
+                loadedCapeTextures.put(identifier, nativeImage);
             });
         });
     }
@@ -73,11 +89,9 @@ public class CapeManager implements Closeable {
 
         Identifier cape = loadedCapes.remove(id);
         if (cape != null) {
-            NativeImageBackedTexture texture = loadedCapeTextures.remove(cape);
-            if (texture != null) {
-                texture.close();
-            }
-            MinecraftClient.getInstance().getTextureManager().destroyTexture(cape);
+            loadedCapeTextures.remove(cape);
+            Skia.getImageHelper().remove(cape);
+            Minecraft.getInstance().getTextureManager().release(cape);
         }
     }
 
@@ -89,17 +103,9 @@ public class CapeManager implements Closeable {
         return new HashSet<>(loadedCapes.keySet());
     }
 
-    private static NativeImageBackedTexture createNativeTexture(byte[] bytes) {
-        if (bytes == null) return null;
-        try {
-            return new NativeImageBackedTexture(NativeImage.read(bytes));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Override
     public void close() {
+        closed = true;
         selectedCapeId = null;
         new HashMap<>(loadedCapes).keySet().forEach(this::unloadCape);
         executorService.shutdown();

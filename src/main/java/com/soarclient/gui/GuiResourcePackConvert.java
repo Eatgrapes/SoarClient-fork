@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.CommonColors;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.soarclient.libraries.resourcepack.ResourcePackConverter;
@@ -19,10 +22,6 @@ import com.soarclient.utils.Multithreading;
 import com.soarclient.utils.file.FileLocation;
 
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
-import net.minecraft.util.Colors;
 
 public class GuiResourcePackConvert extends Screen {
 
@@ -30,7 +29,7 @@ public class GuiResourcePackConvert extends Screen {
 	private Screen prevScreen;
 	
 	public GuiResourcePackConvert(Screen prevScreen) {
-		super(Text.of("PackConvert"));
+		super(Component.nullToEmpty("PackConvert"));
 		this.prevScreen = prevScreen;
 	}
 
@@ -45,15 +44,15 @@ public class GuiResourcePackConvert extends Screen {
 					e.printStackTrace();
 				}
 			}
-			client.setScreen(prevScreen);
+			minecraft.execute(() -> minecraft.gui.setScreen(prevScreen));
 		});
 		super.init();
 	}
 	
 	@Override
-	public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-		super.render(context, mouseX, mouseY, delta);
-		context.drawCenteredTextWithShadow(this.textRenderer, Text.of(progress), this.width / 2, this.height / 2 - 50, Colors.WHITE);
+	public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+		super.extractRenderState(context, mouseX, mouseY, delta);
+		context.centeredText(this.font, Component.nullToEmpty(progress), this.width / 2, this.height / 2 - 50, CommonColors.WHITE);
 	}
 	
 	private ResourcePackConverter createConverter() {
@@ -72,7 +71,7 @@ public class GuiResourcePackConvert extends Screen {
 			try {
 				
 				File targetFile = new File(cacheDir, f.getName());
-				File packDir = new File(client.runDirectory, "resourcepacks");
+				File packDir = new File(minecraft.gameDirectory, "resourcepacks");
 				File outputFile = new File(packDir, f.getName());
 				
 				Files.move(f.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
@@ -130,7 +129,7 @@ public class GuiResourcePackConvert extends Screen {
 	private List<File> getOldResourcePacks() {
 
 		List<File> files = new ArrayList<>();
-		File packDir = new File(client.runDirectory, "resourcepacks");
+		File packDir = new File(minecraft.gameDirectory, "resourcepacks");
 
 		for (File f : packDir.listFiles()) {
 			if (f.getName().endsWith(".zip")) {

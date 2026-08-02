@@ -2,13 +2,13 @@ package com.soarclient.mixin.mixins.minecraft.client;
 
 
 import com.ibm.icu.impl.data.ResourceReader;
-import net.minecraft.client.util.Icons;
-import net.minecraft.client.util.Window;
-import net.minecraft.resource.ResourcePack;
+import com.mojang.blaze3d.platform.IconSet;
+import com.mojang.blaze3d.platform.Window;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -20,18 +20,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import net.minecraft.server.packs.PackResources;
 
 @Mixin(Window.class)
 public abstract class MixinWindow {
-    @Shadow
-    public abstract long getHandle();
+	    @Shadow @Final private long handle;
 
     @Inject(method = "setIcon", at = @At(value = "HEAD"), cancellable = true)
-    public void onSetIcon(ResourcePack resourcePack, Icons icons, CallbackInfo ci) {
+    public void onSetIcon(PackResources resourcePack, IconSet icons, CallbackInfo ci) {
 
         String path = "assets/soar/logo.dark.png";
         try (InputStream inputStream = ResourceReader.class.getClassLoader().getResourceAsStream(path)) {
-            setWindowIcon(getHandle(), inputStream);
+            setWindowIcon(handle, inputStream);
             ci.cancel();
         } catch (IOException e) {
             e.printStackTrace();

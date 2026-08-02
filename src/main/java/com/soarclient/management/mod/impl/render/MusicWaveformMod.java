@@ -28,8 +28,8 @@ public class MusicWaveformMod extends Mod {
 		if (musicManager.isPlaying()) {
 			for (int i = 0; i < MusicPlayer.SPECTRUM_BANDS; i++) {
 				MusicPlayer.ANIMATIONS[i].onTick(MusicPlayer.VISUALIZER[i], 15);
-				Skia.drawRect(offsetX, client.getWindow().getScaledHeight() + (MusicPlayer.ANIMATIONS[i].getValue() * 0.6f), 19,
-						client.getWindow().getScaledHeight(), ColorUtils.applyAlpha(m.getColor(), 80));
+				Skia.drawRect(offsetX, client.getWindow().getGuiScaledHeight() + (MusicPlayer.ANIMATIONS[i].getValue() * 0.6f), 19,
+						client.getWindow().getGuiScaledHeight(), ColorUtils.applyAlpha(m.getColor(), 80));
 
 				offsetX += 19;
 			}

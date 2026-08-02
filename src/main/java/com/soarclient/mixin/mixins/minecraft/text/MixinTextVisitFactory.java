@@ -2,19 +2,19 @@ package com.soarclient.mixin.mixins.minecraft.text;
 
 import com.soarclient.Soar;
 import com.soarclient.management.mod.impl.misc.NameProtectMod;
-import net.minecraft.text.TextVisitFactory;
+import net.minecraft.util.StringDecomposer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(TextVisitFactory.class)
+@Mixin(StringDecomposer.class)
 public class MixinTextVisitFactory {
 
     @ModifyArg(
-        method = "visitFormatted(Ljava/lang/String;ILnet/minecraft/text/Style;Lnet/minecraft/text/CharacterVisitor;)Z",
+        method = "iterateFormatted(Ljava/lang/String;ILnet/minecraft/network/chat/Style;Lnet/minecraft/util/FormattedCharSink;)Z",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/text/TextVisitFactory;visitFormatted(Ljava/lang/String;ILnet/minecraft/text/Style;Lnet/minecraft/text/Style;Lnet/minecraft/text/CharacterVisitor;)Z",
+            target = "Lnet/minecraft/util/StringDecomposer;iterateFormatted(Ljava/lang/String;ILnet/minecraft/network/chat/Style;Lnet/minecraft/network/chat/Style;Lnet/minecraft/util/FormattedCharSink;)Z",
             ordinal = 0
         ),
         index = 0

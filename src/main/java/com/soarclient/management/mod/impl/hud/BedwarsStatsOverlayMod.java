@@ -1,7 +1,7 @@
 package com.soarclient.management.mod.impl.hud;
 
 import java.io.File;
-
+import net.minecraft.client.multiplayer.PlayerInfo;
 import com.soarclient.Soar;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderSkiaEvent;
@@ -14,8 +14,6 @@ import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.SkinUtils;
 import com.soarclient.utils.server.Server;
 import com.soarclient.utils.server.ServerUtils;
-
-import net.minecraft.client.network.PlayerListEntry;
 
 public class BedwarsStatsOverlayMod extends HUDMod {
 
@@ -46,21 +44,21 @@ public class BedwarsStatsOverlayMod extends HUDMod {
 
 		if (ServerUtils.isJoin(Server.HYPIXEL)) {
 
-			for (PlayerListEntry player : client.getNetworkHandler().getPlayerList()) {
+			for (PlayerInfo player : client.getConnection().getOnlinePlayers()) {
 
 				if (player.getProfile() == null) {
 					continue;
 				}
 
-				String name = player.getProfile().getName();
-				String uuid = player.getProfile().getId().toString().replace("-", "");
+				String name = player.getProfile().name();
+				String uuid = player.getProfile().id().toString().replace("-", "");
 				HypixelUser hypixelUser = Soar.getInstance().getHypixelManager().getByUuid(uuid);
 
 				if (hypixelUser != null && !hypixelUser.getBedwarsLevel().equals("-1")) {
 
-					if (player.getSkinTextures() != null) {
+					if (player.getSkin() != null) {
 
-						var texture = player.getSkinTextures().texture();
+						var texture = player.getSkin().body().texturePath();
                         Skia.drawPlayerHead(texture, getX() + 5.5F, getY() + offsetY, 12, 12, 2.5F);
 					}
 

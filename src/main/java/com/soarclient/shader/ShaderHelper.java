@@ -27,13 +27,11 @@ import static org.lwjgl.opengl.GL20C.glUniform3fv;
 import static org.lwjgl.opengl.GL20C.glUniform4f;
 
 import java.nio.ByteBuffer;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.Identifier;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.soarclient.mixin.mixins.minecraft.client.render.BufferRendererAccessor;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.AbstractTexture;
-import net.minecraft.util.Identifier;
 
 public class ShaderHelper {
 
@@ -175,8 +173,8 @@ public class ShaderHelper {
 	}
 
 	public static void bindTexture(Identifier id) {
-		AbstractTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(id);
-		bindTexture(texture.getGlId(), 0);
+		AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(id);
+		bindTexture(texture.getId(), 0);
 	}
 
 	public static void bindTexture(int i, int slot) {

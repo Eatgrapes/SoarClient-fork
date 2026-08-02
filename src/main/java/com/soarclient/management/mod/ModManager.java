@@ -3,7 +3,7 @@ package com.soarclient.management.mod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import com.soarclient.management.mod.api.hud.HUDMod;
 import com.soarclient.management.mod.api.hud.design.HUDDesign;
 import com.soarclient.management.mod.api.hud.design.impl.ClassicDesign;
@@ -20,7 +20,6 @@ import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import com.soarclient.management.mod.impl.settings.SystemSettings;
 import com.soarclient.management.mod.settings.Setting;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
-import net.minecraft.client.gui.DrawContext;
 
 public class ModManager {
 
@@ -66,7 +65,6 @@ public class ModManager {
 		mods.add(new ServerIPDisplayMod());
 		mods.add(new SpeedometerMod());
 		mods.add(new StopwatchMod());
-		mods.add(new WebBrowserMod());
 		mods.add(new WeatherDisplayMod());
 		mods.add(new YawDisplayMod());
         mods.add(new CPSDisplayMod());
@@ -125,7 +123,7 @@ public class ModManager {
 		setCurrentDesign("design.simple");
 	}
 
-    public void onRender3D(DrawContext context, float partialTicks) {
+    public void onRender3D(GuiGraphicsExtractor context, float partialTicks) {
         for (Mod mod : mods) {
             if (mod.isEnabled()) {
                 mod.onRender3D(context, partialTicks);

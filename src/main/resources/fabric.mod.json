@@ -14,13 +14,15 @@
 		"homepage": "https://eatgrapes.github.io/Soar-fork_Web/"
 	},
 	"icon": "assets/soar/logo.png",
-	"environment": "*",
+	"environment": "client",
+	"accessWidener": "soar.accesswidener",
 	"mixins": [
 		"soar.mixins.json"
 	],
 	"depends": {
-		"fabricloader": ">=0.16.10",
-		"fabric": "*",
-		"minecraft": "1.21.4"
+		"fabricloader": ">=0.19.3",
+		"fabric-api": "*",
+		"minecraft": "~26.2",
+		"java": ">=25"
 	}
 }

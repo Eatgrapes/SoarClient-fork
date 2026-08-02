@@ -2,16 +2,18 @@ package com.soarclient.gui.api;
 
 import com.soarclient.skia.Skia;
 import com.soarclient.skia.context.SkiaContext;
-
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 
 public class SimpleSoarGui {
 
-	protected MinecraftClient client = MinecraftClient.getInstance();
-	private boolean mcScale;
+	protected Minecraft client = Minecraft.getInstance();
+	private final boolean mcScale;
 
 	public SimpleSoarGui(boolean mcScale) {
 		this.mcScale = mcScale;
@@ -39,7 +41,7 @@ public class SimpleSoarGui {
 	}
 
 	public Screen build() {
-		return new Screen(Text.empty()) {
+		return new Screen(Component.empty()) {
 
 			@Override
 			public void init() {
@@ -47,57 +49,55 @@ public class SimpleSoarGui {
 			}
 
 			@Override
-			public void renderBackground(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-
-				SkiaContext.draw((skiaContext) -> {
-
+			public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float deltaTicks) {
+				SkiaContext.draw(canvas -> {
 					Skia.save();
-
 					if (mcScale) {
-						Skia.scale((float) client.getWindow().getScaleFactor());
+						Skia.scale((float) minecraft.getWindow().getGuiScale());
 					}
-
-					SimpleSoarGui.this.draw(mcScale ? mouseX : client.mouse.getX(),
-							mcScale ? mouseY : client.mouse.getY());
+					SimpleSoarGui.this.draw(mcScale ? mouseX : minecraft.mouseHandler.xpos(),
+							mcScale ? mouseY : minecraft.mouseHandler.ypos());
 					Skia.restore();
 				});
 			}
 
 			@Override
-			public boolean mouseClicked(double mouseX, double mouseY, int button) {
-				SimpleSoarGui.this.mousePressed(mcScale ? mouseX : client.mouse.getX(),
-						mcScale ? mouseY : client.mouse.getY(), button);
+			public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+				SimpleSoarGui.this.mousePressed(mcScale ? event.x() : minecraft.mouseHandler.xpos(),
+						mcScale ? event.y() : minecraft.mouseHandler.ypos(), event.button());
 				return true;
 			}
 
 			@Override
-			public boolean mouseReleased(double mouseX, double mouseY, int button) {
-				SimpleSoarGui.this.mouseReleased(mcScale ? mouseX : client.mouse.getX(),
-						mcScale ? mouseY : (int) client.mouse.getY(), button);
+			public boolean mouseReleased(MouseButtonEvent event) {
+				SimpleSoarGui.this.mouseReleased(mcScale ? event.x() : minecraft.mouseHandler.xpos(),
+						mcScale ? event.y() : minecraft.mouseHandler.ypos(), event.button());
 				return true;
 			}
 
 			@Override
 			public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-				SimpleSoarGui.this.mouseScrolled(mcScale ? mouseX : client.mouse.getX(),
-						mcScale ? mouseY : (int) client.mouse.getY(), horizontalAmount, verticalAmount);
+				SimpleSoarGui.this.mouseScrolled(mcScale ? mouseX : minecraft.mouseHandler.xpos(),
+						mcScale ? mouseY : minecraft.mouseHandler.ypos(), horizontalAmount, verticalAmount);
 				return true;
 			}
 
 			@Override
-			public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-				SimpleSoarGui.this.keyPressed(keyCode, scanCode, modifiers);
+			public boolean keyPressed(KeyEvent event) {
+				SimpleSoarGui.this.keyPressed(event.key(), event.scancode(), event.modifiers());
 				return true;
 			}
 
 			@Override
-			public boolean charTyped(char chr, int modifiers) {
-				SimpleSoarGui.this.charTyped(chr, modifiers);
+			public boolean charTyped(CharacterEvent event) {
+				if (Character.isBmpCodePoint(event.codepoint())) {
+					SimpleSoarGui.this.charTyped((char) event.codepoint(), 0);
+				}
 				return true;
 			}
 
 			@Override
-			public boolean shouldPause() {
+			public boolean isPauseScreen() {
 				return false;
 			}
 		};

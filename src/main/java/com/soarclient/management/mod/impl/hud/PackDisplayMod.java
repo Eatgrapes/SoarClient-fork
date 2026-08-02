@@ -11,16 +11,7 @@ import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.ColorUtils;
 import com.soarclient.utils.TimerUtils;
 import io.github.humbleui.skija.*;
-import io.github.humbleui.skija.Font;
 import io.github.humbleui.types.Rect;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.resource.InputSupplier;
-import net.minecraft.resource.ResourcePack;
-import net.minecraft.resource.ResourcePackManager;
-import net.minecraft.resource.ResourcePackProfile;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +23,13 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackResources;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.resources.IoSupplier;
 
 public class PackDisplayMod extends SimpleHUDMod {
     private static final Logger LOGGER = LoggerFactory.getLogger(PackDisplayMod.class);
@@ -43,7 +41,7 @@ public class PackDisplayMod extends SimpleHUDMod {
         }
     };
 
-    private final MinecraftClient mc = MinecraftClient.getInstance();
+    private final Minecraft mc = Minecraft.getInstance();
     private final TimerUtils animationTimer = new TimerUtils();
     private float mx, my, dx, dy;
 
@@ -58,7 +56,7 @@ public class PackDisplayMod extends SimpleHUDMod {
     }
 
     public EventBus.EventListener<RenderSkiaEvent> onRenderSkia = event -> {
-        if (!isEnabled() || mc.world == null) { return; }
+        if (!isEnabled() || mc.level == null) { return; }
         String type = typeSetting.getOption();
         if (type.equals("setting.simple")) {
             this.draw();
@@ -68,14 +66,14 @@ public class PackDisplayMod extends SimpleHUDMod {
     };
 
     private void drawInfo() {
-        ResourcePackManager resourcePackManager = mc.getResourcePackManager();
-        List<ResourcePackProfile> enabledPacks = resourcePackManager.getEnabledProfiles().stream()
-            .filter(p -> !p.isPinned())
+        PackRepository resourcePackManager = mc.getResourcePackRepository();
+        List<Pack> enabledPacks = resourcePackManager.getSelectedPacks().stream()
+            .filter(p -> !p.isFixedPosition())
             .collect(Collectors.toList());
 
-        ResourcePackProfile profileToRender;
+        Pack profileToRender;
         if (enabledPacks.isEmpty()) {
-            profileToRender = resourcePackManager.getProfile("vanilla");
+            profileToRender = resourcePackManager.getPack("vanilla");
             if (profileToRender == null) {
                 this.draw();
                 return;
@@ -86,7 +84,7 @@ public class PackDisplayMod extends SimpleHUDMod {
 
         if (!profileToRender.getId().equals(cachedPackId)) {
             LOGGER.info("Resource pack changed, updating icon cache for: " + profileToRender.getId());
-            try (ResourcePack resourcePack = profileToRender.createResourcePack()) {
+            try (PackResources resourcePack = profileToRender.open()) {
                 this.cachedPackIcon = extractPackIcon(resourcePack);
                 this.cachedPackId = profileToRender.getId();
             } catch (Exception e) {
@@ -100,7 +98,7 @@ public class PackDisplayMod extends SimpleHUDMod {
         final float height = 45, padding = 4.5f, iconSize = height - (padding * 2), coverSize = 256;
         final Font font = Fonts.getRegular(11);
 
-        String displayName = profileToRender.getDisplayName().getString();
+        String displayName = profileToRender.getTitle().getString();
         String cleanName = displayName.endsWith(".zip") ? displayName.substring(0, displayName.length() - 4) : displayName;
 
         Rect textBounds = Skia.getTextBounds(cleanName, font);
@@ -162,16 +160,16 @@ public class PackDisplayMod extends SimpleHUDMod {
         if (my > maxOffsetY) { my = maxOffsetY; dy = -dy; }
     }
 
-    private File extractPackIcon(ResourcePack resourcePack) {
+    private File extractPackIcon(PackResources resourcePack) {
         try {
-            InputSupplier<InputStream> inputSupplier = null;
+            IoSupplier<InputStream> inputSupplier = null;
             try {
-                inputSupplier = resourcePack.openRoot("pack.png");
+                inputSupplier = resourcePack.getRootResource("pack.png");
             } catch (Exception ignored) {}
 
             if (inputSupplier == null) {
                 try {
-                    inputSupplier = resourcePack.open(ResourceType.CLIENT_RESOURCES, Identifier.of("minecraft", "pack"));
+                    inputSupplier = resourcePack.getResource(PackType.CLIENT_RESOURCES, Identifier.fromNamespaceAndPath("minecraft", "pack"));
                 } catch (Exception ignored) {}
             }
 
@@ -185,7 +183,7 @@ public class PackDisplayMod extends SimpleHUDMod {
 
                 for (String path : paths) {
                     try {
-                        inputSupplier = resourcePack.openRoot(path);
+                        inputSupplier = resourcePack.getRootResource(path);
                         if (inputSupplier != null) break;
                     } catch (Exception ignored) {}
                 }
@@ -194,7 +192,7 @@ public class PackDisplayMod extends SimpleHUDMod {
             if (inputSupplier != null) {
                 try (InputStream inputStream = inputSupplier.get()) {
                     if (inputStream != null) {
-                        String fileName = "pack-icon-" + resourcePack.getId().replaceAll("[^a-zA-Z0-9.-]", "_");
+                        String fileName = "pack-icon-" + resourcePack.packId().replaceAll("[^a-zA-Z0-9.-]", "_");
                         Path tempFile = Files.createTempFile(fileName, ".png");
                         Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
                         File file = tempFile.toFile();
@@ -204,18 +202,20 @@ public class PackDisplayMod extends SimpleHUDMod {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to extract pack icon for " + resourcePack.getId(), e);
+            LOGGER.error("Failed to extract pack icon for " + resourcePack.packId(), e);
         }
         return null;
     }
 
     private void drawBlurredImage(File file, float x, float y, float width, float height, float blurRadius) {
         if(file == null) return;
-        Paint blurPaint = new Paint().setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.REPEAT));
-        if (Skia.getImageHelper().load(file)) {
-            Image image = Skia.getImageHelper().get(file.getName());
-            if (image != null) {
-                Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), blurPaint, true);
+        try (Paint blurPaint = new Paint()) {
+            blurPaint.setImageFilter(ImageFilter.makeBlur(blurRadius, blurRadius, FilterTileMode.REPEAT));
+            if (Skia.getImageHelper().load(file)) {
+                Image image = Skia.getImageHelper().get(file);
+                if (image != null) {
+                    Skia.getCanvas().drawImageRect(image, Rect.makeWH(image.getWidth(), image.getHeight()), Rect.makeXYWH(x, y, width, height), blurPaint, true);
+                }
             }
         }
     }
@@ -257,14 +257,14 @@ public class PackDisplayMod extends SimpleHUDMod {
 
     @Override
     public String getText() {
-        ResourcePackManager resourcePackManager = mc.getResourcePackManager();
-        List<ResourcePackProfile> enabledPacks = resourcePackManager.getEnabledProfiles().stream()
-            .filter(p -> !p.isPinned())
+        PackRepository resourcePackManager = mc.getResourcePackRepository();
+        List<Pack> enabledPacks = resourcePackManager.getSelectedPacks().stream()
+            .filter(p -> !p.isFixedPosition())
             .collect(Collectors.toList());
         if (enabledPacks.isEmpty()) {
             return "Default";
         } else {
-            String displayName = enabledPacks.getLast().getDisplayName().getString();
+            String displayName = enabledPacks.getLast().getTitle().getString();
             return displayName.endsWith(".zip") ? displayName.substring(0, displayName.length() - 4) : displayName;
         }
     }

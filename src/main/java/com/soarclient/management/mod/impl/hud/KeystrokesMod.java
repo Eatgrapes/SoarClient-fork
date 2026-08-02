@@ -2,7 +2,7 @@ package com.soarclient.management.mod.impl.hud;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import net.minecraft.client.KeyMapping;
 import com.soarclient.animation.Animation;
 import com.soarclient.animation.Duration;
 import com.soarclient.animation.cubicbezier.impl.EaseStandard;
@@ -18,8 +18,6 @@ import com.soarclient.skia.font.Fonts;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.ColorUtils;
 
-import net.minecraft.client.option.KeyBinding;
-
 public class KeystrokesMod extends HUDMod {
 
 	private List<Panel> panels = new ArrayList<>();
@@ -34,11 +32,11 @@ public class KeystrokesMod extends HUDMod {
 	public KeystrokesMod() {
 		super("mod.keystrokes.name", "mod.keystrokes.description", Icon.KEYBOARD);
 
-		panels.add(new Panel(client.options.forwardKey, 32, 0));
-		panels.add(new Panel(client.options.leftKey, 0, 32));
-		panels.add(new Panel(client.options.backKey, 32, 32));
-		panels.add(new Panel(client.options.rightKey, 64, 32));
-		panels.add(new Panel(client.options.jumpKey, 0, 64, 92, 22, true));
+		panels.add(new Panel(client.options.keyUp, 32, 0));
+		panels.add(new Panel(client.options.keyLeft, 0, 32));
+		panels.add(new Panel(client.options.keyDown, 32, 32));
+		panels.add(new Panel(client.options.keyRight, 64, 32));
+		panels.add(new Panel(client.options.keyJump, 0, 64, 92, 22, true));
 	}
 
 	@Override
@@ -88,11 +86,11 @@ public class KeystrokesMod extends HUDMod {
 	private class Panel {
 
 		private float x, y, width, height;
-		private KeyBinding keyBinding;
+		private KeyMapping keyBinding;
 		private boolean jumpKey;
 		private Animation animation;
 
-		private Panel(KeyBinding keyBinding, float x, float y, float width, float height, boolean jumpKey) {
+		private Panel(KeyMapping keyBinding, float x, float y, float width, float height, boolean jumpKey) {
 			this.x = x;
 			this.y = y;
 			this.width = width;
@@ -102,7 +100,7 @@ public class KeystrokesMod extends HUDMod {
 			this.animation = new DummyAnimation(0);
 		}
 
-		private Panel(KeyBinding keyBinding, float x, float y) {
+		private Panel(KeyMapping keyBinding, float x, float y) {
 			this(keyBinding, x, y, 28, 28, false);
 		}
 
@@ -111,7 +109,7 @@ public class KeystrokesMod extends HUDMod {
 			KeystrokesMod.this.drawBackground(getX() + x, getY() + y, width, height);
 
 			if (!jumpKey && !unmarkSetting.isEnabled()) {
-				Skia.drawFullCenteredText(keyBinding.getBoundKeyLocalizedText().getString(), getX() + x + (width / 2),
+				Skia.drawFullCenteredText(keyBinding.getTranslatedKeyMessage().getString(), getX() + x + (width / 2),
 						getY() + y + (height / 2), KeystrokesMod.this.getDesign().getTextColor(), Fonts.getRegular(12));
 			}
 
@@ -138,10 +136,10 @@ public class KeystrokesMod extends HUDMod {
 
 		private void update() {
 
-			boolean isKeyDown = snapTapSetting.isEnabled() ? keyBinding.isPressed()
+			boolean isKeyDown = snapTapSetting.isEnabled() ? keyBinding.isDown()
 					: ((IMixinKeyBinding) keyBinding).getRealIsPressed();
 
-			if (isKeyDown && animation.getEnd() != 1 && client.currentScreen == null) {
+			if (isKeyDown && animation.getEnd() != 1 && client.gui.screen() == null) {
 				animation = new EaseStandard(Duration.MEDIUM_3, animation.getValue(), 1);
 			} else if (!isKeyDown && animation.getEnd() != 0) {
 				animation = new EaseStandard(Duration.MEDIUM_3, animation.getValue(), 0);

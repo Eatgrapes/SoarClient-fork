@@ -1,6 +1,6 @@
 package com.soarclient.management.mod.api;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class Position {
 
@@ -121,11 +121,11 @@ public class Position {
 	}
 
 	private float getScreenWidth() {
-		return MinecraftClient.getInstance().getWindow().getScaledWidth();
+		return Minecraft.getInstance().getWindow().getGuiScaledWidth();
 	}
 
 	private float getScreenHeight() {
-		return MinecraftClient.getInstance().getWindow().getScaledHeight();
+		return Minecraft.getInstance().getWindow().getGuiScaledHeight();
 	}
 
 	public float getScale() {

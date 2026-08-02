@@ -1,13 +1,17 @@
 package com.soarclient.mixin.mixins.minecraft.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.SplashOverlay;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.texture.ResourceTexture;
-import net.minecraft.util.Identifier;
+import java.util.Optional;
+import java.util.function.Consumer;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.LoadingOverlay;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.SimpleTexture;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
+import org.joml.Matrix3x2fStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -16,189 +20,135 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-
-@Mixin(SplashOverlay.class)
+@Mixin(LoadingOverlay.class)
 public abstract class MixinSplashScreen {
 
-    @Shadow @Final private MinecraftClient client;
-    @Shadow @Final private boolean reloading;
-    @Shadow @Final private Consumer<Optional<Throwable>> exceptionHandler;
-    @Unique private long soar_animationStartTime = -1L;
-    @Unique private long soar_reloadStartTime = -1L;
-    @Unique private static final long MAX_RELOAD_TIME = 15_000L;
-    @Unique private static final Identifier CUSTOM_LOGO = Identifier.of("soar", "logo.png");
-    @Unique private static final int LOGO_ACTUAL_SIZE = 1080;
-    @Unique private static final float LOGO_SCALE = 0.15f;
-    @Unique private static final long ANIMATION_TOTAL_TIME = 4500L;
-    @Unique private static final long FADE_DURATION = 500L;
-    @Unique private static final int PROGRESS_BAR_HEIGHT = 2;
-    @Unique private static final int PROGRESS_BAR_BASE_COLOR = 0xFFFFFF;
-    @Unique private static final int PROGRESS_BAR_BG_BASE_COLOR = 0x303030;
-    @Unique private int lastWindowWidth = -1;
-    @Unique private int lastWindowHeight = -1;
-    @Unique private boolean skipNextFrame = false;
+	@Shadow @Final private Minecraft minecraft;
+	@Shadow @Final private boolean fadeIn;
+	@Shadow @Final private Consumer<Optional<Throwable>> onFinish;
+	@Unique private long soar_animationStartTime = -1L;
+	@Unique private long soar_reloadStartTime = -1L;
+	@Unique private static final long MAX_RELOAD_TIME = 15_000L;
+	@Unique private static final Identifier CUSTOM_LOGO = Identifier.fromNamespaceAndPath("soar", "logo.png");
+	@Unique private static final int LOGO_ACTUAL_SIZE = 1080;
+	@Unique private static final float LOGO_SCALE = 0.15f;
+	@Unique private static final long ANIMATION_TOTAL_TIME = 4500L;
+	@Unique private static final long FADE_DURATION = 500L;
+	@Unique private static final int PROGRESS_BAR_HEIGHT = 2;
+	@Unique private static final int PROGRESS_BAR_BASE_COLOR = 0xFFFFFF;
+	@Unique private static final int PROGRESS_BAR_BG_BASE_COLOR = 0x303030;
+	@Unique private int lastWindowWidth = -1;
+	@Unique private int lastWindowHeight = -1;
+	@Unique private boolean skipNextFrame;
 
-    @Unique
-    private void ensureLogoTexture() {
-        var tm = this.client.getTextureManager();
-        if (tm.getTexture(CUSTOM_LOGO) == null) {
-            tm.registerTexture(CUSTOM_LOGO, new ResourceTexture(CUSTOM_LOGO));
-        }
-    }
+	@Unique
+	private void ensureLogoTexture() {
+		var textureManager = this.minecraft.getTextureManager();
+		if (textureManager.getTexture(CUSTOM_LOGO) == null) {
+			textureManager.registerAndLoad(CUSTOM_LOGO, new SimpleTexture(CUSTOM_LOGO));
+		}
+	}
 
-    @Inject(method = "render", at = @At("HEAD"), cancellable = true)
-    private void soar_takeOverAndRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        int width = context.getScaledWindowWidth();
-        int height = context.getScaledWindowHeight();
-        if (lastWindowWidth != -1 && lastWindowHeight != -1 &&
-            (width != lastWindowWidth || height != lastWindowHeight)) {
-            skipNextFrame = true;
-        }
+	@Inject(method = "extractRenderState", at = @At("HEAD"), cancellable = true)
+	private void soar_takeOverAndRender(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta, CallbackInfo ci) {
+		int width = graphics.guiWidth();
+		int height = graphics.guiHeight();
+		if (this.lastWindowWidth != -1 && this.lastWindowHeight != -1
+				&& (width != this.lastWindowWidth || height != this.lastWindowHeight)) {
+			this.skipNextFrame = true;
+		}
+		this.lastWindowWidth = width;
+		this.lastWindowHeight = height;
+		if (this.skipNextFrame || width <= 0 || height <= 0) {
+			this.skipNextFrame = false;
+			return;
+		}
 
-        lastWindowWidth = width;
-        lastWindowHeight = height;
+		ci.cancel();
+		this.ensureLogoTexture();
+		if (this.fadeIn) {
+			this.renderReloading(graphics, width, height);
+		} else {
+			this.renderInitial(graphics, width, height);
+		}
+	}
 
-        if (skipNextFrame || width <= 0 || height <= 0) {
-            skipNextFrame = false;
-            return;
-        }
+	@Unique
+	private void renderReloading(GuiGraphicsExtractor graphics, int width, int height) {
+		if (this.soar_reloadStartTime == -1L) {
+			this.soar_reloadStartTime = Util.getMillis();
+		}
+		this.soar_animationStartTime = -1L;
+		long elapsed = Util.getMillis() - this.soar_reloadStartTime;
+		if (elapsed > MAX_RELOAD_TIME) {
+			this.minecraft.gui.setOverlay(null);
+			this.onFinish.accept(Optional.empty());
+			this.soar_reloadStartTime = -1L;
+			return;
+		}
 
-        ci.cancel();
+		graphics.fill(0, 0, width, height, 0xFF000000);
+		this.blitLogo(graphics, width, height, 1.0F);
+		long cycle = 1500L;
+		float progress = (float)(Util.getMillis() % cycle) / cycle;
+		int barWidth = Math.max(1, width / 3);
+		int start = (int)((width + barWidth) * progress) - barWidth;
+		int end = start + barWidth;
+		int barY = height - PROGRESS_BAR_HEIGHT;
+		graphics.fill(0, barY, width, height, 0xFF303030);
+		graphics.fill(Math.max(0, start), barY, Math.min(width, end), height, 0xFFFFFFFF);
+	}
 
+	@Unique
+	private void renderInitial(GuiGraphicsExtractor graphics, int width, int height) {
+		this.soar_reloadStartTime = -1L;
+		if (this.soar_animationStartTime == -1L) {
+			this.soar_animationStartTime = Util.getMillis();
+		}
+		long elapsed = Util.getMillis() - this.soar_animationStartTime;
+		if (elapsed >= ANIMATION_TOTAL_TIME) {
+			this.minecraft.gui.setOverlay(null);
+			this.onFinish.accept(Optional.empty());
+			this.soar_animationStartTime = -1L;
+			return;
+		}
 
-        ensureLogoTexture();
+		float alpha = 1.0F;
+		long fadeStart = ANIMATION_TOTAL_TIME - FADE_DURATION;
+		if (elapsed > fadeStart) {
+			alpha = 1.0F - (float)(elapsed - fadeStart) / FADE_DURATION;
+		}
+		alpha = Mth.clamp(alpha, 0.0F, 1.0F);
+		graphics.fill(0, 0, width, height, 0xFF000000);
+		this.blitLogo(graphics, width, height, alpha);
 
-        if (this.reloading) {
-            if (this.soar_reloadStartTime == -1L) this.soar_reloadStartTime = Util.getMeasuringTimeMs();
-            this.soar_animationStartTime = -1L;
+		int barY = height - PROGRESS_BAR_HEIGHT;
+		int progressWidth = (int)(width * Math.min(1.0F, (float)elapsed / ANIMATION_TOTAL_TIME));
+		graphics.fill(0, barY, width, height, 0xFF303030);
+		graphics.fill(0, barY, progressWidth, height, ((int)(alpha * 255.0F) << 24) | PROGRESS_BAR_BASE_COLOR);
+	}
 
-            long reloadElapsed = Util.getMeasuringTimeMs() - this.soar_reloadStartTime;
-            if (reloadElapsed > MAX_RELOAD_TIME) {
-                try {
-                    this.client.setOverlay(null);
-                    this.exceptionHandler.accept(Optional.empty());
-                } catch (Exception ignored) {}
-                this.soar_reloadStartTime = -1L;
-                return;
-            }
-
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            try {
-                // 背景
-                context.fill(0, 0, width, height, 0xFF000000);
-
-                // Logo
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                context.getMatrices().push();
-                try {
-                    int scaledSize = (int)(LOGO_ACTUAL_SIZE * LOGO_SCALE);
-                    int logoX = (width - scaledSize) / 2;
-                    int logoY = (height - scaledSize) / 2;
-
-                    context.getMatrices().translate(logoX + scaledSize / 2f, logoY + scaledSize / 2f, 0);
-                    context.getMatrices().scale(LOGO_SCALE, LOGO_SCALE, 1f);
-                    context.getMatrices().translate(-LOGO_ACTUAL_SIZE / 2f, -LOGO_ACTUAL_SIZE / 2f, 0);
-
-                    context.drawTexture(
-                        RenderLayer::getGuiTextured,
-                        CUSTOM_LOGO,
-                        0, 0, 0, 0,
-                        LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE,
-                        LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE
-                    );
-                } finally {
-                    context.getMatrices().pop();
-                }
-
-                //进度条
-                long cycle = 1500L;
-                float p = (float)(Util.getMeasuringTimeMs() % cycle) / (float)cycle;
-                int barWidth = Math.max(1, width / 3);
-                int start = (int)((width + barWidth) * p) - barWidth;
-                int end = start + barWidth;
-
-                int bgColor = (0xFF << 24) | PROGRESS_BAR_BG_BASE_COLOR;
-                int progressBarY = height - PROGRESS_BAR_HEIGHT;
-                context.fill(0, progressBarY, width, height, bgColor);
-
-                int fgColor = (0xFF << 24) | PROGRESS_BAR_BASE_COLOR;
-                context.fill(Math.max(0, start), progressBarY, Math.min(width, end), height, fgColor);
-
-            } finally {
-                RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                RenderSystem.disableBlend();
-            }
-            return;
-        }
-
-        this.soar_reloadStartTime = -1L;
-        if (this.soar_animationStartTime == -1L) {
-            this.soar_animationStartTime = Util.getMeasuringTimeMs();
-        }
-
-        long timePassed = Util.getMeasuringTimeMs() - this.soar_animationStartTime;
-        if (timePassed >= ANIMATION_TOTAL_TIME) {
-            try {
-                this.client.setOverlay(null);
-                this.exceptionHandler.accept(Optional.empty());
-            } catch (Exception ignored) {}
-            this.soar_animationStartTime = -1L;
-            return;
-        }
-
-        float alpha = 1f;
-        long fadeStartTime = ANIMATION_TOTAL_TIME - FADE_DURATION;
-        if (timePassed > fadeStartTime) {
-            long fadeTimePassed = timePassed - fadeStartTime;
-            alpha = 1f - (float)fadeTimePassed / FADE_DURATION;
-        }
-        alpha = Math.max(0f, alpha);
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        try {
-            context.fill(0, 0, width, height, 0xFF000000);
-
-            // Logo
-            RenderSystem.setShaderColor(1f, 1f, 1f, alpha);
-            context.getMatrices().push();
-            try {
-                int scaledSize = (int)(LOGO_ACTUAL_SIZE * LOGO_SCALE);
-                int logoX = (width - scaledSize) / 2;
-                int logoY = (height - scaledSize) / 2;
-
-                context.getMatrices().translate(logoX + scaledSize / 2f, logoY + scaledSize / 2f, 0);
-                context.getMatrices().scale(LOGO_SCALE, LOGO_SCALE, 1f);
-                context.getMatrices().translate(-LOGO_ACTUAL_SIZE / 2f, -LOGO_ACTUAL_SIZE / 2f, 0);
-
-                context.drawTexture(
-                    RenderLayer::getGuiTextured,
-                    CUSTOM_LOGO,
-                    0, 0, 0, 0,
-                    LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE,
-                    LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE
-                );
-            } finally {
-                context.getMatrices().pop();
-            }
-
-            // 进度条
-            float progress = Math.min(1f, (float) timePassed / ANIMATION_TOTAL_TIME);
-            int progressBarY = height - PROGRESS_BAR_HEIGHT;
-            int progressWidth = (int) (width * progress);
-
-            int bgColor = (0xFF << 24) | PROGRESS_BAR_BG_BASE_COLOR;
-            context.fill(0, progressBarY, width, height, bgColor);
-
-            int fgColor = ((int)(alpha * 255f) << 24) | PROGRESS_BAR_BASE_COLOR;
-            context.fill(0, progressBarY, progressWidth, height, fgColor);
-
-        } finally {
-            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-            RenderSystem.disableBlend();
-        }
-    }
+	@Unique
+	private void blitLogo(GuiGraphicsExtractor graphics, int width, int height, float alpha) {
+		int scaledSize = (int)(LOGO_ACTUAL_SIZE * LOGO_SCALE);
+		int logoX = (width - scaledSize) / 2;
+		int logoY = (height - scaledSize) / 2;
+		Matrix3x2fStack pose = graphics.pose();
+		pose.pushMatrix();
+		try {
+			pose.translate(logoX + scaledSize / 2.0F, logoY + scaledSize / 2.0F);
+			pose.scale(LOGO_SCALE);
+			pose.translate(-LOGO_ACTUAL_SIZE / 2.0F, -LOGO_ACTUAL_SIZE / 2.0F);
+			graphics.blit(
+					RenderPipelines.GUI_TEXTURED,
+					CUSTOM_LOGO,
+					0, 0, 0.0F, 0.0F,
+					LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE,
+					LOGO_ACTUAL_SIZE, LOGO_ACTUAL_SIZE,
+					((int)(alpha * 255.0F) << 24) | 0xFFFFFF
+			);
+		} finally {
+			pose.popMatrix();
+		}
+	}
 }

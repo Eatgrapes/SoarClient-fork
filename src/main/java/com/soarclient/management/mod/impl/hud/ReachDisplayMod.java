@@ -1,17 +1,15 @@
 package com.soarclient.management.mod.impl.hud;
 
 import java.text.DecimalFormat;
-
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.RenderSkiaEvent;
 import com.soarclient.event.server.impl.AttackEntityEvent;
 import com.soarclient.event.server.impl.DamageEntityEvent;
 import com.soarclient.management.mod.api.hud.SimpleHUDMod;
 import com.soarclient.skia.font.Icon;
-
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 
 public class ReachDisplayMod extends SimpleHUDMod {
 
@@ -33,11 +31,11 @@ public class ReachDisplayMod extends SimpleHUDMod {
 
 		if (event.getEntityId() == possibleTarget) {
 
-			Entity entity = client.world.getEntityById(event.getEntityId());
+			Entity entity = client.level.getEntity(event.getEntityId());
 
 			possibleTarget = -1;
-			distance = client.player.getEyePos()
-					.distanceTo(closestPointToBox(client.player.getEyePos(), entity.getBoundingBox()));
+			distance = client.player.getEyePosition()
+					.distanceTo(closestPointToBox(client.player.getEyePosition(), entity.getBoundingBox()));
 			hitTime = System.currentTimeMillis();
 		}
 	};
@@ -46,8 +44,8 @@ public class ReachDisplayMod extends SimpleHUDMod {
 		possibleTarget = event.getEntityId();
 	};
 
-	private Vec3d closestPointToBox(Vec3d start, Box box) {
-		return new Vec3d(coerceIn(start.x, box.minX, box.maxX), coerceIn(start.y, box.minY, box.maxY),
+	private Vec3 closestPointToBox(Vec3 start, AABB box) {
+		return new Vec3(coerceIn(start.x, box.minX, box.maxX), coerceIn(start.y, box.minY, box.maxY),
 				coerceIn(start.z, box.minZ, box.maxZ));
 	}
 

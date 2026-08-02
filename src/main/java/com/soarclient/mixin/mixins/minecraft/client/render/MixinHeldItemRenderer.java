@@ -1,87 +1,62 @@
 package com.soarclient.mixin.mixins.minecraft.client.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.soarclient.management.mod.impl.player.OldAnimationsMod;
+import com.soarclient.management.mod.impl.render.CustomHandMod;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.FishingRodItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.soarclient.management.mod.impl.player.OldAnimationsMod;
-import com.soarclient.management.mod.impl.render.CustomHandMod;
-
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.HeldItemRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.BowItem;
-import net.minecraft.item.FishingRodItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Arm;
-import net.minecraft.util.Hand;
-
-@Mixin(HeldItemRenderer.class)
+@Mixin(ItemInHandRenderer.class)
 public abstract class MixinHeldItemRenderer {
 
-	@Shadow
-	protected abstract void applySwingOffset(MatrixStack matrices, Arm arm, float swingProgress);
+    @Shadow
+    private void applyItemArmAttackTransform(PoseStack poseStack, HumanoidArm arm, float attack) {
+        throw new AssertionError();
+    }
 
-	@Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = ("Lnet/minecraft/client/render/item/HeldItemRenderer;renderItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;Lnet/minecraft/item/ModelTransformationMode;ZLnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V"), ordinal = 1))
-	private void renderFirstPersonItem(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand,
-			float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
+    @Inject(method = "submitArmWithItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V", shift = At.Shift.AFTER))
+    private void applyHandTransforms(AbstractClientPlayer player, float frameInterp, float xRot,
+            InteractionHand hand, float attack, ItemStack itemStack, float inverseArmHeight,
+            PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, CallbackInfo ci) {
+        CustomHandMod handMod = CustomHandMod.getInstance();
+        if (handMod != null && handMod.isEnabled()) {
+            poseStack.translate(handMod.getX(), handMod.getY(), handMod.getZ());
+            poseStack.scale(handMod.getScale(), handMod.getScale(), handMod.getScale());
+        }
 
-		OldAnimationsMod mod = OldAnimationsMod.getInstance();
+        OldAnimationsMod animations = OldAnimationsMod.getInstance();
+        if (animations == null || !animations.isEnabled()) {
+            return;
+        }
+        if (itemStack.getItem() instanceof BowItem && animations.isOldBow()) {
+            poseStack.translate(0.0F, 0.05F, 0.04F);
+            poseStack.scale(0.93F, 1.0F, 1.0F);
+        } else if (itemStack.getItem() instanceof FishingRodItem && animations.isOldRod()) {
+            poseStack.translate(0.08F, -0.027F, -0.33F);
+            poseStack.scale(0.93F, 1.0F, 1.0F);
+        }
 
-		if (item.getItem() instanceof BowItem && mod.isEnabled() && mod.isOldBow()) {
-			matrices.translate(0f, 0.05f, 0.04f);
-			matrices.scale(0.93f, 1f, 1f);
-		} else if (item.getItem() instanceof FishingRodItem && mod.isEnabled() && mod.isOldRod()) {
-			matrices.translate(0.08f, -0.027f, -0.33f);
-			matrices.scale(0.93f, 1f, 1f);
-		}
-	}
-	
-	@Inject(method = "renderFirstPersonItem", at = @At("HEAD"))
-	private void applyCustomHand(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand,
-			float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		
-		CustomHandMod mod = CustomHandMod.getInstance();
-		
-		if(mod.isEnabled()) {
-			matrices.translate(mod.getX(), mod.getY(), mod.getZ());
-			matrices.scale(mod.getScale(), mod.getScale(), mod.getScale());
-		}
-	}
-	
-	@Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;applyEquipOffset(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/Arm;F)V", ordinal = 2, shift = At.Shift.AFTER))
-	private void applyFoodSwingOffset(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand,
-			float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		applyOldSwingOffset(player, hand, swingProgress, matrices);
-	}
-
-	@Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;applyEquipOffset(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/Arm;F)V", ordinal = 3, shift = At.Shift.AFTER))
-	private void applyBlockingSwingOffset(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand,
-			float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		applyOldSwingOffset(player, hand, swingProgress, matrices);
-	}
-
-	@Inject(method = "renderFirstPersonItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/item/HeldItemRenderer;applyEquipOffset(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/Arm;F)V", ordinal = 4, shift = At.Shift.AFTER))
-	private void applyBowSwingOffset(AbstractClientPlayerEntity player, float tickDelta, float pitch, Hand hand,
-			float swingProgress, ItemStack item, float equipProgress, MatrixStack matrices,
-			VertexConsumerProvider vertexConsumers, int light, CallbackInfo ci) {
-		applyOldSwingOffset(player, hand, swingProgress, matrices);
-	}
-
-	@Unique
-	private void applyOldSwingOffset(AbstractClientPlayerEntity player, Hand hand, float swingProgress,
-			MatrixStack matrices) {
-		if (OldAnimationsMod.getInstance().isEnabled() && OldAnimationsMod.getInstance().isOldBreaking()) {
-			final Arm arm = hand == Hand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
-			applySwingOffset(matrices, arm, swingProgress);
-		}
-	}
+        if (animations.isOldBreaking() && player.isUsingItem()) {
+            ItemUseAnimation useAnimation = itemStack.getUseAnimation();
+            if (useAnimation == ItemUseAnimation.EAT || useAnimation == ItemUseAnimation.DRINK
+                    || useAnimation == ItemUseAnimation.BLOCK || useAnimation == ItemUseAnimation.BOW) {
+                HumanoidArm arm = hand == InteractionHand.MAIN_HAND
+                        ? player.getMainArm()
+                        : player.getMainArm().getOpposite();
+                applyItemArmAttackTransform(poseStack, arm, attack);
+            }
+        }
+    }
 }

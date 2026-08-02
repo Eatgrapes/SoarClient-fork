@@ -8,7 +8,8 @@ import static org.lwjgl.opengl.GL20C.GL_VERTEX_SHADER;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
-
+import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.io.IOUtils;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
@@ -18,8 +19,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.util.Identifier;
 
 public class Shader {
 
@@ -61,8 +60,8 @@ public class Shader {
 	private String read(String path) {
 		try {
 			return IOUtils.toString(
-					MinecraftClient.getInstance().getResourceManager()
-							.getResource(Identifier.of("soar", "shaders/" + path)).get().getInputStream(),
+					Minecraft.getInstance().getResourceManager()
+							.getResource(Identifier.fromNamespaceAndPath("soar", "shaders/" + path)).get().open(),
 					StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new IllegalStateException("Could not read shader '" + path + "'", e);

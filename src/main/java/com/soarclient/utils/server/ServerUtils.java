@@ -1,24 +1,24 @@
 package com.soarclient.utils.server;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class ServerUtils {
 
-	private static MinecraftClient client = MinecraftClient.getInstance();
+	private static Minecraft client = Minecraft.getInstance();
 
 	public static boolean isJoin(Server server) {
 		return isMultiplayer() && getAddress().contains(server.getAddress());
 	}
 
 	public static boolean isSingleplayer() {
-		return client.isConnectedToLocalServer();
+		return client.hasSingleplayerServer();
 	}
 
 	public static boolean isMultiplayer() {
-		return client.getCurrentServerEntry() != null;
+		return client.getCurrentServer() != null;
 	}
 
 	public static String getAddress() {
-		return isMultiplayer() ? client.getCurrentServerEntry().address : "null";
+		return isMultiplayer() ? client.getCurrentServer().ip : "null";
 	}
 }

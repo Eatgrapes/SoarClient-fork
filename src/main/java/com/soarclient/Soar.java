@@ -3,7 +3,6 @@ package com.soarclient;
 import com.soarclient.animation.Delta;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.server.PacketHandler;
-import com.soarclient.libraries.browser.JCefBrowser;
 import com.soarclient.management.cape.CapeManager;
 import com.soarclient.management.color.ColorManager;
 import com.soarclient.management.config.ConfigManager;
@@ -38,7 +37,6 @@ public class Soar {
     private CapeManager capeManager;
 
     public void start() {
-        JCefBrowser.download();
         Fonts.loadAll();
         FileLocation.init();
         // I18n.setLanguage(Language.ENGLISH); // it is dead
@@ -59,6 +57,13 @@ public class Soar {
         EventBus.getInstance().register(new SoarHandler());
         EventBus.getInstance().register(new PacketHandler());
         EventBus.getInstance().register(new Delta());
+    }
+
+    public void close() {
+        if (capeManager != null) {
+            capeManager.close();
+            capeManager = null;
+        }
     }
 
     public static Soar getInstance() {

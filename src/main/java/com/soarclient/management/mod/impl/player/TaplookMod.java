@@ -1,9 +1,10 @@
 package com.soarclient.management.mod.impl.player;
 
 import java.util.Arrays;
-
+import net.minecraft.client.CameraType;
+import net.minecraft.client.input.KeyEvent;
 import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.management.mod.Mod;
@@ -13,13 +14,10 @@ import com.soarclient.management.mod.settings.impl.ComboSetting;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
 import com.soarclient.skia.font.Icon;
 
-import net.minecraft.client.option.Perspective;
-import net.minecraft.client.util.InputUtil;
-
 public class TaplookMod extends Mod {
 
 	private boolean active;
-	private Perspective prevPerspective;
+	private CameraType prevPerspective;
 	private boolean toggled;
 
 	private ComboSetting perspectiveSetting = new ComboSetting("setting.perspective", "setting.perspective.description",
@@ -27,7 +25,7 @@ public class TaplookMod extends Mod {
 	private BooleanSetting toggleSetting = new BooleanSetting("setting.toggle", "setting.toggle.description",
 			Icon.SWITCH, this, false);
 	private KeybindSetting keybindSetting = new KeybindSetting("setting.keybind", "setting.keybind.description",
-			Icon.KEYBOARD, this, InputUtil.fromKeyCode(GLFW.GLFW_KEY_V, 0));
+			Icon.KEYBOARD, this, InputConstants.getKey(new KeyEvent(GLFW.GLFW_KEY_V, 0, 0)));
 
 	public TaplookMod() {
 		super("mod.taplook.name", "mod.taplook.description", Icon.TOUCH_APP, ModCategory.PLAYER);
@@ -64,16 +62,16 @@ public class TaplookMod extends Mod {
 	private void start() {
 
 		String option = perspectiveSetting.getOption();
-		Perspective perspective = option.equals("setting.front") ? Perspective.THIRD_PERSON_FRONT
-				: Perspective.THIRD_PERSON_BACK;
+		CameraType perspective = option.equals("setting.front") ? CameraType.THIRD_PERSON_FRONT
+				: CameraType.THIRD_PERSON_BACK;
 
 		active = true;
-		prevPerspective = client.options.getPerspective();
-		client.options.setPerspective(perspective);
+		prevPerspective = client.options.getCameraType();
+		client.options.setCameraType(perspective);
 	}
 
 	private void stop() {
 		active = false;
-		client.options.setPerspective(prevPerspective);
+		client.options.setCameraType(prevPerspective);
 	}
 }

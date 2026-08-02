@@ -1,9 +1,10 @@
 package com.soarclient.management.mod.impl.hud;
 
 import java.text.DecimalFormat;
+import net.minecraft.client.input.KeyEvent;
 
 import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ClientTickEvent;
 import com.soarclient.event.client.RenderSkiaEvent;
@@ -11,8 +12,6 @@ import com.soarclient.management.mod.api.hud.SimpleHUDMod;
 import com.soarclient.management.mod.settings.impl.KeybindSetting;
 import com.soarclient.skia.font.Icon;
 import com.soarclient.utils.TimerUtils;
-
-import net.minecraft.client.util.InputUtil;
 
 public class StopwatchMod extends SimpleHUDMod {
 
@@ -22,7 +21,7 @@ public class StopwatchMod extends SimpleHUDMod {
 	private DecimalFormat timeFormat = new DecimalFormat("0.00");
 
 	private KeybindSetting keybindSetting = new KeybindSetting("setting.keybind", "setting.keybind.description",
-			Icon.KEYBOARD, this, InputUtil.fromKeyCode(GLFW.GLFW_KEY_P, 0));
+			Icon.KEYBOARD, this, InputConstants.getKey(new KeyEvent(GLFW.GLFW_KEY_P, 0, 0)));
 
 	public StopwatchMod() {
 		super("mod.stopwatch.name", "mod.stopwatch.description", Icon.TIMER);

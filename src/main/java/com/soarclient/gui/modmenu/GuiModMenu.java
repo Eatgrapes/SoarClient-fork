@@ -53,12 +53,12 @@ public class GuiModMenu extends SoarGui {
 
 	@Override
 	public float getX() {
-		return (client.getWindow().getWidth() / 2) - (getWidth() / 2);
+		return (client.getWindow().getScreenWidth() / 2) - (getWidth() / 2);
 	}
 
 	@Override
 	public float getY() {
-		return (client.getWindow().getHeight() / 2) - (getHeight() / 2);
+		return (client.getWindow().getScreenHeight() / 2) - (getHeight() / 2);
 	}
 
 	@Override

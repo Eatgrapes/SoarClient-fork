@@ -18,7 +18,7 @@ public class FPSDisplayMod extends SimpleHUDMod {
 
     @Override
     public String getText() {
-        int fps = client.getCurrentFps();
+        int fps = client.getFps();
         FakeFPSMod fakeFPSMod = FakeFPSMod.getInstance();
         if (fakeFPSMod != null) {
             fps = fakeFPSMod.getFakeFPS(fps);

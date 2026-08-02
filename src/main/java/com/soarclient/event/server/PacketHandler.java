@@ -8,41 +8,26 @@ import com.soarclient.event.server.impl.DamageEntityEvent;
 import com.soarclient.event.server.impl.GameJoinEvent;
 import com.soarclient.event.server.impl.ReceiveChatEvent;
 import com.soarclient.event.server.impl.SendChatEvent;
-import com.soarclient.mixin.mixins.minecraft.network.packet.PlayerInteractEntityC2SPacketAccessor;
-
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
-import net.minecraft.network.packet.s2c.play.ChatMessageS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityDamageS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
-import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientboundDamageEventPacket;
+import net.minecraft.network.protocol.game.ClientboundLoginPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.network.protocol.game.ClientboundSystemChatPacket;
+import net.minecraft.network.protocol.game.ServerboundAttackPacket;
+import net.minecraft.network.protocol.game.ServerboundChatPacket;
 
 public class PacketHandler {
 
 	public final EventBus.EventListener<SendPacketEvent> onSendPacket = packetEvent -> {
+		Packet<?> packet = packetEvent.getPacket();
 
-		Packet<?> basePacket = packetEvent.getPacket();
-
-		if (basePacket instanceof PlayerInteractEntityC2SPacket) {
-
-			PlayerInteractEntityC2SPacket packet = (PlayerInteractEntityC2SPacket) basePacket;
-			PlayerInteractEntityC2SPacket.InteractType type = ((PlayerInteractEntityC2SPacketAccessor) packet)
-					.getInteractTypeHandler().getType();
-
-			if (type.equals(PlayerInteractEntityC2SPacket.InteractType.ATTACK)) {
-				EventBus.getInstance()
-						.post(new AttackEntityEvent(((PlayerInteractEntityC2SPacketAccessor) packet).entityId()));
-			}
+		if (packet instanceof ServerboundAttackPacket attackPacket) {
+			EventBus.getInstance().post(new AttackEntityEvent(attackPacket.entityId()));
 		}
 
-		if (basePacket instanceof ChatMessageC2SPacket) {
-
-			ChatMessageC2SPacket packet = (ChatMessageC2SPacket) basePacket;
-			SendChatEvent event = new SendChatEvent(packet.chatMessage());
-
+		if (packet instanceof ServerboundChatPacket chatPacket) {
+			SendChatEvent event = new SendChatEvent(chatPacket.message());
 			EventBus.getInstance().post(event);
-
 			if (event.isCancelled()) {
 				packetEvent.setCancelled(true);
 			}
@@ -50,41 +35,29 @@ public class PacketHandler {
 	};
 
 	public final EventBus.EventListener<ReceivePacketEvent> onReceivePacket = packetEvent -> {
+		Packet<?> packet = packetEvent.getPacket();
 
-		Packet<?> basePacket = packetEvent.getPacket();
-
-		if (basePacket instanceof EntityDamageS2CPacket) {
-
-			EntityDamageS2CPacket packet = (EntityDamageS2CPacket) basePacket;
-
-			EventBus.getInstance().post(new DamageEntityEvent(packet.entityId()));
+		if (packet instanceof ClientboundDamageEventPacket damagePacket) {
+			EventBus.getInstance().post(new DamageEntityEvent(damagePacket.entityId()));
 		}
 
-		if (basePacket instanceof ChatMessageS2CPacket) {
-
-			ChatMessageS2CPacket packet = (ChatMessageS2CPacket) basePacket;
-			ReceiveChatEvent event = new ReceiveChatEvent(packet.body().content());
-
+		if (packet instanceof ClientboundPlayerChatPacket chatPacket) {
+			ReceiveChatEvent event = new ReceiveChatEvent(chatPacket.body().content());
 			EventBus.getInstance().post(event);
-
 			if (event.isCancelled()) {
 				packetEvent.setCancelled(true);
 			}
 		}
 
-		if (basePacket instanceof GameMessageS2CPacket) {
-
-			GameMessageS2CPacket packet = (GameMessageS2CPacket) basePacket;
-			ReceiveChatEvent event = new ReceiveChatEvent(packet.content().getString());
-
+		if (packet instanceof ClientboundSystemChatPacket chatPacket) {
+			ReceiveChatEvent event = new ReceiveChatEvent(chatPacket.content().getString());
 			EventBus.getInstance().post(event);
-
 			if (event.isCancelled()) {
 				packetEvent.setCancelled(true);
 			}
 		}
 
-		if (basePacket instanceof GameJoinS2CPacket) {
+		if (packet instanceof ClientboundLoginPacket) {
 			EventBus.getInstance().post(new GameJoinEvent());
 		}
 	};

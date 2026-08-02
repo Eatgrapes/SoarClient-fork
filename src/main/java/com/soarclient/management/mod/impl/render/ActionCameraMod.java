@@ -6,19 +6,19 @@ import com.soarclient.management.mod.settings.Setting;
 import com.soarclient.management.mod.settings.impl.BooleanSetting;
 import com.soarclient.management.mod.settings.impl.NumberSetting;
 import com.soarclient.skia.font.Icon;
-import net.minecraft.client.option.Perspective;
-import net.minecraft.util.math.Vec3d;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.CameraType;
+import net.minecraft.world.phys.Vec3;
 
 public class ActionCameraMod extends Mod {
     private final BooleanSetting disableFirstPers = new BooleanSetting("mod.actioncamera.disable_first_person", "mod.actioncamera.disable_first_person.desc", Icon.CAMERA, this, true);
     private final NumberSetting smoothness = new NumberSetting("mod.actioncamera.smoothness", "mod.actioncamera.smoothness.desc", Icon.TIMELINE, this, 0.3f, 0.1f, 0.95f, 0.01f);
     private final NumberSetting maxDistance = new NumberSetting("mod.actioncamera.max_distance", "mod.actioncamera.max_distance.desc", Icon.ZOOM_OUT, this, 20.0f, 1.0f, 50.0f, 0.5f);
 
-    private Vec3d cameraPos;
+    private Vec3 cameraPos;
     private int key = GLFW.GLFW_KEY_F6;
 
     public ActionCameraMod() {
@@ -33,7 +33,7 @@ public class ActionCameraMod extends Mod {
 
     private void initializeCameraPos() {
         if (client != null && client.player != null) {
-            cameraPos = client.player.getPos();
+            cameraPos = client.player.position();
         }
     }
 
@@ -45,16 +45,16 @@ public class ActionCameraMod extends Mod {
 
     private boolean firstPerson() {
         return client != null && client.options != null &&
-            client.options.getPerspective() == Perspective.FIRST_PERSON;
+            client.options.getCameraType() == CameraType.FIRST_PERSON;
     }
 
-    public Vec3d getCameraPos() {
+    public Vec3 getCameraPos() {
         if (cameraPos == null && client != null && client.player != null) {
-            cameraPos = client.player.getPos();
+            cameraPos = client.player.position();
         }
 
         if (firstPerson() && client.player != null) {
-            return new Vec3d(
+            return new Vec3(
                 client.player.getX(),
                 client.player.getY() + client.player.getEyeHeight(client.player.getPose()),
                 client.player.getZ()
@@ -63,7 +63,7 @@ public class ActionCameraMod extends Mod {
         return cameraPos;
     }
 
-    public void update(Vec3d playerPos) {
+    public void update(Vec3 playerPos) {
         if (client == null || client.player == null) return;
 
         if (cameraPos == null) {
@@ -86,7 +86,7 @@ public class ActionCameraMod extends Mod {
         double dy = playerPos.y + client.player.getEyeHeight(client.player.getPose()) - cameraPos.y;
         double dz = playerPos.z - cameraPos.z;
 
-        cameraPos = new Vec3d(
+        cameraPos = new Vec3(
             cameraPos.x + dx * dynamicFactor,
             cameraPos.y + dy * dynamicFactor,
             cameraPos.z + dz * dynamicFactor

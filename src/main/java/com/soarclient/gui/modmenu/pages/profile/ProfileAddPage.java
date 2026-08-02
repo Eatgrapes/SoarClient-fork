@@ -3,7 +3,7 @@ package com.soarclient.gui.modmenu.pages.profile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
 import com.soarclient.Soar;
@@ -27,7 +27,6 @@ import com.soarclient.utils.language.I18n;
 import com.soarclient.utils.mouse.MouseUtils;
 
 import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
-import net.minecraft.client.MinecraftClient;
 
 public class ProfileAddPage extends SimplePage {
 
@@ -46,7 +45,7 @@ public class ProfileAddPage extends SimplePage {
 	@Override
 	public void init() {
 
-		MinecraftClient client = MinecraftClient.getInstance();
+		Minecraft client = Minecraft.getInstance();
 
 		components.clear();
 		super.init();
@@ -63,7 +62,7 @@ public class ProfileAddPage extends SimplePage {
 			@Override
 			public void onAction() {
 				if (!nameField.getText().isEmpty()) {
-					Soar.getInstance().getProfileManager().save(nameField.getText(), client.getGameProfile().getName(),
+					Soar.getInstance().getProfileManager().save(nameField.getText(), client.getGameProfile().name(),
 							addressField.getText(), currentIcon, ConfigType.MOD);
 					Soar.getInstance().getProfileManager().readProfiles();
 					parent.setClosable(true);

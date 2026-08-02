@@ -1,5 +1,9 @@
 package com.soarclient.mixin.mixins.minecraft.client.option;
 
+import com.mojang.blaze3d.platform.InputConstants;
+import com.soarclient.management.mod.impl.player.SnapTapMod;
+import com.soarclient.mixin.interfaces.IMixinKeyBinding;
+import net.minecraft.client.KeyMapping;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -8,116 +12,53 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import com.soarclient.management.mod.impl.player.SnapTapMod;
-import com.soarclient.mixin.interfaces.IMixinKeyBinding;
-
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-
-@Mixin(KeyBinding.class)
+@Mixin(KeyMapping.class)
 public class MixinKeyBinding implements IMixinKeyBinding {
 
-	@Shadow
-	@Final
-	private InputUtil.Key defaultKey;
+    @Shadow @Final private InputConstants.Key defaultKey;
+    @Shadow private boolean isDown;
 
-	@Shadow
-	private boolean pressed;
+    @Inject(method = "isDown", at = @At("HEAD"), cancellable = true)
+    private void applySnapTap(CallbackInfoReturnable<Boolean> cir) {
+        SnapTapMod mod = SnapTapMod.getInstance();
+        if (mod == null || !mod.isEnabled() || !isDown) {
+            return;
+        }
 
-	@Inject(method = "isPressed", at = @At("HEAD"), cancellable = true)
-	public void onGetPressed(CallbackInfoReturnable<Boolean> cir) {
+        int key = defaultKey.getValue();
+        if (key == InputConstants.KEY_A) {
+            cir.setReturnValue(mod.getRightPressTime() == 0 || mod.getRightPressTime() <= mod.getLeftPressTime());
+        } else if (key == InputConstants.KEY_D) {
+            cir.setReturnValue(mod.getLeftPressTime() == 0 || mod.getLeftPressTime() <= mod.getRightPressTime());
+        } else if (key == InputConstants.KEY_W) {
+            cir.setReturnValue(mod.getBackPressTime() == 0 || mod.getBackPressTime() <= mod.getForwardPressTime());
+        } else if (key == InputConstants.KEY_S) {
+            cir.setReturnValue(mod.getForwardPressTime() == 0 || mod.getForwardPressTime() <= mod.getBackPressTime());
+        }
+    }
 
-		SnapTapMod mod = SnapTapMod.getInstance();
+    @Inject(method = "setDown", at = @At("HEAD"))
+    private void recordPressTime(boolean down, CallbackInfo ci) {
+        SnapTapMod mod = SnapTapMod.getInstance();
+        if (mod == null || !mod.isEnabled()) {
+            return;
+        }
 
-		if (mod == null || !mod.isEnabled()) {
-			return;
-		}
+        long time = down ? System.currentTimeMillis() : 0;
+        int key = defaultKey.getValue();
+        if (key == InputConstants.KEY_A) {
+            mod.setLeftPressTime(time);
+        } else if (key == InputConstants.KEY_D) {
+            mod.setRightPressTime(time);
+        } else if (key == InputConstants.KEY_W) {
+            mod.setForwardPressTime(time);
+        } else if (key == InputConstants.KEY_S) {
+            mod.setBackPressTime(time);
+        }
+    }
 
-		if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_A) {
-			if (this.pressed) {
-				if (mod.getRightPressTime() == 0) {
-					cir.setReturnValue(true);
-					cir.cancel();
-					return;
-				}
-
-				cir.setReturnValue(mod.getRightPressTime() <= mod.getLeftPressTime());
-				cir.cancel();
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_D) {
-			if (this.pressed) {
-				if (mod.getLeftPressTime() == 0) {
-					cir.setReturnValue(true);
-					cir.cancel();
-					return;
-				}
-
-				cir.setReturnValue(mod.getLeftPressTime() <= mod.getRightPressTime());
-				cir.cancel();
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_W) {
-			if (this.pressed) {
-				if (mod.getForwardPressTime() == 0) {
-					cir.setReturnValue(true);
-					cir.cancel();
-					return;
-				}
-
-				cir.setReturnValue(mod.getBackPressTime() <= mod.getForwardPressTime());
-				cir.cancel();
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_S) {
-			if (this.pressed) {
-				if (mod.getBackPressTime() == 0) {
-					cir.setReturnValue(true);
-					cir.cancel();
-					return;
-				}
-
-				cir.setReturnValue(mod.getForwardPressTime() <= mod.getBackPressTime());
-				cir.cancel();
-			}
-		}
-	}
-
-	@Inject(method = "setPressed", at = @At("HEAD"))
-	public void setPressed(boolean pressed, CallbackInfo ci) {
-
-		SnapTapMod mod = SnapTapMod.getInstance();
-
-		if (mod == null || !mod.isEnabled()) {
-			return;
-		}
-
-		if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_A) {
-			if (pressed) {
-				mod.setLeftPressTime(System.currentTimeMillis());
-			} else {
-				mod.setLeftPressTime(0);
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_D) {
-			if (pressed) {
-				mod.setRightPressTime(System.currentTimeMillis());
-			} else {
-				mod.setRightPressTime(0);
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_W) {
-			if (pressed) {
-				mod.setForwardPressTime(System.currentTimeMillis());
-			} else {
-				mod.setForwardPressTime(0);
-			}
-		} else if (this.defaultKey.getCode() == InputUtil.GLFW_KEY_S) {
-			if (pressed) {
-				mod.setBackPressTime(System.currentTimeMillis());
-			} else {
-				mod.setBackPressTime(0);
-			}
-		}
-	}
-
-	@Override
-	public boolean getRealIsPressed() {
-		return this.pressed;
-	}
+    @Override
+    public boolean getRealIsPressed() {
+        return isDown;
+    }
 }

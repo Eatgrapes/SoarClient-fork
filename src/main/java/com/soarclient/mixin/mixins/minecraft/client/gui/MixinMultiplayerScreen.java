@@ -7,15 +7,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import com.soarclient.event.EventBus;
 import com.soarclient.event.client.ServerJoinEvent;
+import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.multiplayer.ServerData;
 
-import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
-import net.minecraft.client.network.ServerInfo;
-
-@Mixin(MultiplayerScreen.class)
+@Mixin(JoinMultiplayerScreen.class)
 public class MixinMultiplayerScreen {
 
-    @Inject(method = "connect(Lnet/minecraft/client/network/ServerInfo;)V", at = @At("HEAD"), cancellable = true)
-    private void onConnect(ServerInfo server, CallbackInfo ci) {
-        EventBus.getInstance().post(new ServerJoinEvent(server.address));
+    @Inject(method = "join(Lnet/minecraft/client/multiplayer/ServerData;)V", at = @At("HEAD"))
+    private void onConnect(ServerData server, CallbackInfo ci) {
+        EventBus.getInstance().post(new ServerJoinEvent(server.ip));
     }
 }

@@ -16,13 +16,12 @@ import org.lwjgl.opengl.GL15C;
 import org.lwjgl.opengl.GL32C;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 public class PostProcessRenderer {
 
 	private static final Mesh mesh = new Mesh();
-	private static final MatrixStack matrices = new MatrixStack();
+	private static final PoseStack matrices = new PoseStack();
 
 	static {
 		mesh.begin();
@@ -147,13 +146,13 @@ public class PostProcessRenderer {
 			building = false;
 		}
 
-		public void beginRender(MatrixStack matrices) {
+		public void beginRender(PoseStack matrices) {
 			ShaderHelper.disableCull();
 
 			beganRendering = true;
 		}
 
-		public void render(MatrixStack matrices) {
+		public void render(PoseStack matrices) {
 			if (building)
 				end();
 

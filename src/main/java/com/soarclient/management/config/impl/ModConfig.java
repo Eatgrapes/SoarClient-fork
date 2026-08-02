@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 
 import com.google.gson.JsonObject;
+import com.mojang.blaze3d.platform.InputConstants;
 import com.soarclient.Soar;
 import com.soarclient.libraries.material3.hct.Hct;
 import com.soarclient.management.config.Config;
@@ -24,8 +25,6 @@ import com.soarclient.management.mod.settings.impl.NumberSetting;
 import com.soarclient.management.mod.settings.impl.StringSetting;
 import com.soarclient.utils.ColorUtils;
 import com.soarclient.utils.JsonUtils;
-
-import net.minecraft.client.util.InputUtil;
 
 public class ModConfig extends Config {
 
@@ -114,26 +113,26 @@ public class ModConfig extends Config {
 											s.getName());
 
 									String inType = JsonUtils.getStringProperty(innerSettingJsonObject, "type", "");
-									InputUtil.Type type = null;
+									InputConstants.Type type = null;
 
 									if (inType.equals("key")) {
-										type = InputUtil.Type.KEYSYM;
+										type = InputConstants.Type.KEYSYM;
 									} else if (inType.equals("mouse")) {
-										type = InputUtil.Type.MOUSE;
+										type = InputConstants.Type.MOUSE;
 									} else {
-										type = InputUtil.Type.SCANCODE;
+										type = InputConstants.Type.SCANCODE;
 									}
 
 									int code = JsonUtils.getIntProperty(innerSettingJsonObject, "code", -1);
 
 									if (!inType.isEmpty()) {
 
-										if (type.equals(InputUtil.Type.MOUSE)) {
-											ks.setKey(InputUtil.Type.MOUSE.createFromCode(code));
-										} else if (type.equals(InputUtil.Type.KEYSYM)) {
-											ks.setKey(InputUtil.Type.KEYSYM.createFromCode(code));
+										if (type.equals(InputConstants.Type.MOUSE)) {
+											ks.setKey(InputConstants.Type.MOUSE.getOrCreate(code));
+										} else if (type.equals(InputConstants.Type.KEYSYM)) {
+											ks.setKey(InputConstants.Type.KEYSYM.getOrCreate(code));
 										} else {
-											ks.setKey(InputUtil.Type.SCANCODE.createFromCode(code));
+											ks.setKey(InputConstants.Type.SCANCODE.getOrCreate(code));
 										}
 									} else {
 										ks.setKey(ks.getDefaultKey());
@@ -233,18 +232,18 @@ public class ModConfig extends Config {
 						KeybindSetting ks = (KeybindSetting) s;
 
 						String saveType = "";
-						InputUtil.Type type = ks.getKey().getCategory();
+						InputConstants.Type type = ks.getKey().getType();
 
-						if (type.equals(InputUtil.Type.KEYSYM)) {
+						if (type.equals(InputConstants.Type.KEYSYM)) {
 							saveType = "key";
-						} else if (type.equals(InputUtil.Type.MOUSE)) {
+						} else if (type.equals(InputConstants.Type.MOUSE)) {
 							saveType = "mouse";
 						} else {
 							saveType = "scancode";
 						}
 
 						innerSettingJsonObject.addProperty("type", saveType);
-						innerSettingJsonObject.addProperty("code", ks.getKey().getCode());
+						innerSettingJsonObject.addProperty("code", ks.getKey().getValue());
 
 						settingJsonObject.add(s.getName(), innerSettingJsonObject);
 					}

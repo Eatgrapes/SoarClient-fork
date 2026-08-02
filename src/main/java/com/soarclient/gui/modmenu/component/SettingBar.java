@@ -1,5 +1,6 @@
 package com.soarclient.gui.modmenu.component;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.soarclient.Soar;
 import com.soarclient.animation.SimpleAnimation;
 import com.soarclient.libraries.material3.hct.Hct;
@@ -15,8 +16,6 @@ import com.soarclient.ui.component.handler.impl.*;
 import com.soarclient.ui.component.impl.*;
 import com.soarclient.ui.component.impl.text.TextField;
 import com.soarclient.utils.language.I18n;
-import net.minecraft.client.util.InputUtil;
-
 import java.io.File;
 
 public class SettingBar extends Component {
@@ -95,7 +94,7 @@ public class SettingBar extends Component {
 			bind.setHandler(new KeybindHandler() {
 
 				@Override
-				public void onBinded(InputUtil.Key key) {
+				public void onBinded(InputConstants.Key key) {
 					kSetting.setKey(key);
 					Soar.getInstance().getConfigManager().save(ConfigType.MOD);
 				}

@@ -21,7 +21,7 @@ public class PitchDisplayMod extends SimpleHUDMod {
 
 	@Override
 	public String getText() {
-		return "Pitch: " + df.format(client.player.getPitch());
+		return "Pitch: " + df.format(client.player.getXRot());
 	}
 
 	@Override

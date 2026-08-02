@@ -9,17 +9,16 @@ import com.soarclient.management.mod.settings.impl.NumberSetting;
 import com.soarclient.skia.font.Icon;
 
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.ActionResult;
-
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import java.util.Arrays;
 
 public class HitEffectMod extends Mod {
@@ -80,34 +79,34 @@ public class HitEffectMod extends Mod {
 
     private void registerFabricCallbacks() {
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClient && player instanceof ClientPlayerEntity) {
-                if (!enabledSetting.isEnabled()) return ActionResult.PASS;
-                if (!(entity instanceof LivingEntity)) return ActionResult.PASS;
+            if (world.isClientSide() && player instanceof LocalPlayer) {
+                if (!enabledSetting.isEnabled()) return InteractionResult.PASS;
+                if (!(entity instanceof LivingEntity)) return InteractionResult.PASS;
 
-                ClientPlayerEntity clientPlayer = (ClientPlayerEntity) player;
+                LocalPlayer clientPlayer = (LocalPlayer) player;
                 boolean shouldTrigger = shouldTriggerEffect(clientPlayer, entity);
                 if (shouldTrigger) {
                     spawnParticleEffect(entity);
                     playSoundEffect(entity);
                 }
             }
-            return ActionResult.PASS;
+            return InteractionResult.PASS;
         });
     }
 
-    private boolean shouldTriggerEffect(ClientPlayerEntity player, Entity target) {
+    private boolean shouldTriggerEffect(LocalPlayer player, Entity target) {
         if (alwaysActiveSetting.isEnabled()) return true;
 
         boolean isCritical = criticalOnlySetting.isEnabled() &&
-            player.getAttackCooldownProgress(0.5F) > 0.9F &&
-            !player.isOnGround() && !player.isClimbing() &&
-            !player.isTouchingWater() && !player.hasVehicle() &&
+            player.getAttackStrengthScale(0.5F) > 0.9F &&
+            !player.onGround() && !player.onClimbable() &&
+            !player.isInWater() && !player.isPassenger() &&
             !player.isSprinting();
 
         boolean hasEnchantment = enchantmentOnlySetting.isEnabled() &&
-            EnchantmentHelper.getLevel(client.world.getRegistryManager()
-                    .getOrThrow(RegistryKeys.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS),
-                player.getWeaponStack()) > 0;
+            EnchantmentHelper.getItemEnchantmentLevel(client.level.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SHARPNESS),
+                player.getWeaponItem()) > 0;
 
         return isCritical || hasEnchantment ||
             (!criticalOnlySetting.isEnabled() && !enchantmentOnlySetting.isEnabled());
@@ -120,22 +119,22 @@ public class HitEffectMod extends Mod {
         for (int i = 0; i < amount; i++) {
             switch (particleType) {
                 case "setting.blood":
-                    client.particleManager.addEmitter(target, ParticleTypes.DAMAGE_INDICATOR);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.DAMAGE_INDICATOR);
                     break;
                 case "setting.criticals":
-                    client.particleManager.addEmitter(target, ParticleTypes.CRIT);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.CRIT);
                     break;
                 case "setting.sharpness":
-                    client.particleManager.addEmitter(target, ParticleTypes.ENCHANTED_HIT);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.ENCHANTED_HIT);
                     break;
                 case "setting.totem":
-                    client.particleManager.addEmitter(target, ParticleTypes.TOTEM_OF_UNDYING);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.TOTEM_OF_UNDYING);
                     break;
                 case "setting.hearts":
-                    client.particleManager.addEmitter(target, ParticleTypes.HEART);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.HEART);
                     break;
                 case "setting.magic":
-                    client.particleManager.addEmitter(target, ParticleTypes.WITCH);
+                    client.particleEngine.createTrackingEmitter(target, ParticleTypes.WITCH);
                     break;
             }
         }
@@ -148,23 +147,23 @@ public class HitEffectMod extends Mod {
 
         switch (soundType) {
             case "setting.sound.hit":
-                client.world.playSound(target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, SoundCategory.PLAYERS,
+                client.level.playLocalSound(target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.PLAYERS,
                     1.0F, 1.0F, false);
                 break;
             case "setting.sound.totem":
-                client.world.playSound(target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.ITEM_TOTEM_USE, SoundCategory.PLAYERS,
+                client.level.playLocalSound(target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.TOTEM_USE, SoundSource.PLAYERS,
                     1.0F, 1.0F, false);
                 break;
             case "setting.sound.bell":
-                client.world.playSound(target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.BLOCK_BELL_USE, SoundCategory.PLAYERS,
+                client.level.playLocalSound(target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.BELL_BLOCK, SoundSource.PLAYERS,
                     1.0F, 1.0F, false);
                 break;
             case "setting.sound.anvil":
-                client.world.playSound(target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.BLOCK_ANVIL_USE, SoundCategory.PLAYERS,
+                client.level.playLocalSound(target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.ANVIL_USE, SoundSource.PLAYERS,
                     1.0F, 1.0F, false);
                 break;
         }

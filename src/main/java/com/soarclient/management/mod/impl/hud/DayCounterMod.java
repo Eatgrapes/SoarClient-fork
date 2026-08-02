@@ -17,7 +17,7 @@ public class DayCounterMod extends SimpleHUDMod {
 
 	@Override
 	public String getText() {
-		long time = client.world.getTime() / 24000L;
+		long time = client.level.getGameTime() / 24000L;
 		return time + " Day" + (time > 1L ? "s" : "");
 	}
 

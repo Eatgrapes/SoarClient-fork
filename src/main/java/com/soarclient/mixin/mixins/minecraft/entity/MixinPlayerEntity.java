@@ -7,30 +7,29 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.soarclient.management.mod.impl.player.ForceMainHandMod;
 import com.soarclient.management.mod.impl.player.OldAnimationsMod;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.player.Player;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Arm;
-
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public class MixinPlayerEntity {
 
-	@Inject(method = "getAttackCooldownProgress", at = @At("HEAD"), cancellable = true)
-	public void disableCooldown(CallbackInfoReturnable<Float> cir) {
+	@Inject(method = "getAttackStrengthScale", at = @At("HEAD"), cancellable = true)
+	public void disableCooldown(float partialTick, CallbackInfoReturnable<Float> cir) {
 		if (OldAnimationsMod.getInstance().isEnabled() && OldAnimationsMod.getInstance().isDisableAttackCooldown()) {
 			cir.setReturnValue(1F);
 		}
 	}
 
 	@Inject(method = "getMainArm", at = @At("HEAD"), cancellable = true)
-	private void injectGetMainArm(CallbackInfoReturnable<Arm> cir) {
+	private void injectGetMainArm(CallbackInfoReturnable<HumanoidArm> cir) {
 
-		MinecraftClient client = MinecraftClient.getInstance();
-		PlayerEntity player = client.player;
-		PlayerEntity e = ((PlayerEntity) (Object) this);
+		Minecraft client = Minecraft.getInstance();
+		Player player = client.player;
+		Player e = ((Player) (Object) this);
 
 		if (ForceMainHandMod.getInstance().isEnabled() && e.getId() != player.getId()) {
-			cir.setReturnValue(ForceMainHandMod.getInstance().isRightHand() ? Arm.RIGHT : Arm.LEFT);
+			cir.setReturnValue(ForceMainHandMod.getInstance().isRightHand() ? HumanoidArm.RIGHT : HumanoidArm.LEFT);
 		}
 	}
 }

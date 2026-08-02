@@ -2,7 +2,7 @@ package com.soarclient.ui.component.impl;
 
 import com.soarclient.management.mod.impl.settings.ModMenuSettings;
 import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import com.soarclient.Soar;
 import com.soarclient.management.color.api.ColorPalette;
 import com.soarclient.skia.Skia;
@@ -11,19 +11,17 @@ import com.soarclient.ui.component.Component;
 import com.soarclient.ui.component.api.PressAnimation;
 import com.soarclient.ui.component.handler.impl.KeybindHandler;
 import com.soarclient.utils.mouse.MouseUtils;
-
-import net.minecraft.client.util.InputUtil;
-
 import java.awt.Color;
+import net.minecraft.client.input.KeyEvent;
 
 public class Keybind extends Component {
 
 	private final PressAnimation pressAnimation = new PressAnimation();
 
 	private boolean binding;
-	private InputUtil.Key key;
+	private InputConstants.Key key;
 
-	public Keybind(float x, float y, InputUtil.Key key) {
+	public Keybind(float x, float y, InputConstants.Key key) {
 		super(x, y);
 		this.key = key;
 		width = 126;
@@ -39,12 +37,12 @@ public class Keybind extends Component {
         String displayText;
         if (binding) {
             displayText = "...";
-        } else if (key.equals(InputUtil.UNKNOWN_KEY)) {
+        } else if (key.equals(InputConstants.UNKNOWN)) {
             displayText = "None";
         } else {
-            displayText = key.getLocalizedText().getString();
+            displayText = key.getDisplayName().getString();
             if (displayText.startsWith("scancode.") || displayText.equals("scancode 0")) {
-                displayText = "Key " + key.getCode();
+                displayText = "Key " + key.getValue();
             }
         }
 
@@ -110,9 +108,9 @@ public class Keybind extends Component {
 		if (binding) {
 
 			if (button == GLFW.GLFW_MOUSE_BUTTON_MIDDLE) {
-				setKeyCode(InputUtil.UNKNOWN_KEY);
+				setKeyCode(InputConstants.UNKNOWN);
 			} else if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
-				setKeyCode(InputUtil.Type.MOUSE.createFromCode(button));
+				setKeyCode(InputConstants.Type.MOUSE.getOrCreate(button));
 			}
 
 			binding = false;
@@ -125,19 +123,19 @@ public class Keybind extends Component {
     public void keyPressed(int keyCode, int scanCode, int modifiers) {
         if (binding) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
-                setKeyCode(InputUtil.UNKNOWN_KEY);
+                setKeyCode(InputConstants.UNKNOWN);
             } else {
-                setKeyCode(InputUtil.fromKeyCode(keyCode, scanCode));
+                setKeyCode(InputConstants.getKey(new KeyEvent(keyCode, scanCode, modifiers)));
             }
             this.binding = false;
         }
     }
 
-	public InputUtil.Key getKeyCode() {
+	public InputConstants.Key getKeyCode() {
 		return key;
 	}
 
-	public void setKeyCode(InputUtil.Key key) {
+	public void setKeyCode(InputConstants.Key key) {
 
 		this.key = key;
 

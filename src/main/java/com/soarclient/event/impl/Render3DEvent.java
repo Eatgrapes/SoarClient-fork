@@ -1,14 +1,14 @@
 package com.soarclient.event.impl;
 
 import com.soarclient.event.Event;
-import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 public class Render3DEvent extends Event {
 
     private final float partialTicks;
-    private final DrawContext context;
+    private final GuiGraphicsExtractor context;
 
-    public Render3DEvent(float partialTicks, DrawContext context) {
+    public Render3DEvent(float partialTicks, GuiGraphicsExtractor context) {
         this.partialTicks = partialTicks;
         this.context = context;
     }
@@ -17,7 +17,7 @@ public class Render3DEvent extends Event {
         return partialTicks;
     }
 
-    public DrawContext getContext() {
+    public GuiGraphicsExtractor getContext() {
         return context;
     }
 }

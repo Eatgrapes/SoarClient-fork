@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.io.File;
 
 import com.soarclient.management.mod.impl.settings.HUDModSettings;
-import com.soarclient.shader.impl.KawaseBlur;
 import com.soarclient.skia.context.SkiaContext;
 import com.soarclient.skia.image.ImageHelper;
 
@@ -12,52 +11,15 @@ import io.github.humbleui.skija.*;
 import io.github.humbleui.types.Point;
 import io.github.humbleui.types.RRect;
 import io.github.humbleui.types.Rect;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.Window;
-import net.minecraft.util.Identifier;
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.systems.RenderSystem;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL33;
 import java.util.function.Consumer;
+import net.minecraft.resources.Identifier;
 
 public class Skia {
 
 	private static final ImageHelper imageHelper = new ImageHelper();
 
 	public static void draw(Consumer<Canvas> drawingLogic) {
-		if (SkiaContext.getCanvas() == null) return;
-		RenderSystem.pixelStore(GlConst.GL_UNPACK_ROW_LENGTH, 0);
-		RenderSystem.pixelStore(GlConst.GL_UNPACK_SKIP_PIXELS, 0);
-		RenderSystem.pixelStore(GlConst.GL_UNPACK_SKIP_ROWS, 0);
-		RenderSystem.pixelStore(GlConst.GL_UNPACK_ALIGNMENT, 4);
-		RenderSystem.clearColor(0f, 0f, 0f, 0f);
-		if (SkiaContext.getContext() != null) SkiaContext.getContext().resetGLAll();
-		Canvas canvas = SkiaContext.getCanvas();
-		if (canvas != null) {
-			drawingLogic.accept(canvas);
-		}
-		if (SkiaContext.getContext() != null) SkiaContext.getContext().flush();
-		GL33.glBindSampler(0, 0);
-		RenderSystem.disableBlend();
-		GL11.glDisable(GL11.GL_BLEND);
-		RenderSystem.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-		GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
-		RenderSystem.blendEquation(GL33.GL_FUNC_ADD);
-		GL33.glBlendEquation(GL33.GL_FUNC_ADD);
-		RenderSystem.colorMask(true, true, true, true);
-		GL11.glColorMask(true, true, true, true);
-		RenderSystem.depthMask(true);
-		GL11.glDepthMask(true);
-		RenderSystem.disableScissor();
-		GL11.glDisable(GL11.GL_SCISSOR_TEST);
-		GL11.glDisable(GL11.GL_STENCIL_TEST);
-		RenderSystem.disableDepthTest();
-		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		GL13.glActiveTexture(GL13.GL_TEXTURE0);
-		RenderSystem.activeTexture(GL13.GL_TEXTURE0);
-		RenderSystem.disableCull();
+		SkiaContext.draw(drawingLogic);
 	}
 
 	public static void drawRect(float x, float y, float width, float height, Color color) {
@@ -90,31 +52,51 @@ public class Skia {
 	}
 
 	public static void drawBlur(float x, float y, float width, float height) {
+		if (HUDModSettings.getInstance() == null || !HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
+			return;
+		}
+		drawBlur(x, y, width, height, HUDModSettings.getInstance().getBlurIntensitySetting().getValue());
+	}
 
-		if (HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
+	public static void drawBlur(float x, float y, float width, float height, float intensity) {
+		drawBlur(x, y, width, height, intensity, 1F);
+	}
 
-			Window window = MinecraftClient.getInstance().getWindow();
-            Path path = Path.makeRect(Rect.makeXYWH(x, y, width, height));
+	public static void drawBlur(float x, float y, float width, float height, float intensity, float alpha) {
+		Image snapshot = SkiaContext.getBlurredFrame(intensity);
+		if (snapshot == null) {
+			return;
+		}
 
-			save();
-			getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-			drawImage(KawaseBlur.INGAME_BLUR.getTexture(), 0, 0, window.getScaledWidth(), window.getScaledHeight(), 1F,
-					SurfaceOrigin.BOTTOM_LEFT);
+		save();
+		try (Paint paint = new Paint().setAlpha((int) (255 * Math.max(0F, Math.min(1F, alpha))))) {
+			getCanvas().clipRect(Rect.makeXYWH(x, y, width, height), ClipMode.INTERSECT, true);
+			getCanvas().resetMatrix();
+			getCanvas().drawImage(snapshot, 0, 0, paint);
+		} finally {
 			restore();
 		}
 	}
 
 	public static void drawRoundedBlur(float x, float y, float width, float height, float radius) {
+		if (HUDModSettings.getInstance() == null || !HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
+			return;
+		}
+		drawRoundedBlur(x, y, width, height, radius, HUDModSettings.getInstance().getBlurIntensitySetting().getValue());
+	}
 
-		if (HUDModSettings.getInstance().getBlurSetting().isEnabled()) {
+	public static void drawRoundedBlur(float x, float y, float width, float height, float radius, float intensity) {
+		Image snapshot = SkiaContext.getBlurredFrame(intensity);
+		if (snapshot == null) {
+			return;
+		}
 
-			Window window = MinecraftClient.getInstance().getWindow();
-            Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
-
-			save();
-			getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-			drawImage(KawaseBlur.INGAME_BLUR.getTexture(), 0, 0, window.getScaledWidth(), window.getScaledHeight(), 1F,
-					SurfaceOrigin.BOTTOM_LEFT);
+		save();
+		try {
+			getCanvas().clipRRect(RRect.makeXYWH(x, y, width, height, radius), ClipMode.INTERSECT, true);
+			getCanvas().resetMatrix();
+			getCanvas().drawImage(snapshot, 0, 0);
+		} finally {
 			restore();
 		}
 	}
@@ -155,45 +137,10 @@ public class Skia {
 		}
 	}
 
-	public static void drawImage(int textureId, float x, float y, float width, float height, float alpha,
-			SurfaceOrigin origin) {
-
-		if (imageHelper.load(textureId, width, height, origin)) {
-			Paint paint = new Paint();
-			paint.setAlpha((int) (255 * alpha));
-			getCanvas().drawImageRect(imageHelper.get(textureId), Rect.makeXYWH(x, y, width, height), paint);
-		}
-	}
-
-	public static void drawImage(int textureId, float x, float y, float width, float height, float alpha) {
-		drawImage(textureId, x, y, width, height, alpha, SurfaceOrigin.TOP_LEFT);
-	}
-
 	public static void drawImage(File file, float x, float y, float width, float height) {
 		if (imageHelper.load(file)) {
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), Rect.makeXYWH(x, y, width, height));
+			getCanvas().drawImageRect(imageHelper.get(file), Rect.makeXYWH(x, y, width, height));
 		}
-	}
-
-	public static void drawImage(int textureId, float x, float y, float width, float height, SurfaceOrigin origin) {
-
-		if (imageHelper.load(textureId, width, height, origin)) {
-			getCanvas().drawImageRect(imageHelper.get(textureId), Rect.makeXYWH(x, y, width, height));
-		}
-	}
-
-	public static void drawImage(int textureId, float x, float y, float width, float height) {
-		drawImage(textureId, x, y, width, height, SurfaceOrigin.TOP_LEFT);
-	}
-
-	public static void drawRoundedImage(int textureId, float x, float y, float width, float height, float radius) {
-
-        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
-
-		save();
-		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-		drawImage(textureId, x, y, width, height);
-		restore();
 	}
 
 	public static void drawRoundedImage(String filePath, float x, float y, float width, float height, float radius) {
@@ -216,24 +163,9 @@ public class Skia {
 		restore();
 	}
 
-	public static void drawRoundedImage(int textureId, float x, float y, float width, float height, float radius,
-			float alpha, SurfaceOrigin origin) {
-        Path path = Path.makeRRect(RRect.makeXYWH(x, y, width, height, radius));
-
-		save();
-		getCanvas().clipPath(path, ClipMode.INTERSECT, true);
-		drawImage(textureId, x, y, width, height, alpha, origin);
-		restore();
-	}
-
-	public static void drawRoundedImage(int textureId, float x, float y, float width, float height, float radius,
-			float alpha) {
-		drawRoundedImage(textureId, x, y, width, height, radius, alpha, SurfaceOrigin.TOP_LEFT);
-	}
-
 	public static void drawPlayerHead(Identifier identifier, float x, float y, float width, float height, float radius) {
 		if (imageHelper.load(identifier)) {
-			drawPlayerHeadInternal(imageHelper.get(identifier.getPath()), x, y, width, height, radius);
+			drawPlayerHeadInternal(imageHelper.get(identifier), x, y, width, height, radius);
 		}
 	}
 
@@ -272,42 +204,42 @@ public class Skia {
 
 			save();
 			scale(x, y, scale);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), head,
+			getCanvas().drawImageRect(imageHelper.get(file), head,
 					Rect.makeXYWH(x + leftArm.getWidth(), y, head.getWidth(), head.getHeight()), null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), headLayer,
+			getCanvas().drawImageRect(imageHelper.get(file), headLayer,
 					Rect.makeXYWH(x + leftArm.getWidth(), y, headLayer.getWidth(), headLayer.getHeight()), null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), body,
+			getCanvas().drawImageRect(imageHelper.get(file), body,
 					Rect.makeXYWH(x + leftArm.getWidth(), y + head.getHeight(), body.getWidth(), body.getHeight()),
 					null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), bodyLayer, Rect.makeXYWH(x + leftArm.getWidth(),
+			getCanvas().drawImageRect(imageHelper.get(file), bodyLayer, Rect.makeXYWH(x + leftArm.getWidth(),
 					y + headLayer.getHeight(), bodyLayer.getWidth(), bodyLayer.getHeight()), null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), leftArm,
+			getCanvas().drawImageRect(imageHelper.get(file), leftArm,
 					Rect.makeXYWH(x, y + head.getHeight(), leftArm.getWidth(), leftArm.getHeight()), null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), leftArmLayer,
+			getCanvas().drawImageRect(imageHelper.get(file), leftArmLayer,
 					Rect.makeXYWH(x, y + headLayer.getHeight(), leftArmLayer.getWidth(), leftArmLayer.getHeight()),
 					null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), rightArm,
+			getCanvas().drawImageRect(imageHelper.get(file), rightArm,
 					Rect.makeXYWH(x + leftArm.getWidth() + body.getWidth(), y + head.getHeight(), rightArm.getWidth(),
 							rightArm.getHeight()),
 					null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), rightArmLayer,
+			getCanvas().drawImageRect(imageHelper.get(file), rightArmLayer,
 					Rect.makeXYWH(x + leftArmLayer.getWidth() + bodyLayer.getWidth(), y + headLayer.getHeight(),
 							rightArmLayer.getWidth(), rightArmLayer.getHeight()),
 					null, false);
 			getCanvas().drawImageRect(
-					imageHelper.get(file.getName()), leftLeg, Rect.makeXYWH(x + leftArm.getWidth(),
+					imageHelper.get(file), leftLeg, Rect.makeXYWH(x + leftArm.getWidth(),
 							y + head.getHeight() + body.getHeight(), leftLeg.getWidth(), leftLeg.getHeight()),
 					null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), leftLegLayer,
+			getCanvas().drawImageRect(imageHelper.get(file), leftLegLayer,
 					Rect.makeXYWH(x + leftArmLayer.getWidth(), y + headLayer.getHeight() + bodyLayer.getHeight(),
 							leftLegLayer.getWidth(), leftLegLayer.getHeight()),
 					null, false);
 			getCanvas()
-					.drawImageRect(imageHelper.get(file.getName()), rightLeg,
+					.drawImageRect(imageHelper.get(file), rightLeg,
 							Rect.makeXYWH(x + leftArm.getWidth() + leftLeg.getWidth(),
 									y + head.getHeight() + body.getHeight(), rightLeg.getWidth(), rightLeg.getHeight()),
 							null, false);
-			getCanvas().drawImageRect(imageHelper.get(file.getName()), rightLegLayer,
+			getCanvas().drawImageRect(imageHelper.get(file), rightLegLayer,
 					Rect.makeXYWH(x + leftArmLayer.getWidth() + leftLegLayer.getWidth(),
 							y + headLayer.getHeight() + bodyLayer.getHeight(), rightLegLayer.getWidth(),
 							rightLegLayer.getHeight()),
@@ -317,10 +249,10 @@ public class Skia {
 		}
 	}
     public static void drawMinecraftImage(String path, float x, float y, float width, float height) {
-        Identifier identifier = Identifier.of("minecraft", path);
+        Identifier identifier = Identifier.fromNamespaceAndPath("minecraft", path);
 
         if (imageHelper.load(identifier)) {
-            getCanvas().drawImageRect(imageHelper.get(identifier.getPath()), Rect.makeXYWH(x, y, width, height));
+            getCanvas().drawImageRect(imageHelper.get(identifier), Rect.makeXYWH(x, y, width, height));
         }
     }
 
@@ -514,6 +446,11 @@ public class Skia {
 		paint.setAlpha(alpha);
 
 		getCanvas().saveLayer(null, paint);
+	}
+
+	public static void close() {
+		SkiaContext.close();
+		imageHelper.close();
 	}
 
 	public static Canvas getCanvas() {
