@@ -51,12 +51,7 @@ sourceSets {
         java {
             exclude 'com/soarclient/libraries/browser/**'
             exclude 'com/soarclient/management/mod/impl/hud/WebBrowserMod.java'
-            exclude 'com/soarclient/mixin/mixins/minecraft/client/gui/MixinChatScreen.java'
-            exclude 'com/soarclient/mixin/mixins/minecraft/client/render/BufferRendererAccessor.java'
-            exclude 'com/soarclient/mixin/mixins/minecraft/network/packet/PlayerInteractEntityC2SPacketAccessor.java'
             exclude 'com/soarclient/mixin/mixins/minecraft/entity/MixinPlayerEntity.java'
-            exclude 'com/soarclient/mixin/mixins/minecraft/client/util/MixinWindow.java'
-            exclude 'com/soarclient/shader/**'
         }
         resources {
             exclude 'assets/soar/shaders/**'
