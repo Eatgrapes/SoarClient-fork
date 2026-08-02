@@ -14,7 +14,7 @@
 
 ### Prerequisites 
 
-- **Java 21** or higher
+- **Java 25** or higher
 - **Git** (for cloning the repository
 
 ## Build Commands 
