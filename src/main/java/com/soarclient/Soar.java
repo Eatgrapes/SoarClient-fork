@@ -15,6 +15,7 @@ import com.soarclient.management.websocket.WebSocketManager;
 import com.soarclient.skia.font.Fonts;
 import com.soarclient.utils.file.FileLocation;
 import com.soarclient.utils.language.I18n;
+import com.soarclient.utils.render.Render3D;
 import com.soarclient.utils.language.Language;
 
 public class Soar {
@@ -39,6 +40,7 @@ public class Soar {
     public void start() {
         Fonts.loadAll();
         FileLocation.init();
+        Render3D.init();
         // I18n.setLanguage(Language.ENGLISH); // it is dead
 
         launchTime = System.currentTimeMillis();
